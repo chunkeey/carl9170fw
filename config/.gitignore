@@ -1,0 +1,5 @@
+lex.zconf.c
+zconf.hash.c
+zconf.tab.c
+conf
+lex.backup

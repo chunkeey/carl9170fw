@@ -1,0 +1,19 @@
+Community AR9170 Linux firmware
+-----------------------
+
+This is the firmware for the Atheros ar9170 802.11n devices.
+
+To build the firmware you will need an SH-2 toolchain.
+You can build your own toolchain:
+
+make -C toolchain
+
+but be aware that this will take some time and requires
+about 1.2 GiB disk space.
+
+The resulting firmware, carl9170.fw, can be used only
+with the carl9170 Linux driver.
+
+After getting a toolchain, simply build:
+
+autogen.sh
