@@ -195,9 +195,9 @@ int carlu_tx(struct carlu *ar, struct frame *frame)
 	txp->f.mac_control |= cpu_to_le16(queue << AR9170_TX_MAC_QOS_S);
 
 	txp->f.phy_control = cpu_to_le32(AR9170_TX_PHY_MOD_CCK | AR9170_TX_PHY_BW_20MHZ |
-		((17 * 2) << AR9170_TX_PHY_TX_PWR_SHIFT) |
-		(AR9170_TX_PHY_TXCHAIN_1 << AR9170_TX_PHY_TXCHAIN_SHIFT) |
-		(11 << AR9170_TX_PHY_MCS_SHIFT));
+					 ((17 * 2) << AR9170_TX_PHY_TX_PWR_S) |
+					 (AR9170_TX_PHY_TXCHAIN_1 << AR9170_TX_PHY_TXCHAIN_S) |
+					 (11 << AR9170_TX_PHY_MCS_S));
 
 	frame_queue_tail(&ar->tx_sent_queue[queue], frame);
 	carlusb_tx(ar, frame);
