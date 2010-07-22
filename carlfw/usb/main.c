@@ -152,6 +152,7 @@ static void usb_status_in(void)
 		goto reclaim;
 	}
 
+	fw.usb.int_desc->ctrl = AR9170_CTRL_FS_BIT | AR9170_CTRL_LS_BIT;
 	fw.usb.int_desc->totalLen = tlen;
 	fw.usb.int_desc->dataSize = tlen;
 

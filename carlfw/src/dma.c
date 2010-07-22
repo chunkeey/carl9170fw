@@ -212,9 +212,6 @@ void dma_put(struct dma_queue *q, struct dma_desc *desc)
 
 	tmpDesc = desc;
 
-	/* force correct CTRL_BITS */
-	tmpDesc->ctrl = 0;
-	tmpDesc->ctrl |= AR9170_CTRL_FS_BIT;
 	while (1) {
 		/* update totalLen */
 		tmpDesc->totalLen = desc->totalLen;
@@ -229,9 +226,7 @@ void dma_put(struct dma_queue *q, struct dma_desc *desc)
 			break;
 
 		tmpDesc = tmpDesc->nextAddr;
-		tmpDesc->ctrl = 0;
 	}
-	tmpDesc->ctrl |= AR9170_CTRL_LS_BIT;
 
 	/* 2. Next address of Last TD to be added = first TD */
 	desc->lastAddr->nextAddr = desc;
