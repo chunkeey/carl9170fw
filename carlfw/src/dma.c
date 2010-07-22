@@ -192,7 +192,7 @@ void dma_reclaim(struct dma_queue *q, struct dma_desc *desc)
 	desc->status = AR9170_OWN_BITS_SW;
 
 	/* 5. Copy TTD to last TD */
-	tdesc.status &= (~AR9170_OWN_BITS_MASK);
+	tdesc.status &= (~AR9170_OWN_BITS);
 	copy_dma_desc((void *)q->terminator, (void *)&tdesc);
 	q->terminator->status |= AR9170_OWN_BITS_HW;
 
@@ -253,7 +253,7 @@ void dma_put(struct dma_queue *q, struct dma_desc *desc)
 	desc->dataAddr = NULL;
 
 	/* 5. Copy TTD to last TD */
-	tdesc.status &= (~AR9170_OWN_BITS_MASK);
+	tdesc.status &= (~AR9170_OWN_BITS);
 	copy_dma_desc((void *)q->terminator, (void *)&tdesc);
 	q->terminator->status |= AR9170_OWN_BITS_HW;
 

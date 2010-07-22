@@ -290,7 +290,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 
 	success = true;
 
-	if (!!(desc->ctrl & AR9170_CTRL_FAIL_MASK)) {
+	if (!!(desc->ctrl & AR9170_CTRL_FAIL)) {
 		txfail = !!(desc->ctrl & AR9170_CTRL_TXFAIL);
 
 		/* reset retry indicator flags */

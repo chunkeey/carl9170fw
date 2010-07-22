@@ -176,39 +176,40 @@ struct ar9170_dma_memory {
 
 extern struct ar9170_dma_memory dma_mem;
 
-#define AR9170_DOWN_BLOCK_RATIO     2
-#define AR9170_RX_BLOCK_RATIO       1
+#define AR9170_DOWN_BLOCK_RATIO	2
+#define AR9170_RX_BLOCK_RATIO	1
 /* Tx 16*2 = 32 packets => 32*(5*320) */
-#define AR9170_TX_BLOCK_NUMBER     (AR9170_BLOCK_NUMBER * AR9170_DOWN_BLOCK_RATIO / \
-				   (AR9170_RX_BLOCK_RATIO + AR9170_DOWN_BLOCK_RATIO))
-#define AR9170_RX_BLOCK_NUMBER     (AR9170_BLOCK_NUMBER - AR9170_TX_BLOCK_NUMBER)
+#define AR9170_TX_BLOCK_NUMBER	(AR9170_BLOCK_NUMBER * AR9170_DOWN_BLOCK_RATIO / \
+				(AR9170_RX_BLOCK_RATIO + AR9170_DOWN_BLOCK_RATIO))
+#define AR9170_RX_BLOCK_NUMBER	(AR9170_BLOCK_NUMBER - AR9170_TX_BLOCK_NUMBER)
 
 /* Error code */
-#define AR9170_ERR_FS_BIT           1
-#define AR9170_ERR_LS_BIT           2
-#define AR9170_ERR_OWN_BITS         3
-#define AR9170_ERR_DATA_SIZE        4
-#define AR9170_ERR_TOTAL_LEN        5
-#define AR9170_ERR_DATA             6
-#define AR9170_ERR_SEQ              7
-#define AR9170_ERR_LEN              8
+#define AR9170_ERR_FS_BIT	1
+#define AR9170_ERR_LS_BIT	2
+#define AR9170_ERR_OWN_BITS	3
+#define AR9170_ERR_DATA_SIZE	4
+#define AR9170_ERR_TOTAL_LEN	5
+#define AR9170_ERR_DATA		6
+#define AR9170_ERR_SEQ		7
+#define AR9170_ERR_LEN		8
 
 /* Status bits definitions */
 /* Own bits definitions */
-#define AR9170_OWN_BITS_MASK        0x3
-#define AR9170_OWN_BITS_SW          0x0
-#define AR9170_OWN_BITS_HW          0x1
-#define AR9170_OWN_BITS_SE          0x2
+#define AR9170_OWN_BITS		0x3
+#define AR9170_OWN_BITS_S	0
+#define AR9170_OWN_BITS_SW	0x0
+#define AR9170_OWN_BITS_HW	0x1
+#define AR9170_OWN_BITS_SE	0x2
 
 /* Control bits definitions */
 #define AR9170_CTRL_TXFAIL	1
 #define AR9170_CTRL_BAFAIL	2
-#define AR9170_CTRL_FAIL_MASK	(AR9170_CTRL_TXFAIL | AR9170_CTRL_BAFAIL)
+#define AR9170_CTRL_FAIL	(AR9170_CTRL_TXFAIL | AR9170_CTRL_BAFAIL)
 
 /* First segament bit */
-#define AR9170_CTRL_LS_BIT               0x100
+#define AR9170_CTRL_LS_BIT	0x100
 /* Last segament bit */
-#define AR9170_CTRL_FS_BIT               0x200
+#define AR9170_CTRL_FS_BIT	0x200
 
 struct dma_queue {
 	struct dma_desc *head;
@@ -240,7 +241,7 @@ static inline __inline struct dma_desc *dma_dequeue_bits(struct dma_queue *q,
 {
 	struct dma_desc *desc = NULL;
 
-	if ((q->head->status & AR9170_OWN_BITS_MASK) == bits)
+	if ((q->head->status & AR9170_OWN_BITS) == bits)
 		desc = dma_unlink_head(q);
 
 	return desc;
@@ -252,7 +253,7 @@ static inline __inline struct dma_desc *dma_dequeue_not_bits(struct dma_queue *q
 	struct dma_desc *desc = NULL;
 
 	/* AR9170_OWN_BITS_HW will be filtered out here too. */
-	if ((q->head->status & AR9170_OWN_BITS_MASK) != bits)
+	if ((q->head->status & AR9170_OWN_BITS) != bits)
 		desc = dma_unlink_head(q);
 
 	return desc;
@@ -270,13 +271,13 @@ static inline __inline struct dma_desc *dma_dequeue_not_bits(struct dma_queue *q
 #define __for_each_desc_bits(desc, queue, bits)				\
 	for (desc = (queue)->head;					\
 	     (desc != (queue)->terminator &&				\
-	     (desc->status & AR9170_OWN_BITS_MASK) == bits);		\
+	     (desc->status & AR9170_OWN_BITS) == bits);			\
 	     desc = desc->lastAddr->nextAddr)
 
 #define __while_desc_bits(desc, queue, bits)				\
 	for (desc = (queue)->head;					\
 	     (!queue_empty(queue) &&					\
-	     (desc->status & AR9170_OWN_BITS_MASK) == bits);		\
+	     (desc->status & AR9170_OWN_BITS) == bits);			\
 	     desc = (queue)->head)
 
 #define __for_each_desc(desc, queue)					\
@@ -311,7 +312,7 @@ static inline __inline unsigned int queue_len(struct dma_queue *q)
 static inline __inline void dma_rearm(struct dma_desc *desc)
 {
 	/* Set OWN bit to HW */
-	desc->status = ((desc->status & (~AR9170_OWN_BITS_MASK)) |
+	desc->status = ((desc->status & (~AR9170_OWN_BITS)) |
 			AR9170_OWN_BITS_HW);
 }
 

@@ -97,7 +97,7 @@ static inline __inline uint8_t ar9170_get_rx_macstatus_error(struct dma_desc *de
 static inline __inline struct ieee80211_hdr *ar9170_get_rx_i3e(struct dma_desc *desc)
 {
 	if (!((ar9170_get_rx_macstatus_status(desc) &
-		AR9170_RX_STATUS_MPDU_MASK) & AR9170_RX_STATUS_MPDU_LAST)) {
+		AR9170_RX_STATUS_MPDU) & AR9170_RX_STATUS_MPDU_LAST)) {
 		return (void *)(DESC_PAYLOAD_OFF(desc,
 			offsetof(struct ar9170_rx_frame_head, i3e)));
 	} else {
@@ -109,7 +109,7 @@ static inline __inline struct ieee80211_hdr *ar9170_get_rx_i3e(struct dma_desc *
 static inline __inline struct ar9170_rx_head *ar9170_get_rx_head(struct dma_desc *desc)
 {
 	if (!((ar9170_get_rx_macstatus_status(desc) &
-		AR9170_RX_STATUS_MPDU_MASK) & AR9170_RX_STATUS_MPDU_LAST)) {
+		AR9170_RX_STATUS_MPDU) & AR9170_RX_STATUS_MPDU_LAST)) {
 		return (void *)((uint8_t *)DESC_PAYLOAD(desc) +
 			offsetof(struct ar9170_rx_frame_head, phy_head));
 	} else {
@@ -131,7 +131,7 @@ static inline __inline uint32_t ar9170_rx_to_phy(struct dma_desc *rx)
 
 	mac_status = ar9170_get_rx_macstatus_status(rx);
 
-	phy.modulation = mac_status & AR9170_RX_STATUS_MODULATION_MASK;
+	phy.modulation = mac_status & AR9170_RX_STATUS_MODULATION;
 	phy.chains = AR9170_TX_PHY_TXCHAIN_1;
 
 	switch (phy.modulation) {
@@ -190,7 +190,7 @@ static inline __inline unsigned int ar9170_get_rx_mpdu_len(struct dma_desc *desc
 
 	mpdu_len -= sizeof(struct ar9170_rx_macstatus);
 
-	switch (ar9170_get_rx_macstatus_status(desc) & AR9170_RX_STATUS_MPDU_MASK) {
+	switch (ar9170_get_rx_macstatus_status(desc) & AR9170_RX_STATUS_MPDU) {
 	case AR9170_RX_STATUS_MPDU_LAST:
 		mpdu_len -= sizeof(struct ar9170_rx_phystatus);
 		break;
