@@ -84,7 +84,7 @@
 /* these are either-or */
 #define	AR9170_TX_MAC_PROT_RTS			0x0001
 #define	AR9170_TX_MAC_PROT_CTS			0x0002
-#define	AR9170_TX_MAC_PROT_MASK			0x0003
+#define	AR9170_TX_MAC_PROT			0x0003
 
 #define	AR9170_TX_MAC_NO_ACK			0x0004
 /* if unset, MAC will only do SIFS space before frame */
@@ -229,6 +229,12 @@ struct ar9170_tx_hw_phy_control {
 	} __packed;
 } __packed;
 
+struct ar9170_tx_rate_info {
+	u8 tries:3;
+	u8 erp_prot:2;
+	u8 free:3; /* free for use (e.g.:RIFS/TXOP/AMPDU) */
+} __packed;
+
 struct carl9170_tx_superdesc {
 	__le16 len;
 	u8 rix;
@@ -244,7 +250,7 @@ struct carl9170_tx_superdesc {
 	u8 fill_in_tsf:1;
 	u8 cab:1;
 	u8 padding2;
-	u8 tries[CARL9170_TX_MAX_RATES];
+	struct ar9170_tx_rate_info ri[CARL9170_TX_MAX_RATES];
 	struct ar9170_tx_hw_phy_control rr[CARL9170_TX_MAX_RETRY_RATES];
 } __packed;
 
@@ -292,6 +298,11 @@ struct _ar9170_tx_hwdesc {
 #define	CARL9170_TX_SUPER_MISC_FILL_IN_TSF		0x40
 #define	CARL9170_TX_SUPER_MISC_CAB			0x80
 
+#define CARL9170_TX_SUPER_RI_TRIES			0x7
+#define CARL9170_TX_SUPER_RI_TRIES_S			0
+#define CARL9170_TX_SUPER_RI_ERP_PROT			0x18
+#define CARL9170_TX_SUPER_RI_ERP_PROT_S			3
+
 struct _carl9170_tx_superdesc {
 	__le16 len;
 	u8 rix;
@@ -300,7 +311,7 @@ struct _carl9170_tx_superdesc {
 	u8 ampdu_settings;
 	u8 misc;
 	u8 padding;
-	u8 tries[CARL9170_TX_MAX_RATES];
+	u8 ri[CARL9170_TX_MAX_RATES];
 	__le32 rr[CARL9170_TX_MAX_RETRY_RATES];
 } __packed;
 

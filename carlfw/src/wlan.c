@@ -181,7 +181,7 @@ static void wlan_tx_complete(struct carl9170_tx_superframe *super,
 static bool wlan_tx_consume_retry(struct carl9170_tx_superframe *super)
 {
 	/* check if this was the last possible retry with this rate */
-	if (unlikely(super->s.cnt >= super->s.tries[super->s.rix])) {
+	if (unlikely(super->s.cnt >= super->s.ri[super->s.rix].tries)) {
 		/* end of the road - indicate tx failure */
 		if (unlikely(super->s.rix == CARL9170_TX_MAX_RETRY_RATES))
 			return false;
@@ -195,6 +195,9 @@ static bool wlan_tx_consume_retry(struct carl9170_tx_superframe *super)
 
 		/* finally - mark the old rate as USED */
 		super->s.rix++;
+
+		/* update MAC flags */
+		super->f.hdr.mac.erp_prot = super->s.ri[super->s.rix].erp_prot;
 
 		/* reinitialize try counter */
 		super->s.cnt = 1;
@@ -467,7 +470,7 @@ static void wlan_send_buffered_ba(void)
 		sizeof(struct ar9170_tx_hwdesc) +
 		sizeof(struct ieee80211_ba);
 
-	baf->s.tries[0] = 3;
+	baf->s.ri[0].tries = 3;
 	baf->s.queue = 0;
 	baf->f.hdr.length = sizeof(struct ieee80211_ba) + FCS_LEN;
 
