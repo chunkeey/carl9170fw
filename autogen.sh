@@ -28,7 +28,7 @@ case "$1" in
 			echo "Installing firmware..."
 			tmpfwfile=`mktemp`
 			cat carlfw/carl9170.fw carlfw/carl9170.dsc > $tmpfwfile
-			install $tmpfwfile /lib/firmware/carl9170-$CONFIG_CARL9170FW_RELEASE_VERSION.fw
+			sudo install $tmpfwfile /lib/firmware/carl9170-$CONFIG_CARL9170FW_RELEASE_VERSION.fw
 			rm $tmpfwfile
 		fi
 	;;
