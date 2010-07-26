@@ -44,32 +44,6 @@ static void wlan_txupdate(unsigned int queue)
 	wlan_trigger(BIT(queue));
 }
 
-static void wlan_dma_bump(unsigned int qidx)
-{
-	unsigned int offset = qidx;
-	uint32_t status, trigger;
-
-	status = get(AR9170_MAC_REG_DMA_STATUS) >> 12;
-	trigger = get(AR9170_MAC_REG_DMA_TRIGGER) >> 12;
-
-	while (offset != 0) {
-		status >>= 4;
-		trigger >>= 4;
-		offset--;
-	}
-
-	status &= 0xf;
-	trigger &= 0xf;
-
-	if ((trigger == 0xa) && (status == 0x8)) {
-		DBG("UNSTUCK");
-		wlan_txunstuck(qidx);
-	} else {
-		DBG("UPDATE");
-		wlan_txupdate(qidx);
-	}
-}
-
 #ifdef CONFIG_CARL9170FW_DEBUG
 static void wlan_dump_queue(unsigned int qidx)
 {
@@ -856,6 +830,32 @@ void handle_wlan(void)
 	wlan_janitor();
 
 #undef HANDLER
+}
+
+static void wlan_dma_bump(unsigned int qidx)
+{
+	unsigned int offset = qidx;
+	uint32_t status, trigger;
+
+	status = get(AR9170_MAC_REG_DMA_STATUS) >> 12;
+	trigger = get(AR9170_MAC_REG_DMA_TRIGGER) >> 12;
+
+	while (offset != 0) {
+		status >>= 4;
+		trigger >>= 4;
+		offset--;
+	}
+
+	status &= 0xf;
+	trigger &= 0xf;
+
+	if ((trigger == 0xa) && (status == 0x8)) {
+		DBG("UNSTUCK");
+		wlan_txunstuck(qidx);
+	} else {
+		DBG("UPDATE");
+		wlan_txupdate(qidx);
+	}
 }
 
 static void wlan_check_hang(void)
