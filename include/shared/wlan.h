@@ -248,7 +248,8 @@ struct carl9170_tx_superdesc {
 	u8 ampdu_commit_density:1;
 	u8 ampdu_commit_factor:1;
 	u8 ampdu_unused_bit:1;
-	u8 queue:3;
+	u8 queue:2;
+	u8 reserved:1;
 	u8 vif_id:3;
 	u8 fill_in_tsf:1;
 	u8 cab:1;
@@ -294,7 +295,7 @@ struct _ar9170_tx_hwdesc {
 #define	CARL9170_TX_SUPER_AMPDU_COMMIT_FACTOR		0x40
 #define	CARL9170_TX_SUPER_AMPDU_COMMIT_FACTOR_S		6
 
-#define CARL9170_TX_SUPER_MISC_QUEUE			0x7
+#define CARL9170_TX_SUPER_MISC_QUEUE			0x3
 #define CARL9170_TX_SUPER_MISC_QUEUE_S			0
 #define	CARL9170_TX_SUPER_MISC_VIF_ID			0x38
 #define	CARL9170_TX_SUPER_MISC_VIF_ID_S			3
@@ -402,8 +403,6 @@ enum ar9170_txq {
 	AR9170_TXQ_BK,
 
 	__AR9170_NUM_TXQ,
-
-	AR9170_TXQ_MGMT = 4,
 };
 
 static const u8 ar9170_qmap[__AR9170_NUM_TXQ] = { 2, 1, 0, 3 };
