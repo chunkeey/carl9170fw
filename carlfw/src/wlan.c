@@ -572,8 +572,6 @@ static void handle_rx(void)
 {
 	struct dma_desc *desc;
 
-	wlan_check_rx_overrun();
-
 	for_each_desc_not_bits(desc, &fw.wlan.rx_queue, AR9170_OWN_BITS_HW) {
 		if (unlikely(desc->totalLen < 26 ||
 		    desc->totalLen > CONFIG_CARL9170FW_RX_FRAME_LEN)) {
