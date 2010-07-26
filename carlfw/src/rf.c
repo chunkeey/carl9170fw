@@ -221,15 +221,6 @@ void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp)
 
 	resp->hdr.len = sizeof(struct carl9170_rf_init_result);
 	resp->rf_init_res.ret = cpu_to_le32(ret);
-
-	resp->rf_init_res.regs[0] = get(AR9170_PHY_REG_CCA);
-	resp->rf_init_res.regs[3] = get(AR9170_PHY_REG_EXT_CCA);
-
-	resp->rf_init_res.regs[1] = get(AR9170_PHY_REG_CH1_CCA);
-	resp->rf_init_res.regs[4] = get(AR9170_PHY_REG_CH1_EXT_CCA);
-
-	resp->rf_init_res.regs[2] = get(AR9170_PHY_REG_CH2_CCA);
-	resp->rf_init_res.regs[5] = get(AR9170_PHY_REG_CH2_EXT_CCA);
 }
 
 #ifdef CONFIG_CARL9170FW_PSM

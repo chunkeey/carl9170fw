@@ -128,9 +128,8 @@ struct carl9170_rf_init {
 
 struct carl9170_rf_init_result {
 	__le32		ret;		/* AR9170_PHY_REG_AGC_CONTROL */
-	__le32		regs[6];
 } __packed;
-#define	CARL9170_RF_INIT_RESULT_SIZE	28
+#define	CARL9170_RF_INIT_RESULT_SIZE	4
 
 #define	CARL9170_USB_WATCHDOG_INACTIVE	0
 #define	CARL9170_USB_WATCHDOG_ON_DUTY	1
