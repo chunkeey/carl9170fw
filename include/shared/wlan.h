@@ -234,7 +234,8 @@ struct ar9170_tx_hw_phy_control {
 struct ar9170_tx_rate_info {
 	u8 tries:3;
 	u8 erp_prot:2;
-	u8 free:3; /* free for use (e.g.:RIFS/TXOP/AMPDU) */
+	u8 ampdu:1;
+	u8 free:2; /* free for use (e.g.:RIFS/TXOP/AMPDU) */
 } __packed;
 
 struct carl9170_tx_superdesc {
@@ -304,6 +305,8 @@ struct _ar9170_tx_hwdesc {
 #define CARL9170_TX_SUPER_RI_TRIES_S			0
 #define CARL9170_TX_SUPER_RI_ERP_PROT			0x18
 #define CARL9170_TX_SUPER_RI_ERP_PROT_S			3
+#define CARL9170_TX_SUPER_RI_AMPDU			0x20
+#define CARL9170_TX_SUPER_RI_AMPDU_S			5
 
 struct _carl9170_tx_superdesc {
 	__le16 len;

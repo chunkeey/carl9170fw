@@ -198,6 +198,7 @@ static bool wlan_tx_consume_retry(struct carl9170_tx_superframe *super)
 
 		/* update MAC flags */
 		super->f.hdr.mac.erp_prot = super->s.ri[super->s.rix].erp_prot;
+		super->f.hdr.mac.ampdu = super->s.ri[super->s.rix].ampdu;
 
 		/* reinitialize try counter */
 		super->s.cnt = 1;
