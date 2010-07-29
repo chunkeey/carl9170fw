@@ -117,8 +117,8 @@ struct carl9170fw_otus_desc {
 #define CARL9170FW_OTUS_DESC_SIZE			\
 	(sizeof(struct carl9170fw_otus_desc))
 
-#define CARL9170FW_USB_DESC_MIN_VER		2
-#define CARL9170FW_USB_DESC_CUR_VER		2
+#define CARL9170FW_USB_DESC_MIN_VER		3
+#define CARL9170FW_USB_DESC_CUR_VER		3
 struct carl9170fw_usb_desc {
 	struct carl9170fw_desc_head head;
 	__le32 usb_feature_set;
@@ -127,7 +127,7 @@ struct carl9170fw_usb_desc {
 	__le16 rx_max_frame_len;
 	__le16 miniboot_size;
 	u8 tx_descs;
-	u8 free;
+	u8 cmd_bufs;
 } __packed;
 #define CARL9170FW_USB_DESC_SIZE			\
 	(sizeof(struct carl9170fw_usb_desc))

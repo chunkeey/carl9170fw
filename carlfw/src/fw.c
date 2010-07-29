@@ -81,6 +81,7 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 
 	     .miniboot_size = cpu_to_le16(0),
 	     .tx_descs = AR9170_TX_BLOCK_NUMBER,
+	     .cmd_bufs = CARL9170_INT_RQ_CACHES,
 	     .rx_max_frame_len = cpu_to_le16(CONFIG_CARL9170FW_RX_FRAME_LEN),
 	     .tx_frag_len = cpu_to_le16(AR9170_BLOCK_SIZE),
 	     .fw_address = cpu_to_le32(AR9170_PRAM_OFFSET),

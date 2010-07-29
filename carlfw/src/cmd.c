@@ -37,7 +37,10 @@ void handle_cmd(struct carl9170_rsp *resp)
 	unsigned int i;
 
 	/* copies cmd, len and extra fields */
-	resp->hdr.hdr_data = cmd->hdr.hdr_data;
+	resp->hdr.len = cmd->hdr.len;
+	resp->hdr.cmd = cmd->hdr.cmd;
+	resp->hdr.ext = cmd->hdr.ext;
+	resp->hdr.seq |= cmd->hdr.seq;
 
 	switch (cmd->hdr.cmd) {
 	case CARL9170_CMD_RREG:

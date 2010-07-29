@@ -118,6 +118,7 @@ static void show_usb_desc(const struct carl9170fw_desc_head *head,
 		usb->tx_frag_len, usb->tx_descs);
 	fprintf(stdout, "\t=> %d Bytes are reserved for the TX queues\n",
 		usb->tx_frag_len * usb->tx_descs);
+	fprintf(stdout, "\tCommand response buffers:%d\n", usb->cmd_bufs);
 	fprintf(stdout, "\tMax. RX stream block size:%d Bytes\n",
 		usb->rx_max_frame_len);
 	fprintf(stdout, "\tFirmware upload pointer: 0x%x\n",

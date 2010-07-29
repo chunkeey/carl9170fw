@@ -65,7 +65,14 @@ static struct carl9170_rsp *get_int_buf(void)
 {
 	struct carl9170_rsp *tmp;
 
-	tmp = &fw.usb.int_buf[fw.usb.int_tail_index++];
+	/* fetch the _oldest_ buffer from the ring */
+	tmp = &fw.usb.int_buf[fw.usb.int_tail_index];
+
+	/* assign a unique sequence for every response/trap */
+	tmp->hdr.seq = fw.usb.int_tail_index;
+
+	fw.usb.int_tail_index++;
+
 	fw.usb.int_tail_index %= CARL9170_INT_RQ_CACHES;
 	if (fw.usb.int_pending != CARL9170_INT_RQ_CACHES)
 		fw.usb.int_pending++;
