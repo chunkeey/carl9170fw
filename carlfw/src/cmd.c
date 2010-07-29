@@ -42,7 +42,7 @@ void handle_cmd(struct carl9170_rsp *resp)
 	resp->hdr.ext = cmd->hdr.ext;
 	resp->hdr.seq |= cmd->hdr.seq;
 
-	switch (cmd->hdr.cmd) {
+	switch (cmd->hdr.cmd & ~CARL9170_CMD_ASYNC_FLAG) {
 	case CARL9170_CMD_RREG:
 		for (i = 0; i < (cmd->hdr.len / 4); i++)
 			resp->rreg_res.vals[i] = get(cmd->rreg.regs[i]);
