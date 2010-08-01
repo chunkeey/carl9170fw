@@ -59,7 +59,11 @@ void handle_cmd(struct carl9170_rsp *resp)
 		break;
 
 	case CARL9170_CMD_SWRST:
-		resp->hdr.len = 0;
+		/*
+		 * Command has no payload, so the response
+		 * has no payload either.
+		 * resp->hdr.len = 0;
+		 */
 		fw.wlan.mac_reset = CARL9170_MAC_RESET_FORCE;
 		break;
 
@@ -106,7 +110,9 @@ void handle_cmd(struct carl9170_rsp *resp)
 		break;
 
 	case CARL9170_CMD_FREQ_START:
-		resp->hdr.len = 0;
+		/*
+		 * resp->hdr.len = 0;
+		 */
 		rf_notify_set_channel();
 		break;
 
