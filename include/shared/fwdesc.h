@@ -25,6 +25,27 @@ enum carl9170fw_feature_list {
 	/* Always set */
 	CARL9170FW_DUMMY_FEATURE,
 
+	/*
+	 * Indicates that this image has special boot block which prevents
+	 * legacy drivers to drive the firmware.
+	 */
+	CARL9170FW_MINIBOOT,
+
+	/* usb registers are initialized by the firmware */
+	CARL9170FW_USB_INIT_FIRMWARE,
+
+	/* command traps & notifications are send through EP2 */
+	CARL9170FW_USB_RESP_EP2,
+
+	/* usb download (app -> fw) stream */
+	CARL9170FW_USB_DOWN_STREAM,
+
+	/* usb upload (fw -> app) stream */
+	CARL9170FW_USB_UP_STREAM,
+
+	/* USB Watchdog */
+	CARL9170FW_USB_WATCHDOG,
+
 	/* unusable - reserved to flag non-functional debug firmwares */
 	CARL9170FW_UNUSABLE,
 
@@ -50,37 +71,7 @@ enum carl9170fw_feature_list {
 	__CARL9170FW_FEATURE_NUM
 };
 
-enum carl9170fw_usb_feature_list {
-	/* Always set */
-	CARL9170FW_USB_DUMMY_FEATURE,
-
-	/*
-	 * Indicates that this image has special boot block which prevents
-	 * legacy drivers to drive the firmware.
-	 */
-	CARL9170FW_USB_MINIBOOT,
-
-	/* usb registers are initialized by the firmware */
-	CARL9170FW_USB_INIT_FIRMWARE,
-
-	/* command traps & notifications are send through EP2 */
-	CARL9170FW_USB_RESP_EP2,
-
-	/* usb download (app -> fw) stream */
-	CARL9170FW_USB_DOWN_STREAM,
-
-	/* usb upload (fw -> app) stream */
-	CARL9170FW_USB_UP_STREAM,
-
-	/* USB Watchdog */
-	CARL9170FW_USB_WATCHDOG,
-
-	/* KEEP LAST */
-	__CARL9170FW_USB_FEATURE_NUM
-};
-
 #define OTUS_MAGIC	"OTAR"
-#define USB_MAGIC	"USB\0"
 #define MOTD_MAGIC	"MOTD"
 #define FIX_MAGIC	"FIX\0"
 #define DBG_MAGIC	"DBG\0"
@@ -104,33 +95,24 @@ struct carl9170fw_desc_head {
 #define CARL9170FW_DESC_HEAD_SIZE			\
 	(sizeof(struct carl9170fw_desc_head))
 
-#define CARL9170FW_OTUS_DESC_MIN_VER		2
-#define CARL9170FW_OTUS_DESC_CUR_VER		2
+#define CARL9170FW_OTUS_DESC_MIN_VER		3
+#define CARL9170FW_OTUS_DESC_CUR_VER		3
 struct carl9170fw_otus_desc {
 	struct carl9170fw_desc_head head;
-	__le32 fw_feature_set;
+	__le32 feature_set;
+	__le32 fw_address;
 	__le32 bcn_addr;
 	__le16 bcn_len;
+	__le16 miniboot_size;
+	__le16 tx_frag_len;
+	__le16 rx_max_frame_len;
+	u8 tx_descs;
+	u8 cmd_bufs;
 	u8 api_ver;
 	u8 vif_num;
 } __packed;
 #define CARL9170FW_OTUS_DESC_SIZE			\
 	(sizeof(struct carl9170fw_otus_desc))
-
-#define CARL9170FW_USB_DESC_MIN_VER		3
-#define CARL9170FW_USB_DESC_CUR_VER		3
-struct carl9170fw_usb_desc {
-	struct carl9170fw_desc_head head;
-	__le32 usb_feature_set;
-	__le32 fw_address;
-	__le16 tx_frag_len;
-	__le16 rx_max_frame_len;
-	__le16 miniboot_size;
-	u8 tx_descs;
-	u8 cmd_bufs;
-} __packed;
-#define CARL9170FW_USB_DESC_SIZE			\
-	(sizeof(struct carl9170fw_usb_desc))
 
 #define CARL9170FW_MOTD_STRING_LEN			24
 #define CARL9170FW_MOTD_RELEASE_LEN			20

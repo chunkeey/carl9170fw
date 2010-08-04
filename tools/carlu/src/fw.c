@@ -52,12 +52,12 @@ int carlu_fw_check(struct carlu *ar)
 		return -EINVAL;
 	}
 
-	if (!carl9170fw_supports(otus_desc->fw_feature_set, CARL9170FW_DUMMY_FEATURE)) {
+	if (!carl9170fw_supports(otus_desc->feature_set, CARL9170FW_DUMMY_FEATURE)) {
 		err("Invalid Firmware Descriptor.\n");
 		return -EIO;
 	}
 
-	if (carl9170fw_supports(otus_desc->fw_feature_set, CARL9170FW_UNUSABLE))
+	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_UNUSABLE))
 		dbg("Firmware is marked as unuseable.\n");
 
 	info("Firmware Version: %d.\n", otus_desc->api_ver);
@@ -67,47 +67,47 @@ int carlu_fw_check(struct carlu *ar)
 
 int carlusb_fw_check(struct carlusb *ar)
 {
-	struct carl9170fw_usb_desc *usb_desc;
+	struct carl9170fw_otus_desc *otus_desc;
 
-	usb_desc = carlfw_find_desc(ar->common.fw, (uint8_t *) USB_MAGIC,
-				    sizeof(*usb_desc),
-				    CARL9170FW_USB_DESC_CUR_VER);
+	otus_desc = carlfw_find_desc(ar->common.fw, (uint8_t *) OTUS_MAGIC,
+				     sizeof(*otus_desc),
+				     CARL9170FW_OTUS_DESC_CUR_VER);
 
-	if (!usb_desc) {
+	if (!otus_desc) {
 		err("No valid USB descriptor found.\n");
 		return -ENODATA;
 	}
 
-	if (!carl9170fw_supports(usb_desc->usb_feature_set, CARL9170FW_USB_DUMMY_FEATURE)) {
+	if (!carl9170fw_supports(otus_desc->feature_set, CARL9170FW_DUMMY_FEATURE)) {
 		err("Invalid Firmware Descriptor.\n");
 		return -EINVAL;
 	}
 
-	if (!carl9170fw_supports(usb_desc->usb_feature_set, CARL9170FW_USB_INIT_FIRMWARE)) {
+	if (!carl9170fw_supports(otus_desc->feature_set, CARL9170FW_USB_INIT_FIRMWARE)) {
 		err("Firmware does not know how to initialize USB core.\n");
 		return -EOPNOTSUPP;
 	}
 
-	if (carl9170fw_supports(usb_desc->usb_feature_set, CARL9170FW_USB_DOWN_STREAM)) {
+	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_USB_DOWN_STREAM)) {
 		dbg("Enabled tx stream mode.\n");
 		ar->common.tx_stream = true;
 		ar->common.extra_headroom = sizeof(struct ar9170_stream);
 	}
 
-	if (carl9170fw_supports(usb_desc->usb_feature_set, CARL9170FW_USB_UP_STREAM)) {
+	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_USB_UP_STREAM)) {
 		dbg("Enabled rx stream mode.\n");
 		ar->common.rx_stream = true;
 	}
 
-	if (carl9170fw_supports(usb_desc->usb_feature_set, CARL9170FW_USB_RESP_EP2))
+	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_USB_RESP_EP2))
 		dbg("Firmware sends traps over EP2.\n");
 
-	ar->common.dma_chunk_size = le16_to_cpu(usb_desc->tx_frag_len);
-	ar->common.dma_chunks = usb_desc->tx_descs;
-	ar->rx_max = le16_to_cpu(usb_desc->rx_max_frame_len);
+	ar->common.dma_chunk_size = le16_to_cpu(otus_desc->tx_frag_len);
+	ar->common.dma_chunks = otus_desc->tx_descs;
+	ar->rx_max = le16_to_cpu(otus_desc->rx_max_frame_len);
 
-	if (carl9170fw_supports(usb_desc->usb_feature_set, CARL9170FW_USB_MINIBOOT))
-		ar->miniboot_size = le16_to_cpu(usb_desc->miniboot_size);
+	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_MINIBOOT))
+		ar->miniboot_size = le16_to_cpu(otus_desc->miniboot_size);
 
 	return 0;
 }

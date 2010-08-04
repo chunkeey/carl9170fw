@@ -48,7 +48,6 @@ static int add_mini(struct carlfw *fw, const char *mini)
 {
 	struct stat file_stat;
 	struct carl9170fw_otus_desc *otus_desc = NULL;
-	struct carl9170fw_usb_desc *usb_desc = NULL;
 	FILE *m = NULL;
 	char *buf = NULL;
 	size_t extra;
@@ -79,21 +78,13 @@ static int add_mini(struct carlfw *fw, const char *mini)
 		goto fail;
 	}
 
-	usb_desc = carlfw_find_desc(fw, (uint8_t *) USB_MAGIC,
-				    sizeof(*usb_desc),
-				    CARL9170FW_USB_DESC_CUR_VER);
-	if (!usb_desc) {
-		fprintf(stderr, "Firmware is not for USB devices.\n");
-		goto fail;
-	}
-
-	if (carl9170fw_supports(usb_desc->usb_feature_set, CARL9170FW_USB_MINIBOOT)) {
+	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_MINIBOOT)) {
 		fprintf(stderr, "Firmware has already a miniboot image.\n");
 		goto fail;
 	}
 
-	usb_desc->usb_feature_set |= cpu_to_le32(BIT(CARL9170FW_USB_MINIBOOT));
-	usb_desc->miniboot_size = cpu_to_le16(extra);
+	otus_desc->feature_set |= cpu_to_le32(BIT(CARL9170FW_MINIBOOT));
+	otus_desc->miniboot_size = cpu_to_le16(extra);
 
 	buf = carlfw_mod_headroom(fw, extra);
 	if (IS_ERR_OR_NULL(buf)) {
@@ -121,24 +112,24 @@ fail:
 
 static int del_mini(struct carlfw *fw)
 {
-	struct carl9170fw_usb_desc *usb_desc = NULL;
+	struct carl9170fw_otus_desc *otus_desc = NULL;
 	void *buf;
 	int cut;
 
-	usb_desc = carlfw_find_desc(fw, (uint8_t *) USB_MAGIC,
-				    sizeof(*usb_desc),
-				    CARL9170FW_USB_DESC_CUR_VER);
-	if (!usb_desc) {
+	otus_desc = carlfw_find_desc(fw, (uint8_t *) OTUS_MAGIC,
+				     sizeof(*otus_desc),
+				     CARL9170FW_OTUS_DESC_CUR_VER);
+	if (!otus_desc) {
 		fprintf(stderr, "Firmware is not for USB devices.\n");
 		return -ENODATA;
 	}
 
-	if (!carl9170fw_supports(usb_desc->usb_feature_set, CARL9170FW_USB_MINIBOOT)) {
+	if (!carl9170fw_supports(otus_desc->feature_set, CARL9170FW_MINIBOOT)) {
 		fprintf(stderr, "Firmware has no miniboot image.\n");
 		return -EINVAL;
 	}
 
-	cut = le16_to_cpu(usb_desc->miniboot_size);
+	cut = le16_to_cpu(otus_desc->miniboot_size);
 
 	buf = carlfw_mod_headroom(fw, -cut);
 	if (IS_ERR_OR_NULL(buf)) {
@@ -146,8 +137,8 @@ static int del_mini(struct carlfw *fw)
 		return PTR_ERR(buf);
 	}
 
-	usb_desc->usb_feature_set &= cpu_to_le32(~BIT(CARL9170FW_USB_MINIBOOT));
-	usb_desc->miniboot_size = cpu_to_le16(0);
+	otus_desc->feature_set &= cpu_to_le32(~BIT(CARL9170FW_MINIBOOT));
+	otus_desc->miniboot_size = cpu_to_le16(0);
 
 	carlfw_store(fw);
 	return 0;

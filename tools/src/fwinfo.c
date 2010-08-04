@@ -41,8 +41,22 @@ struct feature_list {
 #define CHECK_FOR_FEATURE_FUNC(feature_enum, _func)			\
 	{ .id = feature_enum, .name = #feature_enum, .func = _func }
 
+static void show_miniboot_info(const struct carl9170fw_desc_head *head,
+			       struct carlfw *fw __unused)
+{
+	const struct carl9170fw_otus_desc *otus = (const void *) head;
+
+	fprintf(stdout, "\t\t\tminiboot size: %d Bytes\n", otus->miniboot_size);
+}
+
 static const struct feature_list known_otus_features_v1[] = {
 	CHECK_FOR_FEATURE(CARL9170FW_DUMMY_FEATURE),
+	CHECK_FOR_FEATURE_FUNC(CARL9170FW_MINIBOOT, show_miniboot_info),
+	CHECK_FOR_FEATURE(CARL9170FW_USB_INIT_FIRMWARE),
+	CHECK_FOR_FEATURE(CARL9170FW_USB_RESP_EP2),
+	CHECK_FOR_FEATURE(CARL9170FW_USB_DOWN_STREAM),
+	CHECK_FOR_FEATURE(CARL9170FW_USB_UP_STREAM),
+	CHECK_FOR_FEATURE(CARL9170FW_USB_WATCHDOG),
 	CHECK_FOR_FEATURE(CARL9170FW_UNUSABLE),
 	CHECK_FOR_FEATURE(CARL9170FW_COMMAND_PHY),
 	CHECK_FOR_FEATURE(CARL9170FW_COMMAND_CAM),
@@ -77,57 +91,24 @@ static void show_otus_desc(const struct carl9170fw_desc_head *head,
 
 	BUILD_BUG_ON(ARRAY_SIZE(known_otus_features_v1) != __CARL9170FW_FEATURE_NUM);
 
+	fprintf(stdout, "\tFirmware upload pointer: 0x%x\n",
+		otus->fw_address);
 	fprintf(stdout, "\tBeacon Address: %x, (reserved:%d Bytes)\n",
 		le32_to_cpu(otus->bcn_addr), le16_to_cpu(otus->bcn_len));
-	fprintf(stdout, "\tFirmware API Version: %d\n", otus->api_ver);
-	fprintf(stdout, "\tSupported Firmware Interfaces: %d\n", otus->vif_num);
-
-	fprintf(stdout, "\tSupported Features: (raw:%.08x)\n",
-		le32_to_cpu(otus->fw_feature_set));
-
-	check_feature_list(head, otus->fw_feature_set, known_otus_features_v1,
-			   ARRAY_SIZE(known_otus_features_v1), fw);
-}
-
-static void show_miniboot_info(const struct carl9170fw_desc_head *head,
-			       struct carlfw *fw __unused)
-{
-	const struct carl9170fw_usb_desc *usb = (const void *) head;
-
-	fprintf(stdout, "\t\t\tminiboot size: %d Bytes\n", usb->miniboot_size);
-}
-
-static const struct feature_list known_usb_features_v1[] = {
-	CHECK_FOR_FEATURE(CARL9170FW_USB_DUMMY_FEATURE),
-	CHECK_FOR_FEATURE_FUNC(CARL9170FW_USB_MINIBOOT, show_miniboot_info),
-	CHECK_FOR_FEATURE(CARL9170FW_USB_INIT_FIRMWARE),
-	CHECK_FOR_FEATURE(CARL9170FW_USB_RESP_EP2),
-	CHECK_FOR_FEATURE(CARL9170FW_USB_DOWN_STREAM),
-	CHECK_FOR_FEATURE(CARL9170FW_USB_UP_STREAM),
-	CHECK_FOR_FEATURE(CARL9170FW_USB_WATCHDOG),
-};
-
-static void show_usb_desc(const struct carl9170fw_desc_head *head,
-			  struct carlfw *fw __unused)
-{
-	const struct carl9170fw_usb_desc *usb = (const void *) head;
-
-	BUILD_BUG_ON(ARRAY_SIZE(known_usb_features_v1) != __CARL9170FW_USB_FEATURE_NUM);
-
 	fprintf(stdout, "\tTX DMA chunk size:%d Bytes, TX DMA chunks:%d\n",
-		usb->tx_frag_len, usb->tx_descs);
+		otus->tx_frag_len, otus->tx_descs);
 	fprintf(stdout, "\t=> %d Bytes are reserved for the TX queues\n",
-		usb->tx_frag_len * usb->tx_descs);
-	fprintf(stdout, "\tCommand response buffers:%d\n", usb->cmd_bufs);
+		otus->tx_frag_len * otus->tx_descs);
+	fprintf(stdout, "\tCommand response buffers:%d\n", otus->cmd_bufs);
 	fprintf(stdout, "\tMax. RX stream block size:%d Bytes\n",
-		usb->rx_max_frame_len);
-	fprintf(stdout, "\tFirmware upload pointer: 0x%x\n",
-		usb->fw_address);
+		otus->rx_max_frame_len);
+	fprintf(stdout, "\tSupported Firmware Interfaces: %d\n", otus->vif_num);
+	fprintf(stdout, "\tFirmware API Version: %d\n", otus->api_ver);
 	fprintf(stdout, "\tSupported Features: (raw:%.08x)\n",
-		le32_to_cpu(usb->usb_feature_set));
+		le32_to_cpu(otus->feature_set));
 
-	check_feature_list(head, usb->usb_feature_set, known_usb_features_v1,
-			   ARRAY_SIZE(known_usb_features_v1), fw);
+	check_feature_list(head, otus->feature_set, known_otus_features_v1,
+			   ARRAY_SIZE(known_otus_features_v1), fw);
 }
 
 static void show_motd_desc(const struct carl9170fw_desc_head *head,
@@ -216,7 +197,6 @@ static const struct {
 	uint16_t size;
 } known_magics[] = {
 	ADD_HANDLER(OTUS, show_otus_desc),
-	ADD_HANDLER(USB, show_usb_desc),
 	ADD_HANDLER(MOTD, show_motd_desc),
 	ADD_HANDLER(DBG, show_dbg_desc),
 	ADD_HANDLER(FIX, show_fix_desc),
