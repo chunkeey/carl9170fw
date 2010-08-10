@@ -245,8 +245,9 @@ int main(int argc, char *args[])
 
 	fw = carlfw_load(args[1]);
 	if (IS_ERR_OR_NULL(fw)) {
+		err = PTR_ERR(fw);
 		fprintf(stderr, "Failed to open firmware \"%s\" (%d).\n",
-			args[1], (int)PTR_ERR(fw));
+			args[1], err);
 		goto out;
 	}
 
