@@ -562,6 +562,11 @@ static void wlan_check_rx_overrun(void)
 	fw.wlan.rx_overruns += overruns = get(AR9170_MAC_REG_RX_OVERRUN);
 	if (unlikely(overruns)) {
 		if (overruns == total) {
+			/*
+			 * Theoretically, it should be enough to
+			 * trigger the WLAN RX DMA bit. But the
+			 * original firmware wanted a reset...
+			 */
 			DBG("RX Overrun");
 			fw.wlan.mac_reset++;
 		}
