@@ -43,14 +43,13 @@ static void init(void)
 	/* 25/50/100ms timer (depends on cpu clock) */
 	timer_init(0, 50000);
 
-	/* turn off all leds */
-	led_set(0);
+	/* USB init */
+	usb_init();
+
+	memset(&dma_mem, 0, sizeof(dma_mem));
 
 	/* fill DMA rings */
 	dma_init_descriptors();
-
-	/* USB init */
-	usb_init();
 
 	/* clear all interrupt */
 	set(AR9170_MAC_REG_INT_CTRL, 0xffff);
@@ -115,7 +114,6 @@ void __attribute__((noreturn)) start(void)
 {
 	/* initialize firmware context and DMA memory */
 	memset(&fw, 0, sizeof(fw));
-	memset(&dma_mem, 0, sizeof(dma_mem));
 
 	/* watchdog magic pattern check */
 	if ((get(AR9170_PWR_REG_WATCH_DOG_MAGIC) & 0xffff0000) == 0x12340000) {

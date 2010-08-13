@@ -231,10 +231,6 @@ static void usb_pta_init(void)
 	orl(AR9170_USB_REG_DMA_CTL, AR9170_DMA_CTL_DOWN_STREAM);
 #endif /* CONFIG_CARL9170FW_USB_DOWN_STREAM */
 
-	/* Enable up stream and down stream */
-	orl(AR9170_USB_REG_DMA_CTL, AR9170_DMA_CTL_ENABLE_TO_DEVICE |
-	    AR9170_DMA_CTL_ENABLE_FROM_DEVICE);
-
 #ifdef CONFIG_CARL9170FW_USB_UP_STREAM
 	/* Set the up stream mode maximum aggregate number */
 	set(AR9170_USB_REG_MAX_AGG_UPLOAD, 4);
@@ -246,6 +242,9 @@ static void usb_pta_init(void)
 	set(AR9170_USB_REG_UPLOAD_TIME_CTL, 0x80);
 #endif /* CONFIG_CARL9170FW_USB_UP_STREAM */
 
+	/* Enable up stream and down stream */
+	orl(AR9170_USB_REG_DMA_CTL, AR9170_DMA_CTL_ENABLE_TO_DEVICE |
+	    AR9170_DMA_CTL_ENABLE_FROM_DEVICE);
 }
 #endif /* CONFIG_CARL9170FW_USB_INIT_FIRMWARE */
 
