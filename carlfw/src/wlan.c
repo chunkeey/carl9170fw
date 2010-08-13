@@ -937,7 +937,7 @@ static void wlan_mac_reset(void)
 	uint32_t rx_BB;
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 
-	ERR("MAC RESET");
+	INFO("MAC RESET");
 
 	/* Save aggregation parameters */
 	agg_wait_counter = get(AR9170_MAC_REG_AMPDU_FACTOR);
