@@ -85,6 +85,7 @@ enum carl9170_cmd_oids {
 	CARL9170_RSP_HEXDUMP		= 0xcc,
 	CARL9170_RSP_RADAR		= 0xcd,
 	CARL9170_RSP_GPIO		= 0xce,
+	CARL9170_RSP_BOOT		= 0xcf,
 };
 
 struct carl9170_set_key_cmd {

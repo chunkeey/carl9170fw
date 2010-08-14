@@ -149,5 +149,10 @@ void __attribute__((noreturn)) start(void)
 	    " ~`!1@2#3$4%%5^6&7*8(9)0_-+={[}]|\\:;\"'<,>.?/");
 #endif /* CONFIG_CARL9170FW_DEBUG */
 
+	/*
+	 * Tell the host, that the firmware has booted and is
+	 * now ready to process requests.
+	 */
+	send_cmd_to_host(0, CARL9170_RSP_BOOT, 0x00, NULL);
 	main_loop();
 }
