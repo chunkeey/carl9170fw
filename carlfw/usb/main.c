@@ -27,7 +27,6 @@
 #include "printf.h"
 #include "timer.h"
 #include "rom.h"
-#include "gpio.h"
 #include "shared/phy.h"
 
 #ifdef CONFIG_CARL9170FW_DEBUG_USB
@@ -210,26 +209,6 @@ void send_cmd_to_host(const uint8_t len, const uint8_t type,
 	usb_trigger_in();
 }
 
-/* Reset all the USB FIFO used for WLAN */
-static void usb_reset_FIFO(void)
-{
-	uint32_t val;
-
-	/*
-	 * of course,
-	 * simpley ORing AR9170_MAC_POWER_STATE_CTRL_RESET
-	 * would be... I dunno, maybe: just to simple?
-	 */
-
-	val = get(AR9170_MAC_REG_POWER_STATE_CTRL);
-	val |= AR9170_MAC_POWER_STATE_CTRL_RESET;
-	set(AR9170_MAC_REG_POWER_STATE_CTRL, val);
-
-	/* Reset USB FIFO */
-	set(AR9170_PWR_REG_ADDA_BB, AR9170_PWR_ADDA_BB_USB_FIFO_RESET);
-	set(AR9170_PWR_REG_ADDA_BB, 0x0);
-}
-
 /* Turn off ADDA/RF power, PLL */
 static void turn_power_off(void)
 {
@@ -237,11 +216,20 @@ static void turn_power_off(void)
 	set(AR9170_PHY_REG_ADC_CTL, 0xa0000000 |
 	    AR9170_PHY_ADC_CTL_OFF_PWDADC | AR9170_PHY_ADC_CTL_OFF_PWDDAC);
 
+	/* This will also turn-off the LEDs */
 	set(AR9170_GPIO_REG_PORT_DATA, 0);
 	set(AR9170_GPIO_REG_PORT_TYPE, 0xf);
 
 	set(AR9170_PWR_REG_BASE, 0x40021);
-	set(AR9170_PWR_REG_ADDA_BB, 0);
+
+	set(AR9170_MAC_REG_POWER_STATE_CTRL,
+	    AR9170_MAC_POWER_STATE_CTRL_RESET);
+
+	/* Reset USB FIFO */
+	set(AR9170_PWR_REG_RESET, AR9170_PWR_RESET_COMMIT_RESET_MASK |
+				  AR9170_PWR_RESET_DMA_MASK |
+				  AR9170_PWR_RESET_WLAN_MASK);
+	set(AR9170_PWR_REG_RESET, 0x0);
 
 	clock_set(false, AHB_20_22MHZ);
 
@@ -282,18 +270,12 @@ static void turn_power_off(void)
 
 void __attribute__((noreturn)) reboot(void)
 {
-	/* turn off leds */
-	led_set(0);
-
 	/* write watchdog magic pattern for suspend  */
 	andl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0xffff);
 	orl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0x98760000);
 
 	/* Disable watchdog */
 	orl(AR9170_TIMER_REG_WATCH_DOG, 0xffff);
-
-	/* Reset USB FIFO */
-	usb_reset_FIFO();
 
 	/* Turn off power */
 	turn_power_off();

@@ -50,6 +50,5 @@ static inline void __check(void)
 }
 
 void handle_cmd(struct carl9170_rsp *resp);
-void __attribute__((noreturn)) reboot(void);
 
 #endif /* __CARL9170FW_CMD_H */

@@ -181,6 +181,7 @@ void usb_init_highspeed_fifo_cfg(void);
 void usb_init_fullspeed_fifo_cfg(void);
 
 void start(void);
+void __attribute__((noreturn)) reboot(void);
 
 #ifdef CONFIG_CARL9170FW_USB_WATCHDOG
 void usb_watchdog_timer(void);

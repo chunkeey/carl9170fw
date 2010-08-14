@@ -75,6 +75,7 @@ struct firmware_context_struct {
 
 	/* misc */
 	unsigned int watchdog_enable;
+	unsigned int reboot;
 
 	struct {
 		/* Host Interface DMA queues */

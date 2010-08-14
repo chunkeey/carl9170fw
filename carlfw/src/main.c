@@ -75,14 +75,22 @@ static void init(void)
 	down_trigger();
 }
 
+static void handle_fw(void)
+{
+	if (fw.watchdog_enable == 1)
+		set(AR9170_TIMER_REG_WATCH_DOG, AR9170_WATCH_DOG_TIMER);
+
+	if (fw.reboot)
+		reboot();
+}
+
 static void __attribute__((noreturn)) main_loop(void)
 {
 	clock_set(true, AHB_40MHZ_OSC);
 
 	/* main loop */
 	while (1) {
-		if (fw.watchdog_enable == 1)
-			set(AR9170_TIMER_REG_WATCH_DOG, AR9170_WATCH_DOG_TIMER);
+		handle_fw();
 
 		/*
 		 * Due to frame order persevation, the wlan subroutines

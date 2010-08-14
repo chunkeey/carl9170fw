@@ -69,11 +69,9 @@ void handle_cmd(struct carl9170_rsp *resp)
 
 	case CARL9170_CMD_REBOOT:
 		/*
-		 * reboot does not return and generates no response
 		 * resp->len = 0;
 		 */
-
-		reboot();
+		fw.reboot = 1;
 		break;
 
 	case CARL9170_CMD_READ_TSF:
