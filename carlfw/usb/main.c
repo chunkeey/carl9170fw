@@ -222,6 +222,8 @@ static void turn_power_off(void)
 
 	set(AR9170_PWR_REG_BASE, 0x40021);
 
+	set(AR9170_MAC_REG_DMA_TRIGGER, 0);
+
 	set(AR9170_MAC_REG_POWER_STATE_CTRL,
 	    AR9170_MAC_POWER_STATE_CTRL_RESET);
 

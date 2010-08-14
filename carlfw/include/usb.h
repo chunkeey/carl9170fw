@@ -122,12 +122,12 @@ static inline __inline void usb_data_in0Byte(void)
 
 static inline __inline void usb_stop_down_queue(void)
 {
-	andl(AR9170_USB_REG_DMA_CTL, ~AR9170_DMA_CTL_ENABLE_TO_DEVICE);
+	andl(AR9170_USB_REG_DMA_CTL, ~AR9170_USB_DMA_CTL_ENABLE_TO_DEVICE);
 }
 
 static inline __inline void usb_start_down_queue(void)
 {
-	orl(AR9170_USB_REG_DMA_CTL, AR9170_DMA_CTL_ENABLE_TO_DEVICE);
+	orl(AR9170_USB_REG_DMA_CTL, AR9170_USB_DMA_CTL_ENABLE_TO_DEVICE);
 }
 
 static inline __inline void usb_clear_input_ep_toggle(unsigned int ep)
