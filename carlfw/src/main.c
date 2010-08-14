@@ -86,8 +86,6 @@ static void handle_fw(void)
 
 static void __attribute__((noreturn)) main_loop(void)
 {
-	clock_set(true, AHB_40MHZ_OSC);
-
 	/* main loop */
 	while (1) {
 		handle_fw();
@@ -120,6 +118,8 @@ static void __attribute__((noreturn)) main_loop(void)
 
 void __attribute__((noreturn)) start(void)
 {
+	clock_set(true, AHB_40MHZ_OSC);
+
 	/* initialize firmware context and DMA memory */
 	memset(&fw, 0, sizeof(fw));
 
