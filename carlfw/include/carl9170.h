@@ -157,9 +157,6 @@ struct firmware_context_struct {
 		uint8_t put_buffer[CARL9170_MAX_CMD_PAYLOAD_LEN];
 #endif /* CONFIG_CARL9170FW_DEBUG_USB */
 
-#ifdef CONFIG_CARL9170FW_USB_WATCHDOG
-		struct carl9170_watchdog_cmd watchdog;
-#endif /* CONFIG CARL9170FW_USB_WATCHDOG */
 	} usb;
 
 	struct {

@@ -43,9 +43,6 @@ enum carl9170fw_feature_list {
 	/* usb upload (fw -> app) stream */
 	CARL9170FW_USB_UP_STREAM,
 
-	/* USB Watchdog */
-	CARL9170FW_USB_WATCHDOG,
-
 	/* unusable - reserved to flag non-functional debug firmwares */
 	CARL9170FW_UNUSABLE,
 
@@ -95,8 +92,8 @@ struct carl9170fw_desc_head {
 #define CARL9170FW_DESC_HEAD_SIZE			\
 	(sizeof(struct carl9170fw_desc_head))
 
-#define CARL9170FW_OTUS_DESC_MIN_VER		3
-#define CARL9170FW_OTUS_DESC_CUR_VER		3
+#define CARL9170FW_OTUS_DESC_MIN_VER		4
+#define CARL9170FW_OTUS_DESC_CUR_VER		4
 struct carl9170fw_otus_desc {
 	struct carl9170fw_desc_head head;
 	__le32 feature_set;

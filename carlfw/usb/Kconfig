@@ -31,15 +31,6 @@ config CARL9170FW_USB_DN_STREAM
 	def_bool n
 	prompt "USB Download Stream"
 
-config CARL9170FW_USB_WATCHDOG
-	def_bool n
-	prompt "Trigger Watchdog if USB transport died"
-	depends on CARL9170FW_WATCHDOG
-	---help---
-	 The idea is that the firmware constantly monitors if the
-	 application answers *firmware ping* requests. If it gets
-	 no response the firmware stops.
-
 config CARL9170FW_DEBUG_USB
 	def_bool y
 	prompt "Pass debug messages through USB transport"

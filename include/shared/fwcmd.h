@@ -53,7 +53,6 @@ enum carl9170_cmd_oids {
 	CARL9170_CMD_REBOOT		= 0x04,
 	CARL9170_CMD_FLUSH_CAB		= 0x05,
 	CARL9170_CMD_READ_TSF		= 0x06,
-	CARL9170_CMD_USB_WD		= 0x07,
 
 	/* CAM */
 	CARL9170_CMD_EKEY		= 0x10,
@@ -86,7 +85,6 @@ enum carl9170_cmd_oids {
 	CARL9170_RSP_HEXDUMP		= 0xcc,
 	CARL9170_RSP_RADAR		= 0xcd,
 	CARL9170_RSP_GPIO		= 0xce,
-	CARL9170_RSP_USB_WD		= 0xcf
 };
 
 struct carl9170_set_key_cmd {
@@ -141,14 +139,6 @@ struct carl9170_rf_init_result {
 } __packed;
 #define	CARL9170_RF_INIT_RESULT_SIZE	4
 
-#define	CARL9170_USB_WATCHDOG_INACTIVE	0
-#define	CARL9170_USB_WATCHDOG_ON_DUTY	1
-
-struct carl9170_watchdog_cmd {
-	__le32		state;
-} __packed;
-#define CARL9170_WATCHDOG_CMD_SIZE	4
-
 #define	CARL9170_PSM_SLEEP		0x1000
 #define	CARL9170_PSM_SOFTWARE		0
 #define	CARL9170_PSM_WAKE		0 /* internally used. */
@@ -184,7 +174,6 @@ struct carl9170_cmd {
 		struct carl9170_set_key_cmd	setkey;
 		struct carl9170_disable_key_cmd	disablekey;
 		struct carl9170_u32_list	echo;
-		struct carl9170_watchdog_cmd	watchdog;
 		struct carl9170_reg_list	rreg;
 		struct carl9170_write_reg	wreg;
 		struct carl9170_rf_init		rf_init;
@@ -258,7 +247,6 @@ struct carl9170_rsp {
 		struct carl9170_rf_init_result	rf_init_res;
 		struct carl9170_u32_list	rreg_res;
 		struct carl9170_u32_list	echo;
-		struct carl9170_watchdog_cmd	watchdog;
 		struct carl9170_tx_status	tx_status[0];
 		struct _carl9170_tx_status	_tx_status[0];
 		struct carl9170_gpio		gpio;

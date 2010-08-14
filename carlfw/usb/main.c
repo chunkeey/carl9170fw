@@ -384,25 +384,3 @@ void handle_usb(void)
 		usb_trigger_in();
 }
 
-#ifdef CONFIG_CARL9170FW_USB_WATCHDOG
-void usb_watchdog_timer(void)
-{
-	if (fw.usb.watchdog.state == cpu_to_le32(CARL9170_USB_WATCHDOG_INACTIVE))
-		return;
-
-	fw.usb.watchdog.state++;
-
-	if (le32_to_cpu(fw.usb.watchdog.state) >= CARL9170_USB_WATCHDOG_TRIGGER_THRESHOLD) {
-		for (;;) {
-			/*
-			 * Simply wait until the HW watchdog
-			 * timer has elapsed.
-			 */
-		}
-	}
-
-	send_cmd_to_host(sizeof(fw.usb.watchdog), CARL9170_RSP_USB_WD,
-			 0x80, (uint8_t *) &fw.usb.watchdog);
-}
-#endif /* CONFIG_CARL9170FW_USB_WATCHDOG */
-

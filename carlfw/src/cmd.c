@@ -123,14 +123,6 @@ void handle_cmd(struct carl9170_rsp *resp)
 # endif /* CONFIG_CARL9170FW_PSM */
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIOS */
 
-#ifdef CONFIG_CARL9170FW_USB_WATCHDOG
-	case CARL9170_CMD_USB_WD:
-		resp->hdr.len = 4;
-		fw.usb.watchdog.state = le32_to_cpu(cmd->watchdog.state);
-		break;
-
-#endif /* CONFIG_CARL9170FW_USB_WATCHDOG */
-
 	default:
 		break;
 	}

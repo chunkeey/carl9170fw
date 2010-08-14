@@ -40,7 +40,6 @@ static inline void __check(void)
 	BUILD_BUG_ON(sizeof(struct carl9170_disable_key_cmd) != CARL9170_DISABLE_KEY_CMD_SIZE);
 	BUILD_BUG_ON(sizeof(struct carl9170_rf_init) != CARL9170_RF_INIT_SIZE);
 	BUILD_BUG_ON(sizeof(struct carl9170_rf_init_result) != CARL9170_RF_INIT_RESULT_SIZE);
-	BUILD_BUG_ON(sizeof(struct carl9170_watchdog_cmd) != CARL9170_WATCHDOG_CMD_SIZE);
 	BUILD_BUG_ON(sizeof(struct carl9170_psm) != CARL9170_PSM_SIZE);
 	BUILD_BUG_ON(sizeof(struct carl9170_tsf_rsp) != CARL9170_TSF_RSP_SIZE);
 	BUILD_BUG_ON(sizeof(struct carl9170_cab_flush_cmd) != CARL9170_CAB_FLUSH_CMD_SIZE);
