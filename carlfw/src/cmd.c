@@ -96,13 +96,12 @@ void handle_cmd(struct carl9170_rsp *resp)
 
 #ifdef CONFIG_CARL9170FW_SECURITY_ENGINE
 	case CARL9170_CMD_EKEY:
-		resp->hdr.len = 1;
+		resp->hdr.len = 0;
 		set_key(&cmd->setkey);
 		break;
 
 	case CARL9170_CMD_DKEY:
-		/* Disable Key */
-		resp->hdr.len = 1;
+		resp->hdr.len = 0;
 		disable_key(&cmd->disablekey);
 		break;
 #endif /* CONFIG_CARL9170FW_SECURIT_ENGINE */
