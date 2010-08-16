@@ -357,7 +357,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	if (unlikely(super->s.cab))
-		fw.wlan.cab_queue_len--;
+		fw.wlan.cab_queue_len[super->s.vif_id]--;
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	/* recycle freed descriptors */
@@ -407,8 +407,8 @@ void __hot wlan_tx(struct dma_desc *desc)
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	if (unlikely(super->s.cab)) {
-		fw.wlan.cab_queue_len++;
-		dma_put(&fw.wlan.cab_queue, desc);
+		fw.wlan.cab_queue_len[super->s.vif_id]++;
+		dma_put(&fw.wlan.cab_queue[super->s.vif_id], desc);
 		return;
 	}
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
@@ -598,6 +598,36 @@ static void handle_rx(void)
 }
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
+void wlan_cab_flush_queue(const unsigned int vif)
+{
+	struct dma_queue *cab_queue = &fw.wlan.cab_queue[vif];
+	struct dma_desc *desc;
+
+	/* move queued frames into the main tx queues */
+	for_each_desc(desc, cab_queue) {
+		struct carl9170_tx_superframe *super = get_super(desc);
+		if (!queue_empty(cab_queue)) {
+			/*
+			 * Set MOREDATA flag for all,
+			 * but the last queued frame.
+			 * see: 802.11-2007 11.2.1.5 f)
+			 *
+			 * This is actually the reason to why
+			 * we need to prevent the reentry.
+			 */
+
+			super->f.data.i3e.frame_control |=
+				cpu_to_le16(IEEE80211_FCTL_MOREDATA);
+		} else {
+			super->f.data.i3e.frame_control &=
+				cpu_to_le16(~IEEE80211_FCTL_MOREDATA);
+		}
+
+		/* ready to roll! */
+		_wlan_tx(desc);
+	}
+}
+
 static uint8_t *beacon_find_ie(uint8_t ie)
 {
 	struct ieee80211_mgmt *mgmt = getp(AR9170_MAC_REG_BCN_ADDR);
@@ -624,60 +654,7 @@ static uint8_t *beacon_find_ie(uint8_t ie)
 	return NULL;
 }
 
-static void wlan_cab_flush_queue(void)
-{
-	struct dma_desc *desc;
-	uint8_t *_ie;
-	struct ieee80211_tim_ie *ie;
-
-	/*
-	 * This prevents the code from sending new BC/MC frames
-	 * which were queued after the previous buffered traffic
-	 * has been sent out... They will have to wait until the
-	 * next DTIM beacon comes along.
-	 */
-	if (unlikely(fw.wlan.cab_flush_trigger == CARL9170_CAB_TRIGGER_DEFER))
-		return ;
-
-	_ie = beacon_find_ie(WLAN_EID_TIM);
-	if (unlikely(!_ie))
-		return ;
-
-	ie = (struct ieee80211_tim_ie *) &_ie[2];
-
-	/* Ideally, check here for == AR9170_CAB_TRIGGER_ARMED */
-	if (fw.wlan.cab_flush_trigger) {
-		/* move queued frames into the main tx queues */
-		for_each_desc(desc, &fw.wlan.cab_queue) {
-			struct carl9170_tx_superframe *super = get_super(desc);
-
-			if (!queue_empty(&fw.wlan.cab_queue)) {
-				/*
-				 * Set MOREDATA flag for all,
-				 * but the last queued frame.
-				 * see: 802.11-2007 11.2.1.5 f)
-				 *
-				 * This is actually the reason to why
-				 * we need to prevent the reentry.
-				 */
-
-				super->f.data.i3e.frame_control |=
-					cpu_to_le16(IEEE80211_FCTL_MOREDATA);
-			} else {
-				super->f.data.i3e.frame_control &=
-					cpu_to_le16(~IEEE80211_FCTL_MOREDATA);
-			}
-
-			/* ready to roll! */
-			_wlan_tx(desc);
-		}
-	}
-
-	/* Transfer finished - waiting for tx status */
-	fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_DEFER;
-}
-
-static void wlan_cab_modify_dtim_beacon(void)
+void wlan_cab_modify_dtim_beacon(const unsigned int vif)
 {
 	uint8_t *_ie;
 	struct ieee80211_tim_ie *ie;
@@ -685,16 +662,18 @@ static void wlan_cab_modify_dtim_beacon(void)
 	_ie = beacon_find_ie(WLAN_EID_TIM);
 	if (likely(_ie)) {
 		ie = (struct ieee80211_tim_ie *) &_ie[2];
+		fw.wlan.cab_flush_vif = vif;
 
-		if (!queue_empty(&fw.wlan.cab_queue) && (ie->dtim_count == 0)) {
+		if (!queue_empty(&fw.wlan.cab_queue[vif]) && (ie->dtim_count == 0)) {
 			/* schedule DTIM transfer */
 			fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_ARMED;
-		} else if ((fw.wlan.cab_queue_len == 0) && (fw.wlan.cab_flush_trigger)) {
+		} else if ((fw.wlan.cab_queue_len[vif] == 0) && (fw.wlan.cab_flush_trigger)) {
 			/* undo all chances to the beacon structure */
 			ie->bitmap_ctrl &= ~0x1;
 			fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_EMPTY;
 		}
 
+		/* Triggered by CARL9170_CAB_TRIGGER_ARMED || CARL9170_CAB_TRIGGER_DEFER */
 		if (fw.wlan.cab_flush_trigger) {
 			/* Set the almighty Multicast Traffic Indication Bit. */
 			ie->bitmap_ctrl |= 0x1;
@@ -706,16 +685,6 @@ static void wlan_cab_modify_dtim_beacon(void)
 static void handle_beacon_config(void)
 {
 	uint32_t bcn_count;
-
-#ifdef CONFIG_CARL9170FW_CAB_QUEUE
-	/*
-	 * The application has now updated the relevant beacon data.
-	 * Now it should be the perfect time to apply the DTIM
-	 * multicast information.
-	 */
-
-	wlan_cab_modify_dtim_beacon();
-#endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	bcn_count = get(AR9170_MAC_REG_BCN_COUNT);
 	send_cmd_to_host(4, CARL9170_RSP_BEACON_CONFIG, 0x00,
@@ -736,7 +705,6 @@ static void handle_pretbtt(void)
 #else
 	send_cmd_to_host(0, CARL9170_RSP_PRETBTT, 0x00, NULL);
 #endif /* CONFIG_CARL9170FW_PSM */
-
 }
 
 static void handle_atim(void)
@@ -763,7 +731,7 @@ static void handle_radar(void)
 static void wlan_janitor(void)
 {
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
-	if (unlikely(fw.wlan.cab_flush_trigger)) {
+	if (unlikely(fw.wlan.cab_flush_trigger == CARL9170_CAB_TRIGGER_ARMED)) {
 		/*
 		 * This is hardcoded into carl9170usb driver.
 		 *
@@ -774,9 +742,16 @@ static void wlan_janitor(void)
 		 * 11.2.1.6. Let's hope the current solution is adequate enough.
 		 */
 
-		if (is_after_msecs(fw.wlan.cab_flush_time,
-		    (CARL9170_TBTT_DELTA))) {
-			wlan_cab_flush_queue();
+		if (is_after_msecs(fw.wlan.cab_flush_time, (CARL9170_TBTT_DELTA))) {
+			wlan_cab_flush_queue(fw.wlan.cab_flush_vif);
+
+			/*
+			 * This prevents the code from sending new BC/MC frames
+			 * which were queued after the previous buffered traffic
+			 * has been sent out... They will have to wait until the
+			 * next DTIM beacon comes along.
+			 */
+			fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_DEFER;
 		}
 	}
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */

@@ -152,9 +152,13 @@ struct carl9170_psm {
 #define CARL9170_PSM_SIZE		4
 
 struct carl9170_cab_flush_cmd {
-	__le32		vif_id;		/* currently unused */
+	__le32		vif_id;
+	__le32		mode;
 } __packed;
-#define CARL9170_CAB_FLUSH_CMD_SIZE	4
+#define CARL9170_CAB_FLUSH_CMD_SIZE	8
+
+#define CARL9170_CAB_FLUSH_DRAIN	0
+#define CARL9170_CAB_FLUSH_CAB_TRIGGER	1
 
 struct carl9170_cmd_head {
 	union {

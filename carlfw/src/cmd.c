@@ -82,9 +82,15 @@ void handle_cmd(struct carl9170_rsp *resp)
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	case CARL9170_CMD_FLUSH_CAB:
 		resp->hdr.len = 0;
-		fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_ARMED;
-		fw.wlan.cab_flush_time = get_clock_counter() +
-					 CARL9170_TBTT_DELTA;
+
+		if (cmd->cab_flush.mode & CARL9170_CAB_FLUSH_CAB_TRIGGER) {
+			wlan_cab_modify_dtim_beacon(cmd->cab_flush.vif_id);
+			set(AR9170_MAC_REG_BCN_CTRL, AR9170_BCN_CTRL_READY);
+		} else {
+			wlan_cab_flush_queue(cmd->cab_flush.vif_id);
+			if (fw.wlan.cab_flush_vif == cmd->cab_flush.vif_id)
+				fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_EMPTY;
+		}
 		break;
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 

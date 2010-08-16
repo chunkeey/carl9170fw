@@ -103,9 +103,9 @@ struct firmware_context_struct {
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 		/* CAB */
-		struct dma_queue cab_queue;
-		unsigned int cab_queue_len,
-			     cab_flush_time;
+		struct dma_queue cab_queue[CARL9170_INTF_NUM];
+		unsigned int cab_queue_len[CARL9170_INTF_NUM];
+		unsigned int cab_flush_time, cab_flush_vif;
 		enum carl9170_cab_trigger cab_flush_trigger;
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 

@@ -82,7 +82,14 @@ void dma_init_descriptors(void)
 	fw.usb.int_desc = &dma_mem.terminator[i++];
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
-	fw.wlan.cab_queue.head = fw.wlan.cab_queue.terminator = &dma_mem.terminator[i++];
+	/* GCC bug ? */
+# if (CARL9170_INTF_NUM != 2)
+	for (j = 0; j < CARL9170_INTF_NUM; j++)
+		fw.wlan.cab_queue[j].head = fw.wlan.cab_queue[j].terminator = &dma_mem.terminator[i++];
+#else
+	fw.wlan.cab_queue[0].head = fw.wlan.cab_queue[0].terminator = &dma_mem.terminator[i++];
+	fw.wlan.cab_queue[1].head = fw.wlan.cab_queue[1].terminator = &dma_mem.terminator[i++];
+#endif
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 #ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
@@ -95,6 +102,8 @@ void dma_init_descriptors(void)
 	for (j = 0; j < __AR9170_NUM_TX_QUEUES; j++)
 		fw.wlan.tx_delay[j].head = fw.wlan.tx_delay[j].terminator = &dma_mem.terminator[i++];
 #endif /* CONFIG_CARL9170FW_DELAYED_TX */
+
+	BUILD_BUG_ON(AR9170_TERMINATOR_NUMBER != j);
 
 	DBG("Blocks:%d [tx:%d, rx:%d] Terminators:%d/%d\n",
 	    AR9170_BLOCK_NUMBER, AR9170_TX_BLOCK_NUMBER,

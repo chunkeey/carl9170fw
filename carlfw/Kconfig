@@ -152,6 +152,12 @@ config CARL9170FW_DELAYED_TX
 	 Doesn't work 100% yet, but in most cases other HW designs can
 	 deal with the fallout.
 
+config CARL9170FW_VIFS_NUM
+	default 0
+	int
+	prompt "Number of additional pseudo virtual interfaces"
+	depends on CARL9170FW_EXPERIMENTAL
+
 config CARL9170FW_BROKEN_FEATURES
 	def_bool n
 	prompt "Broken Featurs"
@@ -183,12 +189,6 @@ config CARL9170FW_WATCHDOG_BUTTON
 	def_bool n
 	depends on CARL9170FW_BROKEN && CARL9170FW_WATCHDOG && CARL9170FW_GPIO_INTERRUPT
 	prompt "Trigger Watchdog by pressing the WPS button"
-
-config CARL9170FW_VIFS_NUM
-	default 0
-	int
-	prompt "Number of additional pseudo virtual interfaces"
-	depends on CARL9170FW_BROKEN_FEATURES
 
 choice CARL9170FW_UART_CLOCK
 	prompt "UART Clock"
