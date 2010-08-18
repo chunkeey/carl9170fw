@@ -19,6 +19,7 @@
 #include "types.h"
 #include "compiler.h"
 #include "fwcmd.h"
+#include "hw.h"
 
 #ifndef __CARL9170FW_CONFIG_H
 #define __CARL9170FW_CONFIG_H
@@ -62,6 +63,7 @@ static inline void __config_check(void)
 {
 	BUILD_BUG_ON(!CARL9170_TX_STATUS_NUM);
 	BUILD_BUG_ON(CARL9170_INTF_NUM < 1);
+	BUILD_BUG_ON(CARL9170_INTF_NUM >= AR9170_MAX_VIRTUAL_MAC);
 
 #ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 	BUILD_BUG_ON(!CONFIG_CARL9170FW_BACK_REQS_NUM);
