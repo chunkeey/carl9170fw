@@ -59,12 +59,14 @@ void handle_cmd(struct carl9170_rsp *resp)
 		break;
 
 	case CARL9170_CMD_SWRST:
+#ifdef CONFIG_CARL9170FW_FW_MAC_RESET
 		/*
 		 * Command has no payload, so the response
 		 * has no payload either.
 		 * resp->hdr.len = 0;
 		 */
 		fw.wlan.mac_reset = CARL9170_MAC_RESET_FORCE;
+#endif /* CONFIG_CARL9170FW_FW_MAC_RESET */
 		break;
 
 	case CARL9170_CMD_REBOOT:
@@ -129,6 +131,7 @@ void handle_cmd(struct carl9170_rsp *resp)
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIOS */
 
 	default:
+		BUG("Unknown command %x\n", cmd->hdr.cmd);
 		break;
 	}
 }

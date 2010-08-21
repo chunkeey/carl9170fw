@@ -265,6 +265,9 @@ static bool wlan_tx_status(struct dma_queue *queue,
 
 	success = true;
 
+	/* update hangcheck */
+	fw.wlan.last_tx_desc_num[qidx] = 0;
+
 	if (!!(desc->ctrl & AR9170_CTRL_FAIL)) {
 		txfail = !!(desc->ctrl & AR9170_CTRL_TXFAIL);
 
@@ -341,9 +344,6 @@ static bool wlan_tx_status(struct dma_queue *queue,
 	}
 
 	unhide_super(desc);
-
-	/* update hangcheck */
-	fw.wlan.last_tx_desc_num[qidx] = 0;
 
 #ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 	if (unlikely(super == (void *) &dma_mem.reserved.ba)) {
@@ -562,14 +562,11 @@ static void wlan_check_rx_overrun(void)
 	fw.wlan.rx_overruns += overruns = get(AR9170_MAC_REG_RX_OVERRUN);
 	if (unlikely(overruns)) {
 		if (overruns == total) {
-			/*
-			 * Theoretically, it should be enough to
-			 * trigger the WLAN RX DMA bit. But the
-			 * original firmware wanted a reset...
-			 */
 			DBG("RX Overrun");
 			fw.wlan.mac_reset++;
 		}
+
+		wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
 	}
 }
 
@@ -895,6 +892,7 @@ static void wlan_check_hang(void)
 	}
 }
 
+#ifdef CONFIG_CARL9170FW_FW_MAC_RESET
 /*
  * NB: Resetting the MAC is a two-edged sword.
  * On most occasions, it does what it is supposed to do.
@@ -997,6 +995,13 @@ static void wlan_mac_reset(void)
 	set(AR9170_MAC_REG_DMA_RXQ_ADDR, (uint32_t) fw.wlan.rx_queue.head);
 	wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
 }
+#else
+static void wlan_mac_reset(void)
+{
+	/* The driver takes care of reinitializing the device */
+	BUG("MAC RESET");
+}
+#endif /* CONFIG_CARL9170FW_FW_MAC_RESET */
 
 void __cold wlan_timer(void)
 {

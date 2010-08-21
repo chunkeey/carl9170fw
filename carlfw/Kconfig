@@ -158,6 +158,11 @@ config CARL9170FW_VIFS_NUM
 	prompt "Number of additional pseudo virtual interfaces"
 	depends on CARL9170FW_EXPERIMENTAL
 
+config CARL9170FW_FW_MAC_RESET
+	def_bool n
+	prompt "Firmware MAC Chip recovery"
+	depends on CARL9170FW_EXPERIMENTAL
+
 config CARL9170FW_BROKEN_FEATURES
 	def_bool n
 	prompt "Broken Featurs"
