@@ -659,19 +659,18 @@ void wlan_cab_modify_dtim_beacon(const unsigned int vif)
 	_ie = beacon_find_ie(WLAN_EID_TIM);
 	if (likely(_ie)) {
 		ie = (struct ieee80211_tim_ie *) &_ie[2];
-		fw.wlan.cab_flush_vif = vif;
 
 		if (!queue_empty(&fw.wlan.cab_queue[vif]) && (ie->dtim_count == 0)) {
 			/* schedule DTIM transfer */
-			fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_ARMED;
-		} else if ((fw.wlan.cab_queue_len[vif] == 0) && (fw.wlan.cab_flush_trigger)) {
+			fw.wlan.cab_flush_trigger[vif] = CARL9170_CAB_TRIGGER_ARMED;
+		} else if ((fw.wlan.cab_queue_len[vif] == 0) && (fw.wlan.cab_flush_trigger[vif])) {
 			/* undo all chances to the beacon structure */
 			ie->bitmap_ctrl &= ~0x1;
-			fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_EMPTY;
+			fw.wlan.cab_flush_trigger[vif] = CARL9170_CAB_TRIGGER_EMPTY;
 		}
 
-		/* Triggered by CARL9170_CAB_TRIGGER_ARMED || CARL9170_CAB_TRIGGER_DEFER */
-		if (fw.wlan.cab_flush_trigger) {
+		/* Triggered by CARL9170_CAB_TRIGGER_ARMED || CARL9170_CAB_TRIGGER_READY || CARL9170_CAB_TRIGGER_DEFER */
+		if (fw.wlan.cab_flush_trigger[vif]) {
 			/* Set the almighty Multicast Traffic Indication Bit. */
 			ie->bitmap_ctrl |= 0x1;
 		}
@@ -691,6 +690,21 @@ static void handle_beacon_config(void)
 static void handle_pretbtt(void)
 {
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
+#if CARL9170_INTF_NUM != 2
+	/* GCC BUG ? */
+	unsigned int i;
+
+	for (i = 0; i < CARL9170_INTF_NUM; i++) {
+		if (unlikely(fw.wlan.cab_flush_trigger[i] == CARL9170_CAB_TRIGGER_ARMED))
+			fw.wlan.cab_flush_trigger[i] = CARL9170_CAB_TRIGGER_READY;
+	}
+#else
+	if (unlikely(fw.wlan.cab_flush_trigger[0] == CARL9170_CAB_TRIGGER_ARMED))
+		fw.wlan.cab_flush_trigger[0] = CARL9170_CAB_TRIGGER_READY;
+	if (unlikely(fw.wlan.cab_flush_trigger[1] == CARL9170_CAB_TRIGGER_ARMED))
+		fw.wlan.cab_flush_trigger[1] = CARL9170_CAB_TRIGGER_READY;
+#endif
+
 	fw.wlan.cab_flush_time = get_clock_counter();
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
@@ -728,28 +742,33 @@ static void handle_radar(void)
 static void wlan_janitor(void)
 {
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
-	if (unlikely(fw.wlan.cab_flush_trigger == CARL9170_CAB_TRIGGER_ARMED)) {
-		/*
-		 * This is hardcoded into carl9170usb driver.
-		 *
-		 * The driver must set the PRETBTT event to beacon_interval -
-		 * CARL9170_PRETBTT_KUS (usually 6) Kus.
-		 *
-		 * But still, we can only do so much about 802.11-2007 9.3.2.1 &
-		 * 11.2.1.6. Let's hope the current solution is adequate enough.
-		 */
+	unsigned int i;
 
-		if (is_after_msecs(fw.wlan.cab_flush_time, (CARL9170_TBTT_DELTA))) {
-			wlan_cab_flush_queue(fw.wlan.cab_flush_vif);
-
+	for (i = 0; i < CARL9170_INTF_NUM; i++) {
+		if (unlikely(fw.wlan.cab_flush_trigger[i] == CARL9170_CAB_TRIGGER_READY)) {
 			/*
-			 * This prevents the code from sending new BC/MC frames
-			 * which were queued after the previous buffered traffic
-			 * has been sent out... They will have to wait until the
-			 * next DTIM beacon comes along.
+			 * This is hardcoded into carl9170usb driver.
+			 *
+			 * The driver must set the PRETBTT event to beacon_interval -
+			 * CARL9170_PRETBTT_KUS (usually 6) Kus.
+			 *
+			 * But still, we can only do so much about 802.11-2007 9.3.2.1 &
+			 * 11.2.1.6. Let's hope the current solution is adequate enough.
 			 */
-			fw.wlan.cab_flush_trigger = CARL9170_CAB_TRIGGER_DEFER;
+
+			if (is_after_msecs(fw.wlan.cab_flush_time, (CARL9170_TBTT_DELTA))) {
+				wlan_cab_flush_queue(i);
+
+				/*
+				 * This prevents the code from sending new BC/MC frames
+				 * which were queued after the previous buffered traffic
+				 * has been sent out... They will have to wait until the
+				 * next DTIM beacon comes along.
+				 */
+				fw.wlan.cab_flush_trigger[i] = CARL9170_CAB_TRIGGER_DEFER;
+			}
 		}
+
 	}
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 

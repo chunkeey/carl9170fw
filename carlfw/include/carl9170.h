@@ -45,8 +45,9 @@ struct carl9170_bar_ctx {
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 enum carl9170_cab_trigger {
 	CARL9170_CAB_TRIGGER_EMPTY	= 0,
-	CARL9170_CAB_TRIGGER_ARMED	= BIT(0),
-	CARL9170_CAB_TRIGGER_DEFER	= BIT(1),
+	CARL9170_CAB_TRIGGER_READY	= BIT(0),
+	CARL9170_CAB_TRIGGER_ARMED	= BIT(1),
+	CARL9170_CAB_TRIGGER_DEFER	= BIT(2),
 };
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
@@ -105,8 +106,8 @@ struct firmware_context_struct {
 		/* CAB */
 		struct dma_queue cab_queue[CARL9170_INTF_NUM];
 		unsigned int cab_queue_len[CARL9170_INTF_NUM];
-		unsigned int cab_flush_time, cab_flush_vif;
-		enum carl9170_cab_trigger cab_flush_trigger;
+		unsigned int cab_flush_time;
+		enum carl9170_cab_trigger cab_flush_trigger[CARL9170_INTF_NUM];
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 		/* tx status */
