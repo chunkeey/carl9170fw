@@ -1,7 +1,8 @@
-Atheros ar9170 firmware - used by the ar9170 wireless device
+Atheros carl9170 firmware - used by the ar9170 wireless device
 
 Copyright (c) 2000-2005  ZyDAS Technology Corporation
 Copyright (c) 2007-2009 Atheros Communications, Inc.
+Copyright (c) 2009-2010 Christian Lamparter
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
