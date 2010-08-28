@@ -51,7 +51,7 @@ enum carl9170_cmd_oids {
 	CARL9170_CMD_ECHO		= 0x02,
 	CARL9170_CMD_SWRST		= 0x03,
 	CARL9170_CMD_REBOOT		= 0x04,
-	CARL9170_CMD_FLUSH_CAB		= 0x05,
+	CARL9170_CMD_BCN_CTRL		= 0x05,
 	CARL9170_CMD_READ_TSF		= 0x06,
 
 	/* CAM */
@@ -71,7 +71,7 @@ enum carl9170_cmd_oids {
 					   CARL9170_CMD_ASYNC_FLAG),
 	CARL9170_CMD_REBOOT_ASYNC	= (CARL9170_CMD_REBOOT |
 					   CARL9170_CMD_ASYNC_FLAG),
-	CARL9170_CMD_FLUSH_CAB_ASYNC	= (CARL9170_CMD_FLUSH_CAB |
+	CARL9170_CMD_BCN_CTRL_ASYNC	= (CARL9170_CMD_BCN_CTRL |
 					   CARL9170_CMD_ASYNC_FLAG),
 	CARL9170_CMD_PSM_ASYNC		= (CARL9170_CMD_PSM |
 					   CARL9170_CMD_ASYNC_FLAG),
@@ -153,14 +153,16 @@ struct carl9170_psm {
 } __packed;
 #define CARL9170_PSM_SIZE		4
 
-struct carl9170_cab_flush_cmd {
+struct carl9170_bcn_ctrl_cmd {
 	__le32		vif_id;
 	__le32		mode;
+	__le32		bcn_addr;
+	__le32		bcn_len;
 } __packed;
-#define CARL9170_CAB_FLUSH_CMD_SIZE	8
+#define CARL9170_BCN_CTRL_CMD_SIZE	16
 
-#define CARL9170_CAB_FLUSH_DRAIN	0
-#define CARL9170_CAB_FLUSH_CAB_TRIGGER	1
+#define CARL9170_BCN_CTRL_DRAIN	0
+#define CARL9170_BCN_CTRL_CAB_TRIGGER	1
 
 struct carl9170_cmd_head {
 	union {
@@ -185,7 +187,7 @@ struct carl9170_cmd {
 		struct carl9170_write_reg	wreg;
 		struct carl9170_rf_init		rf_init;
 		struct carl9170_psm		psm;
-		struct carl9170_cab_flush_cmd	cab_flush;
+		struct carl9170_bcn_ctrl_cmd	bcn_ctrl;
 		u8 data[CARL9170_MAX_CMD_PAYLOAD_LEN];
 	} __packed;
 } __packed;

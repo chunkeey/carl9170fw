@@ -669,7 +669,7 @@ void wlan_cab_modify_dtim_beacon(const unsigned int vif)
 			fw.wlan.cab_flush_trigger[vif] = CARL9170_CAB_TRIGGER_EMPTY;
 		}
 
-		/* Triggered by CARL9170_CAB_TRIGGER_ARMED || CARL9170_CAB_TRIGGER_READY || CARL9170_CAB_TRIGGER_DEFER */
+		/* Triggered by CARL9170_CAB_TRIGGER_ARMED || CARL9170_CAB_TRIGGER_DEFER */
 		if (fw.wlan.cab_flush_trigger[vif]) {
 			/* Set the almighty Multicast Traffic Indication Bit. */
 			ie->bitmap_ctrl |= 0x1;
@@ -685,26 +685,13 @@ static void handle_beacon_config(void)
 	bcn_count = get(AR9170_MAC_REG_BCN_COUNT);
 	send_cmd_to_host(4, CARL9170_RSP_BEACON_CONFIG, 0x00,
 			 (uint8_t *) &bcn_count);
+
+	set(AR9170_MAC_REG_BCN_CTRL, AR9170_BCN_CTRL_READY);
 }
 
 static void handle_pretbtt(void)
 {
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
-#if CARL9170_INTF_NUM != 2
-	/* GCC BUG ? */
-	unsigned int i;
-
-	for (i = 0; i < CARL9170_INTF_NUM; i++) {
-		if (unlikely(fw.wlan.cab_flush_trigger[i] == CARL9170_CAB_TRIGGER_ARMED))
-			fw.wlan.cab_flush_trigger[i] = CARL9170_CAB_TRIGGER_READY;
-	}
-#else
-	if (unlikely(fw.wlan.cab_flush_trigger[0] == CARL9170_CAB_TRIGGER_ARMED))
-		fw.wlan.cab_flush_trigger[0] = CARL9170_CAB_TRIGGER_READY;
-	if (unlikely(fw.wlan.cab_flush_trigger[1] == CARL9170_CAB_TRIGGER_ARMED))
-		fw.wlan.cab_flush_trigger[1] = CARL9170_CAB_TRIGGER_READY;
-#endif
-
 	fw.wlan.cab_flush_time = get_clock_counter();
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
@@ -745,7 +732,7 @@ static void wlan_janitor(void)
 	unsigned int i;
 
 	for (i = 0; i < CARL9170_INTF_NUM; i++) {
-		if (unlikely(fw.wlan.cab_flush_trigger[i] == CARL9170_CAB_TRIGGER_READY)) {
+		if (unlikely(fw.wlan.cab_flush_trigger[i] == CARL9170_CAB_TRIGGER_ARMED)) {
 			/*
 			 * This is hardcoded into carl9170usb driver.
 			 *

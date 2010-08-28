@@ -82,14 +82,16 @@ void handle_cmd(struct carl9170_rsp *resp)
 		break;
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
-	case CARL9170_CMD_FLUSH_CAB:
+	case CARL9170_CMD_BCN_CTRL:
 		resp->hdr.len = 0;
 
-		if (cmd->cab_flush.mode & CARL9170_CAB_FLUSH_CAB_TRIGGER) {
-			wlan_cab_modify_dtim_beacon(cmd->cab_flush.vif_id);
+		if (cmd->bcn_ctrl.mode & CARL9170_BCN_CTRL_CAB_TRIGGER) {
+			wlan_cab_modify_dtim_beacon(cmd->bcn_ctrl.vif_id);
+			set(AR9170_MAC_REG_BCN_ADDR, cmd->bcn_ctrl.bcn_addr);
+			set(AR9170_MAC_REG_BCN_LENGTH, cmd->bcn_ctrl.bcn_len);
 			set(AR9170_MAC_REG_BCN_CTRL, AR9170_BCN_CTRL_READY);
 		} else {
-			wlan_cab_flush_queue(cmd->cab_flush.vif_id);
+			wlan_cab_flush_queue(cmd->bcn_ctrl.vif_id);
 			fw.wlan.cab_flush_trigger[i] = CARL9170_CAB_TRIGGER_EMPTY;
 		}
 		break;
