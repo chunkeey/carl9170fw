@@ -170,7 +170,7 @@ static int __carlfw_load(struct carlfw_file *file, const char *name, const char 
 
 	err = fread(file->data, file->len, 1, fh);
 	if (err != 1)
-		return ferror(fh);
+		return -ferror(fh);
 
 	file->name = strdup(name);
 	fclose(fh);
@@ -563,14 +563,14 @@ int carlfw_store(struct carlfw *fw)
 
 		err = fwrite(iter->data, elen, 1, fh);
 		if (err != 1) {
-			err = ferror(fh);
+			err = -ferror(fh);
 			goto close_out;
 		}
 	}
 
 	err = fwrite(&last_desc, sizeof(last_desc), 1, fh);
 	if (err != 1) {
-		err = ferror(fh);
+		err = -ferror(fh);
 		goto close_out;
 	}
 
