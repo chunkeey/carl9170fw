@@ -147,7 +147,6 @@ struct carl9170_sram_reserved {
  * 0x18000
  */
 
-#define AR9170_SRAM_SIZE		0x18000
 #define CARL9170_SRAM_RESERVED		(sizeof(struct carl9170_sram_reserved))
 
 #define AR9170_FRAME_MEMORY_SIZE	(AR9170_SRAM_SIZE - CARL9170_SRAM_RESERVED)
