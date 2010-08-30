@@ -625,16 +625,11 @@ void wlan_cab_flush_queue(const unsigned int vif)
 	}
 }
 
-static uint8_t *beacon_find_ie(uint8_t ie)
+static uint8_t *beacon_find_ie(uint8_t ie, void *addr,
+			       const unsigned int len)
 {
-	struct ieee80211_mgmt *mgmt = getp(AR9170_MAC_REG_BCN_ADDR);
+	struct ieee80211_mgmt *mgmt = addr;
 	uint8_t *pos, *end;
-	unsigned int len;
-
-	len = get(AR9170_MAC_REG_BCN_LENGTH);
-
-	if (len < FCS_LEN + sizeof(mgmt))
-		return NULL;
 
 	pos = mgmt->u.beacon.variable;
 	end = (uint8_t *) ((unsigned long)mgmt + (len - FCS_LEN));
@@ -651,12 +646,13 @@ static uint8_t *beacon_find_ie(uint8_t ie)
 	return NULL;
 }
 
-void wlan_cab_modify_dtim_beacon(const unsigned int vif)
+void wlan_cab_modify_dtim_beacon(const unsigned int vif,
+	const unsigned int addr, const unsigned int len)
 {
 	uint8_t *_ie;
 	struct ieee80211_tim_ie *ie;
 
-	_ie = beacon_find_ie(WLAN_EID_TIM);
+	_ie = beacon_find_ie(WLAN_EID_TIM, (void *)addr, len);
 	if (likely(_ie)) {
 		ie = (struct ieee80211_tim_ie *) &_ie[2];
 

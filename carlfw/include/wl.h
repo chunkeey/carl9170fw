@@ -262,7 +262,9 @@ void handle_wlan(void);
 void wlan_tx_stuck(const struct carl9170_cmd *cmd, struct carl9170_rsp *rsp);
 
 void wlan_cab_flush_queue(const unsigned int vif);
-void wlan_cab_modify_dtim_beacon(const unsigned int vif);
+void wlan_cab_modify_dtim_beacon(const unsigned int vif,
+				 const unsigned int bcn_addr,
+				 const unsigned int bcn_len);
 
 static inline void __check_wlantx(void)
 {
