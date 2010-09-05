@@ -1,7 +1,7 @@
 /*
- * Atheros AR9170 driver
+ * Shared Atheros AR9170 Header
  *
- * Hardware-specific definitions
+ * RX/TX meta descriptor format
  *
  * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
  * Copyright 2009, 2010, Christian Lamparter <chunkeey@googlemail.com>

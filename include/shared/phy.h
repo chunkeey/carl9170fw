@@ -1,4 +1,8 @@
 /*
+ * Shared Atheros AR9170 Header
+ *
+ * PHY register map
+ *
  * Copyright (c) 2008-2009 Atheros Communications Inc.
  *
  * Permission to use, copy, modify, and/or distribute this software for any

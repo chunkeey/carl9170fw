@@ -1,5 +1,7 @@
 /*
- * Firmware Descriptor definitions
+ * Shared CARL9170 Header
+ *
+ * Firmware descriptor format
  *
  * Copyright 2009, 2010, Christian Lamparter <chunkeey@googlemail.com>
  *

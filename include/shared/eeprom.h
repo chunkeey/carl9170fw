@@ -1,5 +1,5 @@
 /*
- * Atheros AR9170 driver
+ * Shared Atheros AR9170 Header
  *
  * EEPROM layout
  *

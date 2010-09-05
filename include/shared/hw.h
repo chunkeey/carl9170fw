@@ -1,7 +1,7 @@
 /*
- * Atheros AR9170 driver
+ * Shared Atheros AR9170 Header
  *
- * Hardware-specific definitions
+ * Register map, hardware-specific definitions
  *
  * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
  * Copyright 2009, 2010, Christian Lamparter <chunkeey@googlemail.com>
