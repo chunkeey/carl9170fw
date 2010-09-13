@@ -136,7 +136,7 @@ static uint32_t AGC_calibration(uint32_t loop)
 	uint32_t wrdata;
 	uint32_t ret;
 
-#define AGC_CAL_NF	(AR9170_PHY_AGC_CONTROL_CAL | AR9170_PHY_AGC_CONTROL_NF);
+#define AGC_CAL_NF	(AR9170_PHY_AGC_CONTROL_CAL | AR9170_PHY_AGC_CONTROL_NF)
 
 	wrdata = get_async(AR9170_PHY_REG_AGC_CONTROL) | AGC_CAL_NF;
 	set(AR9170_PHY_REG_AGC_CONTROL, wrdata);
@@ -144,14 +144,10 @@ static uint32_t AGC_calibration(uint32_t loop)
 	ret = get_async(AR9170_PHY_REG_AGC_CONTROL) & AGC_CAL_NF;
 
 	/* sitesurvey : 100 ms / current connected 200 ms */
-	while (loop && ret != 0x0) {
-		ret = get_async(AR9170_PHY_REG_AGC_CONTROL) & AGC_CAL_NF;
-
-		if (ret == 0)
-			break;
-
+	while ((ret != 0) && loop--) {
 		udelay(100);
-		loop--;
+
+		ret = get_async(AR9170_PHY_REG_AGC_CONTROL) & AGC_CAL_NF;
 	}
 
 	/* return the AGC/Noise calibration state to the driver */
