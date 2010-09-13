@@ -246,6 +246,11 @@ config CARL9170FW_USB_MODESWITCH
 	 Mostly implemented, but untested and some serious
 	 doubts remain.
 
+config CARL9170FW_DMA_QUEUE_BUMP
+	def_bool n
+	prompt "Bump a stuck TX queue before doing a MAC reset"
+	depends on CARL9170FW_BROKEN_FEATURES
+
 menu "Build Options"
 config CARL9170FW_AGGRESSIVE_CFLAGS
 	def_bool y
