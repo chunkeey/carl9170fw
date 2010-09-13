@@ -784,6 +784,9 @@ void handle_wlan(void)
 		}					\
 	} while (0)
 
+	intr |= fw.wlan.soft_int;
+	fw.wlan.soft_int = 0;
+
 	HANDLER(intr, AR9170_MAC_INT_PRETBTT, handle_pretbtt);
 
 	HANDLER(intr, AR9170_MAC_INT_ATIM, handle_atim);
@@ -911,6 +914,7 @@ static void wlan_mac_reset(void)
 	uint32_t cam_mode;
 	uint32_t ack_power;
 	uint32_t rts_cts_tpc;
+	uint32_t rts_cts_rate;
 	unsigned int i;
 
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
@@ -931,6 +935,7 @@ static void wlan_mac_reset(void)
 
 	ack_power = get(AR9170_MAC_REG_ACK_TPC);
 	rts_cts_tpc = get(AR9170_MAC_REG_RTS_CTS_TPC);
+	rts_cts_rate = get(AR9170_MAC_REG_RTS_CTS_RATE);
 
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 	/* 0x1c8960 write only */
@@ -972,6 +977,7 @@ static void wlan_mac_reset(void)
 
 	set(AR9170_MAC_REG_RTS_CTS_TPC, rts_cts_tpc);
 	set(AR9170_MAC_REG_ACK_TPC, ack_power);
+	set(AR9170_MAC_REG_RTS_CTS_RATE, rts_cts_rate);
 
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 	set(AR9170_PHY_REG_SWITCH_CHAIN_2, rx_BB);
@@ -983,17 +989,24 @@ static void wlan_mac_reset(void)
 	 * set(AR9170_PHY_REG_CCA_THRESHOLD, 0x0);
 	 */
 
+	/* Reinitialize all WLAN TX DMA queues. */
 	for (i = 0; i < __AR9170_NUM_TX_QUEUES; i++) {
-		DBG("Q:%d l:%d h:%p t:%p\n", i, queue_len(&fw.wlan.tx_queue[i]),
-		     fw.wlan.tx_queue[i].head, fw.wlan.tx_queue[i].terminator);
+		struct dma_desc *iter;
 
-		set_wlan_txq_dma_addr(i, (uint32_t) fw.wlan.tx_queue[i].head);
+		__for_each_desc_bits(iter, &fw.wlan.tx_queue[i], AR9170_OWN_BITS_SW);
 
-		if (!queue_empty(&fw.wlan.tx_queue[i]))
+		set_wlan_txq_dma_addr(i, (uint32_t) iter);
+		if (!is_terminator(&fw.wlan.tx_queue[i], iter))
 			wlan_trigger(BIT(i));
+
+		DBG("Q:%d l:%d h:%p t:%p cu:%p it:%p ct:%x st:%x\n", i, queue_len(&fw.wlan.tx_queue[i]),
+		     fw.wlan.tx_queue[i].head, fw.wlan.tx_queue[i].terminator,
+		     get_wlan_txq_addr(i), iter, iter->ctrl, iter->status);
 	}
 
-	handle_rx();
+	fw.wlan.soft_int |= AR9170_MAC_INT_RXC | AR9170_MAC_INT_TXC |
+			    AR9170_MAC_INT_RETRY_FAIL;
+
 	set(AR9170_MAC_REG_DMA_RXQ_ADDR, (uint32_t) fw.wlan.rx_queue.head);
 	wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
 }

@@ -100,6 +100,7 @@ struct firmware_context_struct {
 		unsigned int rx_total;
 		unsigned int rx_overruns;
 		unsigned int mac_reset;
+		unsigned int soft_int;
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 		/* CAB */

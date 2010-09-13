@@ -226,6 +226,11 @@ void dma_queue_reclaim(struct dma_queue *dst, struct dma_queue *src);
 void queue_dump(void);
 void wlan_txq_hangfix(const unsigned int queue);
 
+static inline __inline bool is_terminator(struct dma_queue *q, struct dma_desc *desc)
+{
+	return q->terminator == desc;
+}
+
 static inline __inline bool queue_empty(struct dma_queue *q)
 {
 	return q->head == q->terminator;
