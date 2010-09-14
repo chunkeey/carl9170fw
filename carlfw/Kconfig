@@ -159,7 +159,7 @@ config CARL9170FW_VIFS_NUM
 	depends on CARL9170FW_EXPERIMENTAL
 
 config CARL9170FW_FW_MAC_RESET
-	def_bool n
+	def_bool y
 	prompt "Firmware MAC Chip recovery"
 	depends on CARL9170FW_EXPERIMENTAL
 
