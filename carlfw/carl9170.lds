@@ -27,11 +27,15 @@ MEMORY
     irqctl   : ORIGIN = 0x1d2000, LENGTH = 4k
     usb      : ORIGIN = 0x1e1000, LENGTH = 4k
     pta      : ORIGIN = 0x1e2000, LENGTH = 4k
-    pram     : ORIGIN = 0x200000, LENGTH = 16k
+    pram     : ORIGIN = 0x200000, LENGTH = 16256
+    bogus    : ORIGIN = 0x300000, LENGTH = 8k
 }
 
 SECTIONS
 {
+	.eeprom : { *(.eeprom*) } > eeprom
+	.sram	: { *(.sram*) } > sram
+
 	/*
 	 * The ar9170 boot code will execute the code
 	 * at address 0x04 from the loaded firmware as
@@ -50,8 +54,6 @@ SECTIONS
 	.rodata	: { *(.rodata*) } > pram
 	.bss	: { *(.bss) } > pram
 	.data	: { *(.data*) } > pram
-	.fwdsc	: { KEEP(*(.fwdsc)) } > pram
 
-	.sram	: { *(.sram*) } > sram
-	.eeprom : { *(.eeprom*) } > eeprom
+	.fwdsc	: { KEEP(*(.fwdsc)) } > bogus
 }
