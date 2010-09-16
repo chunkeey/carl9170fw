@@ -46,6 +46,7 @@ static void init(void)
 	/* USB init */
 	usb_init();
 
+	/* initialize DMA memory */
 	memset(&dma_mem, 0, sizeof(dma_mem));
 
 	/* fill DMA rings */
@@ -119,9 +120,6 @@ static void __attribute__((noreturn)) main_loop(void)
 void __attribute__((noreturn)) start(void)
 {
 	clock_set(true, AHB_40MHZ_OSC);
-
-	/* initialize firmware context and DMA memory */
-	memset(&fw, 0, sizeof(fw));
 
 	/* watchdog magic pattern check */
 	if ((get(AR9170_PWR_REG_WATCH_DOG_MAGIC) & 0xffff0000) == 0x12340000) {
