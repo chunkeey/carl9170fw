@@ -64,7 +64,8 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 #endif /* CONFIG_CARL9170FW_GPIO_INTERRUPT */
 #ifdef CONFIG_CARL9170FW_PSM
 					BIT(CARL9170FW_PSM) |
-#endif
+#endif /* CONFIG_CARL9170FW_PSM */
+					BIT(CARL9170FW_RX_FILTER) |
 					   (0)),
 
 	     .miniboot_size = cpu_to_le16(0),
@@ -92,6 +93,7 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 	     .counter_addr = cpu_to_le32(&fw.counter),
 	     .rx_total_addr = cpu_to_le32(&fw.wlan.rx_total),
 	     .rx_overrun_addr = cpu_to_le32(&fw.wlan.rx_overruns),
+	     .rx_filter = cpu_to_le32(&fw.wlan.rx_filter),
 	),
 
 	FILL(last, LAST),

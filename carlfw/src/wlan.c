@@ -522,19 +522,13 @@ static struct carl9170_bar_ctx *wlan_get_bar_cache_buffer(void)
 	return tmp;
 }
 
-static void handle_bar(struct dma_desc *desc)
+static void handle_bar(struct dma_desc *desc, struct ieee80211_hdr *hdr,
+		       unsigned int len, unsigned int mac_err)
 {
-	struct ieee80211_hdr *hdr;
 	struct ieee80211_bar *bar;
 	struct carl9170_bar_ctx *ctx;
 
-	hdr = ar9170_get_rx_i3e(desc);
-
-	/* check if this is a BAR for us */
-	if (likely(!ieee80211_is_back_req(hdr->frame_control)))
-		return ;
-
-	if (unlikely(ar9170_get_rx_macstatus_error(desc))) {
+	if (unlikely(mac_err)) {
 		/*
 		 * This check does a number of things:
 		 * 1. checks if the frame is in good nick
@@ -543,8 +537,7 @@ static void handle_bar(struct dma_desc *desc)
 		return ;
 	}
 
-	if (unlikely(ar9170_get_rx_mpdu_len(desc) <
-	    sizeof(struct ieee80211_bar))) {
+	if (unlikely(len < (sizeof(struct ieee80211_bar) + FCS_LEN))) {
 		/*
 		 * Sneaky, corrupted BARs... but not with us!
 		 */
@@ -598,26 +591,78 @@ static void wlan_check_rx_overrun(void)
 	}
 }
 
+static unsigned int wlan_rx_filter(struct dma_desc *desc)
+{
+	struct ieee80211_hdr *hdr;
+	unsigned int data_len;
+	unsigned int rx_filter;
+	unsigned int mac_err;
+
+	data_len = ar9170_get_rx_mpdu_len(desc);
+	mac_err = ar9170_get_rx_macstatus_error(desc);
+
+#define AR9170_RX_ERROR_BAD (AR9170_RX_ERROR_FCS | AR9170_RX_ERROR_PLCP | \
+			     AR9170_RX_ERROR_FATAL)
+
+	if (unlikely(data_len < (4 + 6 + FCS_LEN) ||
+	    desc->totalLen > CONFIG_CARL9170FW_RX_FRAME_LEN) ||
+	    mac_err & AR9170_RX_ERROR_BAD) {
+
+		/*
+		 * This frame is too damaged to do anything
+		 * useful with it.
+		 */
+
+		return CARL9170_RX_FILTER_BAD;
+	}
+
+	rx_filter = 0;
+	if (mac_err & AR9170_RX_ERROR_WRONG_RA)
+		rx_filter |= CARL9170_RX_FILTER_OTHER_RA;
+
+	if (mac_err & AR9170_RX_ERROR_DECRYPT)
+		rx_filter |= CARL9170_RX_FILTER_DECRY_FAIL;
+
+	hdr = ar9170_get_rx_i3e(desc);
+	if (likely(ieee80211_is_data(hdr->frame_control))) {
+		rx_filter |= CARL9170_RX_FILTER_DATA;
+	} else if (ieee80211_is_ctl(hdr->frame_control)) {
+		switch (le16_to_cpu(hdr->frame_control) & IEEE80211_FCTL_STYPE) {
+		case IEEE80211_STYPE_BACK_REQ:
+#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
+			handle_bar(desc, hdr, data_len, mac_err);
+#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
+			/* fallthrough */
+			rx_filter |= CARL9170_RX_FILTER_CTL_BACKR;
+			break;
+		case IEEE80211_STYPE_PSPOLL:
+			rx_filter |= CARL9170_RX_FILTER_CTL_PSPOLL;
+			break;
+		default:
+			rx_filter |= CARL9170_RX_FILTER_CTL_OTHER;
+			break;
+		}
+	} else {
+		/* ieee80211_is_mgmt */
+		rx_filter |= CARL9170_RX_FILTER_MGMT;
+	}
+
+#undef AR9170_RX_ERROR_BAD
+
+	return rx_filter;
+}
+
 static void handle_rx(void)
 {
 	struct dma_desc *desc;
 
 	for_each_desc_not_bits(desc, &fw.wlan.rx_queue, AR9170_OWN_BITS_HW) {
-		if (unlikely(desc->totalLen < 26 ||
-		    desc->totalLen > CONFIG_CARL9170FW_RX_FRAME_LEN)) {
-			/*
-			 * This frame is too damaged to do anything
-			 * useful with it.
-			 */
-			dma_reclaim(&fw.wlan.rx_queue, desc);
-			_wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
-		} else {
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
-			handle_bar(desc);
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
-
+		if (!(wlan_rx_filter(desc) & fw.wlan.rx_filter)) {
 			dma_put(&fw.pta.up_queue, desc);
 			up_trigger();
+		} else {
+			dma_reclaim(&fw.wlan.rx_queue, desc);
+			_wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
 		}
 	}
 }

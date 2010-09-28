@@ -46,6 +46,7 @@ static inline void __check(void)
 	BUILD_BUG_ON(sizeof(struct carl9170_tx_status) != CARL9170_TX_STATUS_SIZE);
 	BUILD_BUG_ON(sizeof(struct _carl9170_tx_status) != CARL9170_TX_STATUS_SIZE);
 	BUILD_BUG_ON(sizeof(struct carl9170_gpio) != CARL9170_GPIO_SIZE);
+	BUILD_BUG_ON(sizeof(struct carl9170_rx_filter_cmd) != CARL9170_RX_FILTER_CMD_SIZE);
 }
 
 void handle_cmd(struct carl9170_rsp *resp);

@@ -81,6 +81,11 @@ void handle_cmd(struct carl9170_rsp *resp)
 		read_tsf((uint32_t *)resp->tsf.tsf);
 		break;
 
+	case CARL9170_CMD_RX_FILTER:
+		resp->hdr.len = 0;
+		fw.wlan.rx_filter = cmd->rx_filter.rx_filter;
+		break;
+
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	case CARL9170_CMD_BCN_CTRL:
 		resp->hdr.len = 0;

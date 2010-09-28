@@ -97,6 +97,7 @@ struct firmware_context_struct {
 		/* Hardware DMA queue unstuck/fix detection */
 		unsigned int last_tx_desc_num[__AR9170_NUM_TX_QUEUES];
 		struct dma_desc *last_tx_desc[__AR9170_NUM_TX_QUEUES];
+		unsigned int rx_filter;
 		unsigned int rx_total;
 		unsigned int rx_overruns;
 		unsigned int mac_reset;

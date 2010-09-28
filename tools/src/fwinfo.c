@@ -63,6 +63,7 @@ static const struct feature_list known_otus_features_v1[] = {
 	CHECK_FOR_FEATURE(CARL9170FW_HANDLE_BACK_REQ),
 	CHECK_FOR_FEATURE(CARL9170FW_GPIO_INTERRUPT),
 	CHECK_FOR_FEATURE(CARL9170FW_PSM),
+	CHECK_FOR_FEATURE(CARL9170FW_RX_FILTER),
 };
 
 static void check_feature_list(const struct carl9170fw_desc_head *head,
@@ -158,6 +159,8 @@ static void show_dbg_desc(const struct carl9170fw_desc_head *head,
 		le32_to_cpu(dbg->rx_total_addr));
 	fprintf(stdout, "\t\trx overrun   = 0x%.8x\n",
 		le32_to_cpu(dbg->rx_overrun_addr));
+	fprintf(stdout, "\t\trx filter    = 0x%.8x\n",
+		le32_to_cpu(dbg->rx_filter));
 	/* Nothing interesting here */
 }
 
