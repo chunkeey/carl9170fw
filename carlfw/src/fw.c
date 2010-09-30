@@ -89,7 +89,7 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 	     .release = CARL9170FW_VERSION_GIT),
 
 	FILL(dbg, DBG,
-	     .bogoclock_addr = cpu_to_le32(&fw.bogoclock),
+	     .bogoclock_addr = cpu_to_le32(0),
 	     .counter_addr = cpu_to_le32(&fw.counter),
 	     .rx_total_addr = cpu_to_le32(&fw.wlan.rx_total),
 	     .rx_overrun_addr = cpu_to_le32(&fw.wlan.rx_overruns),

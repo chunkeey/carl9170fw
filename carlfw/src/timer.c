@@ -41,23 +41,6 @@ void timer_init(const unsigned int timer, const unsigned int interval)
 	orl(AR9170_TIMER_REG_INTERRUPT, BIT(timer));
 }
 
-static void clock_calibrate(void)
-{
-	uint32_t t0, loop = 13;
-
-	t0 = get_clock_counter();
-
-	/*
-	 * TODO:
-	 * Write this code in assembler, so the reading is accurate
-	 * and can be used to correct the timer intervals.
-	 */
-	while (((get_clock_counter() - t0) & (BIT(18)-1)) < 1000)
-		loop += 9;	/* really rough uOP estimation */
-
-	fw.bogoclock = loop;
-}
-
 void clock_set(const bool on, const enum cpu_clock_t _clock)
 {
 	/*
@@ -67,7 +50,6 @@ void clock_set(const bool on, const enum cpu_clock_t _clock)
 	 */
 
 	set(AR9170_PWR_REG_CLOCK_SEL, (uint32_t) ((on ? 0x70 : 0x600) | _clock));
-	clock_calibrate();
 }
 
 static void timer0_isr(void)
