@@ -268,12 +268,18 @@ void wlan_cab_modify_dtim_beacon(const unsigned int vif,
 
 static inline void __check_wlantx(void)
 {
+	BUILD_BUG_ON(CARL9170_TX_SUPERDESC_LEN & 3);
 	BUILD_BUG_ON(sizeof(struct carl9170_tx_superdesc) != CARL9170_TX_SUPERDESC_LEN);
+	BUILD_BUG_ON(sizeof(struct _carl9170_tx_superdesc) != CARL9170_TX_SUPERDESC_LEN);
+	BUILD_BUG_ON(sizeof(struct _carl9170_tx_superframe) != CARL9170_TX_SUPERFRAME_LEN);
 	BUILD_BUG_ON((offsetof(struct carl9170_tx_superframe, f) & 3) != 0);
+	BUILD_BUG_ON(offsetof(struct _carl9170_tx_superframe, f) !=
+		     (offsetof(struct _carl9170_tx_superframe, f)));
 	BUILD_BUG_ON(sizeof(struct ar9170_tx_hwdesc) != AR9170_TX_HWDESC_LEN);
-	BUILD_BUG_ON(sizeof(struct ar9170_rx_head) != 12);
-	BUILD_BUG_ON(sizeof(struct ar9170_rx_phystatus) != 20);
-	BUILD_BUG_ON(sizeof(struct ar9170_rx_macstatus) != 4);
+	BUILD_BUG_ON(sizeof(struct _ar9170_tx_hwdesc) != AR9170_TX_HWDESC_LEN);
+	BUILD_BUG_ON(sizeof(struct ar9170_rx_head) != AR9170_RX_HEAD_LEN);
+	BUILD_BUG_ON(sizeof(struct ar9170_rx_phystatus) != AR9170_RX_PHYSTATUS_LEN);
+	BUILD_BUG_ON(sizeof(struct ar9170_rx_macstatus) != AR9170_RX_MACSTATUS_LEN);
 }
 
 #endif /* __CARL9170FW_WLAN_H */

@@ -145,7 +145,7 @@ struct carl9170fw_fix_desc {
 	(sizeof(struct carl9170fw_fix_desc))
 
 #define CARL9170FW_DBG_DESC_MIN_VER			1
-#define CARL9170FW_DBG_DESC_CUR_VER			2
+#define CARL9170FW_DBG_DESC_CUR_VER			3
 struct carl9170fw_dbg_desc {
 	struct carl9170fw_desc_head head;
 
