@@ -150,18 +150,18 @@ static void show_dbg_desc(const struct carl9170fw_desc_head *head,
 {
 	const struct carl9170fw_dbg_desc *dbg = (const void *) head;
 
+#define DBG_ADDR(_name, _reg) do {					\
+	unsigned int __tmp = le32_to_cpu(dbg->_reg);			\
+	if (__tmp)							\
+		fprintf(stdout, "\t\t" _name " = 0x%.8x\n", __tmp);	\
+	} while (0);
+
 	fprintf(stdout, "\tFirmware Debug Registers/Counters\n");
-	fprintf(stdout, "\t\tbogoclock    = 0x%.8x\n",
-		le32_to_cpu(dbg->bogoclock_addr));
-	fprintf(stdout, "\t\tcounter      = 0x%.8x\n",
-		le32_to_cpu(dbg->counter_addr));
-	fprintf(stdout, "\t\trx total     = 0x%.8x\n",
-		le32_to_cpu(dbg->rx_total_addr));
-	fprintf(stdout, "\t\trx overrun   = 0x%.8x\n",
-		le32_to_cpu(dbg->rx_overrun_addr));
-	fprintf(stdout, "\t\trx filter    = 0x%.8x\n",
-		le32_to_cpu(dbg->rx_filter));
-	/* Nothing interesting here */
+	DBG_ADDR("bogoclock    ", bogoclock_addr);
+	DBG_ADDR("counter      ", counter_addr);
+	DBG_ADDR("rx total     ", rx_total_addr);
+	DBG_ADDR("rx overrun   ", rx_overrun_addr);
+	DBG_ADDR("rx filer     ", rx_filter);
 }
 
 static void show_chk_desc(const struct carl9170fw_desc_head *head,
