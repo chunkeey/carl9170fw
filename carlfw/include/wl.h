@@ -259,7 +259,6 @@ static inline __inline __hot void read_tsf(uint32_t *tsf)
 void wlan_tx(struct dma_desc *desc);
 void wlan_timer(void);
 void handle_wlan(void);
-void wlan_tx_stuck(const struct carl9170_cmd *cmd, struct carl9170_rsp *rsp);
 
 void wlan_cab_flush_queue(const unsigned int vif);
 void wlan_cab_modify_dtim_beacon(const unsigned int vif,

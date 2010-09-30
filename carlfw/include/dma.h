@@ -223,8 +223,6 @@ void dma_init_descriptors(void);
 void dma_reclaim(struct dma_queue *q, struct dma_desc *desc);
 void dma_put(struct dma_queue *q, struct dma_desc *desc);
 void dma_queue_reclaim(struct dma_queue *dst, struct dma_queue *src);
-void queue_dump(void);
-void wlan_txq_hangfix(const unsigned int queue);
 
 static inline __inline bool is_terminator(struct dma_queue *q, struct dma_desc *desc)
 {
