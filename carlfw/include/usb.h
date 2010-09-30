@@ -162,7 +162,7 @@ static inline void usb_structure_check(void)
 	BUILD_BUG_ON(sizeof(struct usb_interface_descriptor) != USB_DT_INTERFACE_SIZE);
 }
 
-void __attribute__((noreturn)) jump_to_bootcode(void);
+void __noreturn jump_to_bootcode(void);
 
 void send_cmd_to_host(const uint8_t len, const uint8_t type,
 		      const uint8_t ext, const uint8_t *body);
@@ -180,7 +180,7 @@ void usb_print_hex_dump(const void *buf, int len);
 void usb_init_highspeed_fifo_cfg(void);
 void usb_init_fullspeed_fifo_cfg(void);
 
-void start(void);
-void __attribute__((noreturn)) reboot(void);
+void __noreturn start(void);
+void __noreturn reboot(void);
 
 #endif /* __CARL9170FW_USB_H */

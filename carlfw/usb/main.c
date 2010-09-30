@@ -270,7 +270,7 @@ static void turn_power_off(void)
 	set(AR9170_PHY_REG_ADC_SERIAL_CTL, AR9170_PHY_ADC_SCTL_SEL_INTERNAL_ADDAC);
 }
 
-void __attribute__((noreturn)) reboot(void)
+void __noreturn reboot(void)
 {
 	/* write watchdog magic pattern for suspend  */
 	andl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0xffff);

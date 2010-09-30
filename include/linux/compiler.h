@@ -18,6 +18,7 @@
 #define __SHARED_COMPILER_H
 
 #define __noinline	__attribute__((noinline))
+#define __noreturn	__attribute__((noreturn))
 #define __inline	__attribute__((always_inline))
 #define __hot		__attribute__((hot))
 #define __cold		__attribute__((cold))

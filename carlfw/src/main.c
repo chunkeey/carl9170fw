@@ -85,7 +85,7 @@ static void handle_fw(void)
 		reboot();
 }
 
-static void __attribute__((noreturn)) main_loop(void)
+static void __noreturn main_loop(void)
 {
 	/* main loop */
 	while (1) {
@@ -117,7 +117,7 @@ static void __attribute__((noreturn)) main_loop(void)
  * we put _start() there with the linker script carl9170.lds.
  */
 
-void __attribute__((noreturn)) start(void)
+void start(void)
 {
 	clock_set(true, AHB_40MHZ_OSC);
 
