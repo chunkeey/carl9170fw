@@ -601,13 +601,11 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 	data_len = ar9170_get_rx_mpdu_len(desc);
 	mac_err = ar9170_get_rx_macstatus_error(desc);
 
-#define AR9170_RX_ERROR_BAD (AR9170_RX_ERROR_FCS | AR9170_RX_ERROR_PLCP | \
-			     AR9170_RX_ERROR_FATAL)
+#define AR9170_RX_ERROR_BAD (AR9170_RX_ERROR_FCS | AR9170_RX_ERROR_PLCP)
 
 	if (unlikely(data_len < (4 + 6 + FCS_LEN) ||
 	    desc->totalLen > CONFIG_CARL9170FW_RX_FRAME_LEN) ||
 	    mac_err & AR9170_RX_ERROR_BAD) {
-
 		/*
 		 * This frame is too damaged to do anything
 		 * useful with it.
