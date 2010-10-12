@@ -14,7 +14,7 @@ endif (CONFIG_CARL9170FW_AGGRESSIVE_CFLAGS)
 
 include_directories (../include/linux ../include/shared ../include include)
 
-set(carl9170_main_src src/main.c src/timer.c src/wlan.c src/fw.c src/gpio.c
+set(carl9170_main_src src/main.c src/wlan.c src/fw.c src/gpio.c
 		      src/cmd.c src/uart.c src/dma.c src/hostif.c src/reboot.S
 		      src/printf.c src/rf.c src/cam.c)
 

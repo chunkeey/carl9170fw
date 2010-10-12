@@ -37,10 +37,6 @@ enum cpu_clock_t {
 
 #define AR9170_TICKS_PER_MICROSECOND	80
 
-void handle_timer(void);
-void timer_init(const unsigned int timer, const unsigned int interval);
-void clock_set(const bool on, const enum cpu_clock_t _clock);
-
 static inline __inline uint32_t get_clock_counter(void)
 {
 	return (get(AR9170_TIMER_REG_CLOCK_HIGH) << 16) | get(AR9170_TIMER_REG_CLOCK_LOW);
@@ -75,6 +71,17 @@ static inline __inline void udelay(uint32_t usec)
 		if (dt >= usec)
 			break;
 	}
+}
+
+static inline void clock_set(const bool on, const enum cpu_clock_t _clock)
+{
+	/*
+	 * Word of Warning!
+	 * This setting does more than just mess with the CPU Clock.
+	 * So watch out, if you need _stable_ timer interrupts.
+	 */
+
+	set(AR9170_PWR_REG_CLOCK_SEL, (uint32_t) ((on ? 0x70 : 0x600) | _clock));
 }
 
 #endif /* __CARL9170FW_TIMER_H */

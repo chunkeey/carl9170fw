@@ -32,6 +32,18 @@
 
 #define AR9170_WATCH_DOG_TIMER		   0x100
 
+static void timer_init(const unsigned int timer, const unsigned int interval)
+{
+	/* Set timer to periodic mode */
+	orl(AR9170_TIMER_REG_CONTROL, BIT(timer));
+
+	/* Set time interval */
+	set(AR9170_TIMER_REG_TIMER0 + (timer << 2), interval - 1);
+
+	/* Clear timer interrupt flag */
+	orl(AR9170_TIMER_REG_INTERRUPT, BIT(timer));
+}
+
 static void init(void)
 {
 	led_init();
@@ -83,6 +95,44 @@ static void handle_fw(void)
 
 	if (fw.reboot)
 		reboot();
+}
+
+static void timer0_isr(void)
+{
+	wlan_timer();
+
+#ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
+	gpio_timer();
+#endif /* CONFIG_CARL9170FW_GPIO_INTERRUPT */
+
+#ifdef CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT
+	set(AR9170_GPIO_REG_PORT_DATA, get(AR9170_GPIO_REG_PORT_DATA) ^ 1);
+#endif /* CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT */
+}
+
+static void handle_timer(void)
+{
+	uint32_t intr;
+
+	intr = get(AR9170_TIMER_REG_INTERRUPT);
+
+	/* ACK timer interrupt */
+	set(AR9170_TIMER_REG_INTERRUPT, intr);
+
+#define HANDLER(intr, flag, func)			\
+	do {						\
+		if ((intr & flag) != 0) {		\
+			intr &= ~flag;			\
+			func();				\
+		}					\
+	} while (0)
+
+	HANDLER(intr, BIT(0), timer0_isr);
+
+	if (intr)
+		DBG("Unhandled Timer Event %x", (unsigned int) intr);
+
+#undef HANDLER
 }
 
 static void __noreturn main_loop(void)
