@@ -159,8 +159,8 @@ static void __noreturn main_loop(void)
 
 /*
  * The bootcode will work with the device driver to load the firmware
- * onto the device's Program SRAM. The Program SRAM has a size of 32 KB
- * and also contains the stack, which grows down from 0x208000.
+ * onto the device's Program SRAM. The Program SRAM has a size of 16 KB
+ * and also contains the stack, which grows down from 0x204000.
  *
  * The Program SRAM starts at address 0x200000 on the device.
  * The firmware entry point (0x200004) is located in boot.S.

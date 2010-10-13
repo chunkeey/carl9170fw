@@ -1,9 +1,9 @@
 /*
  * The carl9170 firwmare gets copied into the device's
- * Program RAM (pram), which has a size of 32K, but
+ * Program RAM (pram), which has a size of 16K, but
  * also has to accomodate the stack the device uses,
- * which starts at the top of the 32k, so we pretend
- * that we just have 16k of pram.
+ * which starts at the top of the 16k, so we pretend
+ * that we just have 16256 (16k - 128) of pram.
  *
  * This section documents some of the other areas
  * mapped into the firmware processor's address space
