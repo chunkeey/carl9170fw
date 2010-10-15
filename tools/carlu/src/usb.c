@@ -35,6 +35,7 @@
 #include "usb.h"
 #include "debug.h"
 #include "list.h"
+#include "cmd.h"
 
 #define ADD_DEV(_vid, _pid, _vs, _ps)	{		\
 	.idVendor = _vid,				\

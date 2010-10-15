@@ -40,6 +40,7 @@
 #include "debug.h"
 #include "fwcmd.h"
 #include "eeprom.h"
+#include "cmd.h"
 
 int carlu_cmd_echo(struct carlu *ar, const uint32_t message)
 {

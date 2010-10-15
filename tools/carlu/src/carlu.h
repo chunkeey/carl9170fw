@@ -113,13 +113,4 @@ void carlu_handle_command(struct carlu *ar, void *buf, size_t len);
 
 struct frame *carlu_alloc_frame(struct carlu *ar, unsigned int size);
 void carlu_free_frame(struct carlu *ar, struct frame *frame);
-
-int carlu_cmd_echo(struct carlu *ar, const uint32_t message);
-int carlu_cmd_reboot(struct carlu *ar);
-int carlu_cmd_read_eeprom(struct carlu *ar);
-int carlu_cmd_mem_dump(struct carlu *ar, const uint32_t start,
-			const unsigned int len, void *_buf);
-int carlu_cmd_write_mem(struct carlu *ar, const uint32_t addr,
-			const uint32_t val);
-
 #endif /* __CARL9170USER_H */

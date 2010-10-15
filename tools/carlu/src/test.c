@@ -37,6 +37,7 @@
 #include "debug.h"
 #include "frame.h"
 #include "usb.h"
+#include "cmd.h"
 
 void debug_test(void)
 {

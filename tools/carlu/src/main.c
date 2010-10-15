@@ -38,6 +38,7 @@
 #include "usb.h"
 #include "frame.h"
 #include "test.h"
+#include "cmd.h"
 
 void *carlu_alloc_driver(size_t size)
 {
