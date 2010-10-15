@@ -120,7 +120,7 @@ int carlu_cmd_write_mem(struct carlu *ar, const uint32_t addr,
 			const uint32_t val)
 {
 	int err;
-	__le32 msg, block[2] = { addr, val };
+	__le32 msg, block[2] = { cpu_to_le32(addr), cpu_to_le32(val) };
 
 	err = carlusb_cmd(ar, CARL9170_CMD_WREG,
 			  (void *) &block, sizeof(block),
