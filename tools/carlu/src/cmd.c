@@ -56,17 +56,34 @@ int carlu_cmd_echo(struct carlu *ar, const uint32_t message)
 	return ret;
 }
 
+struct carl9170_cmd *carlu_cmd_buf(struct carlu *ar,
+	const enum carl9170_cmd_oids cmd, const unsigned int len)
+{
+	struct carl9170_cmd *tmp;
+
+	if (len % 4 || (sizeof(struct carl9170_cmd_head) + len > 64))
+		return ERR_PTR(-EINVAL);
+
+	tmp = malloc(sizeof(struct carl9170_cmd_head) + len);
+	if (tmp) {
+		tmp->hdr.cmd = cmd;
+		tmp->hdr.len = len;
+	}
+	return tmp;
+}
+
 int carlu_cmd_reboot(struct carlu *ar)
 {
+	struct carl9170_cmd *reboot;
 	int err;
 
-	err = carlusb_cmd(ar, CARL9170_CMD_REBOOT,
-			  NULL, 0, NULL, 0);
+	/* sure, we could put the struct on the stack too. */
+	reboot = carlu_cmd_buf(ar, CARL9170_CMD_REBOOT_ASYNC, 0);
+	if (IS_ERR_OR_NULL(reboot))
+		return reboot ? PTR_ERR(reboot) : -ENOMEM;
 
-	if (err == -ETIMEDOUT)
-		return 0;
-
-	return err ? err : -1;
+	err = carlusb_cmd_async(ar, reboot, true);
+	return err;
 }
 
 int carlu_cmd_mem_dump(struct carlu *ar, const uint32_t start,

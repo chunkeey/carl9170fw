@@ -609,6 +609,35 @@ static int carlusb_upload_firmware(struct carlusb *ar, bool boot)
 	return 0;
 }
 
+int carlusb_cmd_async(struct carlu *_ar, struct carl9170_cmd *cmd,
+		      const bool free_buf)
+{
+	struct carlusb *ar = (void *)_ar;
+	struct libusb_transfer *urb;
+	int ret, send;
+
+	if (cmd->hdr.len > (CARL9170_MAX_CMD_LEN - 4)) {
+		err("|-> too much payload\n");
+		return -EINVAL;
+	}
+
+	if (cmd->hdr.len % 4) {
+		err("|-> invalid command length\n");
+		return -EINVAL;
+	}
+
+	ret = libusb_interrupt_transfer(ar->dev, AR9170_EP_CMD, (void *) cmd, cmd->hdr.len + 4, &send, 32);
+	if (ret != 0) {
+		err("OID:0x%.2x failed due to (%d) (%d).\n", cmd->hdr.cmd, ret, send);
+		print_hex_dump_bytes(ERROR, "CMD:", cmd, cmd->hdr.len);
+	}
+
+	if (free_buf)
+		free((void *)cmd);
+
+	return ret;
+}
+
 int carlusb_cmd(struct carlu *_ar, uint8_t oid,
 		      uint8_t *cmd, size_t clen,
 		      uint8_t *rsp, size_t rlen)
@@ -624,23 +653,23 @@ int carlusb_cmd(struct carlu *_ar, uint8_t oid,
 	ret = SDL_mutexP(ar->common.resp_lock);
 	if (ret != 0) {
 		err("failed to acquire resp_lock.\n");
-		print_hex_dump_bytes(ERROR, "CMD:", ar->cmd_buf, clen);
+		print_hex_dump_bytes(ERROR, "CMD:", ar->cmd.buf, clen);
 		return -1;
 	}
 
-	ar->cmd_buf[0] = clen;
-	ar->cmd_buf[1] = oid;
+	ar->cmd.cmd.hdr.len = clen;
+	ar->cmd.cmd.hdr.cmd = oid;
 	/* buf[2] & buf[3] are padding */
-	if (clen && cmd != (uint8_t *)(&ar->cmd_buf[4]))
-		memcpy(&ar->cmd_buf[4], cmd, clen);
+	if (clen && cmd != (uint8_t *)(&ar->cmd.cmd.data))
+		memcpy(&ar->cmd.cmd.data, cmd, clen);
 
 	ar->common.resp_buf = (uint8_t *)rsp;
 	ar->common.resp_len = rlen;
 
-	ret = libusb_interrupt_transfer(ar->dev, AR9170_EP_CMD, ar->cmd_buf, clen + 4, &send, 32);
+	ret = carlusb_cmd_async(_ar, &ar->cmd.cmd, false);
 	if (ret != 0) {
 		err("OID:0x%.2x failed due to (%d) (%d).\n", oid, ret, send);
-		print_hex_dump_bytes(ERROR, "CMD:", ar->cmd_buf, clen);
+		print_hex_dump_bytes(ERROR, "CMD:", ar->cmd.buf, clen);
 		SDL_mutexV(ar->common.resp_lock);
 		return ret;
 	}

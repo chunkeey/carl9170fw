@@ -57,7 +57,9 @@ void carlu_handle_command(struct carlu *ar, void *buf,
 
 	cmd = (void *) buf;
 
-	if ((cmd->hdr.cmd & 0xc0) != 0xc0) {
+	if ((cmd->hdr.cmd & CARL9170_RSP_FLAG) != CARL9170_RSP_FLAG) {
+		if ((cmd->hdr.cmd & CARL9170_CMD_ASYNC_FLAG))
+			return;
 
 		SDL_mutexP(ar->resp_lock);
 		if (ar->resp_buf && ar->resp_len && ar->resp_len >= (len - 4)) {

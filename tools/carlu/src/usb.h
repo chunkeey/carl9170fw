@@ -60,7 +60,11 @@ struct carlusb {
 	struct libusb_transfer *rx_interrupt;
 	unsigned char irq_buf[AR9170_RX_BULK_IRQ_SIZE];
 
-	unsigned char cmd_buf[CARL9170_MAX_CMD_LEN];
+	union {
+		unsigned char buf[CARL9170_MAX_CMD_LEN];
+		struct carl9170_cmd cmd;
+		struct carl9170_rsp rsp;
+	} cmd;
 
 	struct list_head tx_queue;
 	SDL_mutex *tx_queue_lock;
