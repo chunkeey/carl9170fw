@@ -128,6 +128,18 @@ int carlu_cmd_write_mem(struct carlu *ar, const uint32_t addr,
 	return err;
 }
 
+int carlu_cmd_read_mem(struct carlu *ar, const uint32_t _addr,
+		       uint32_t *val)
+{
+	int err;
+	__le32 msg, addr = { cpu_to_le32(_addr) };
+	err = carlusb_cmd(ar, CARL9170_CMD_RREG, (void *) &addr, sizeof(addr),
+			  (void *) &msg, sizeof(msg));
+
+	*val = le32_to_cpu(msg);
+	return err;
+}
+
 int carlu_cmd_read_eeprom(struct carlu *ar)
 {
 

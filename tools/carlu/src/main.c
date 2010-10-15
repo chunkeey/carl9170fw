@@ -134,6 +134,33 @@ out:
 	return err ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
+static int carlu_run_gpio_test(void)
+{
+	struct carlu *carl = NULL;
+	int err;
+
+	err = carlu_init();
+	if (err)
+		goto out;
+
+	carl = carlusb_probe();
+	if (IS_ERR_OR_NULL(carl)) {
+		err = PTR_ERR(carl);
+		goto out;
+	}
+
+	err = carlu_gpio_test(carl);
+	if (err)
+		goto out_close;
+
+out_close:
+	carlusb_close(carl);
+
+out:
+	carlu_exit();
+	return err ? EXIT_FAILURE : EXIT_SUCCESS;
+}
+
 static int carlu_run_loop_test(void)
 {
 	struct carlu *carl;
@@ -208,6 +235,7 @@ static const struct menu_struct menu[] = {
 	      MENU_ITEM('l', carlusb_print_known_devices, "list of all known ar9170 usb devices."),
 	      MENU_ITEM('p', carlu_probe_all, "probe all possible devices."),
 	      MENU_ITEM('t', carlu_run_loop_test, "run tx/rx test."),
+	      MENU_ITEM('g', carlu_run_gpio_test, "flash the leds."),
 };
 
 static int show_help(void)

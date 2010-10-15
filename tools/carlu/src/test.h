@@ -29,4 +29,6 @@ void carlu_loopback_test(struct carlu *ar, const unsigned int total_runs,
 			 const unsigned int interval, const unsigned int min_len,
 			 const unsigned int max_len);
 
+int carlu_gpio_test(struct carlu *ar);
+
 #endif /* __CARL9170USER_TEST_H */

@@ -193,3 +193,33 @@ void carlu_loopback_test(struct carlu *ar, const unsigned int total_runs,
 	ar->cmd_cb = NULL;
 	ar->tx_cb = NULL;
 }
+
+int carlu_gpio_test(struct carlu *ar)
+{
+	uint32_t gpio;
+
+#define CHK(cmd)				\
+	do {					\
+		int __err;			\
+		if (__err = cmd)		\
+			return __err;		\
+	} while (0)
+
+	CHK(carlu_cmd_read_mem(ar, AR9170_GPIO_REG_PORT_DATA, &gpio));
+	info("GPIO state:%x\n", gpio);
+
+	/* turn both LEDs on */
+	CHK(carlu_cmd_write_mem(ar, AR9170_GPIO_REG_PORT_DATA,
+	    AR9170_GPIO_PORT_LED_0 | AR9170_GPIO_PORT_LED_1));
+
+	SDL_Delay(700);
+
+	CHK(carlu_cmd_read_mem(ar, AR9170_GPIO_REG_PORT_DATA, &gpio));
+	info("GPIO state:%x\n", gpio);
+
+	/* turn LEDs off everything */
+	CHK(carlu_cmd_write_mem(ar, AR9170_GPIO_REG_PORT_DATA, 0));
+
+	CHK(carlu_cmd_read_mem(ar, AR9170_GPIO_REG_PORT_DATA, &gpio));
+	info("GPIO state:%x\n", gpio);
+}
