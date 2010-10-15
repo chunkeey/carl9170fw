@@ -65,11 +65,11 @@ int carlu_fw_check(struct carlu *ar)
 	return 0;
 }
 
-int carlusb_fw_check(struct carlusb *ar)
+int carlusb_fw_check(struct carlu *ar)
 {
 	struct carl9170fw_otus_desc *otus_desc;
 
-	otus_desc = carlfw_find_desc(ar->common.fw, (uint8_t *) OTUS_MAGIC,
+	otus_desc = carlfw_find_desc(ar->fw, (uint8_t *) OTUS_MAGIC,
 				     sizeof(*otus_desc),
 				     CARL9170FW_OTUS_DESC_CUR_VER);
 
@@ -90,20 +90,20 @@ int carlusb_fw_check(struct carlusb *ar)
 
 	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_USB_DOWN_STREAM)) {
 		dbg("Enabled tx stream mode.\n");
-		ar->common.tx_stream = true;
-		ar->common.extra_headroom = sizeof(struct ar9170_stream);
+		ar->tx_stream = true;
+		ar->extra_headroom = sizeof(struct ar9170_stream);
 	}
 
 	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_USB_UP_STREAM)) {
 		dbg("Enabled rx stream mode.\n");
-		ar->common.rx_stream = true;
+		ar->rx_stream = true;
 	}
 
 	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_USB_RESP_EP2))
 		dbg("Firmware sends traps over EP2.\n");
 
-	ar->common.dma_chunk_size = le16_to_cpu(otus_desc->tx_frag_len);
-	ar->common.dma_chunks = otus_desc->tx_descs;
+	ar->dma_chunk_size = le16_to_cpu(otus_desc->tx_frag_len);
+	ar->dma_chunks = otus_desc->tx_descs;
 	ar->rx_max = le16_to_cpu(otus_desc->rx_max_frame_len);
 
 	if (carl9170fw_supports(otus_desc->feature_set, CARL9170FW_MINIBOOT))

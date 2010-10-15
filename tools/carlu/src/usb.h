@@ -31,6 +31,7 @@
 
 #include "fwcmd.h"
 #include <unistd.h>
+#include "carlu.h"
 
 #define AR9170_RX_BULK_BUFS		16
 #define AR9170_RX_BULK_BUF_SIZE		8192
@@ -45,39 +46,10 @@
 #define AR9170_TX_MAX_ACTIVE_URBS		8
 
 #define CARL9170_FIRMWARE_FILE "/lib/firmware/carl9170-1"
+
+struct carlu;
+
 void carlusb_reset_txep(struct carlu *ar);
-
-struct carlusb {
-	struct carlu common;
-	libusb_device_handle *dev;
-	libusb_context *ctx;
-
-	SDL_Thread *event_thread;
-	bool stop_event_polling;
-
-	struct libusb_transfer *rx_ring[AR9170_RX_BULK_BUFS];
-
-	struct libusb_transfer *rx_interrupt;
-	unsigned char irq_buf[AR9170_RX_BULK_IRQ_SIZE];
-
-	union {
-		unsigned char buf[CARL9170_MAX_CMD_LEN];
-		struct carl9170_cmd cmd;
-		struct carl9170_rsp rsp;
-	} cmd;
-
-	struct list_head tx_queue;
-	SDL_mutex *tx_queue_lock;
-	unsigned int tx_queue_len;
-
-	struct list_head dev_list;
-	unsigned int idx;
-
-	unsigned int miniboot_size;
-	unsigned int rx_max;
-
-	int event_pipe[2];
-};
 
 int usb_init(void);
 void usb_exit(void);
@@ -86,7 +58,7 @@ struct carlu *carlusb_probe(void);
 void carlusb_close(struct carlu *ar);
 
 void carlusb_tx(struct carlu *ar, struct frame *frame);
-int carlusb_fw_check(struct carlusb *ar);
+int carlusb_fw_check(struct carlu *ar);
 
 int carlusb_cmd(struct carlu *_ar, uint8_t oid, uint8_t *cmd, size_t clen,
 		uint8_t *rsp, size_t rlen);

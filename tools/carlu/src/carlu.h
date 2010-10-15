@@ -35,8 +35,39 @@
 #include "eeprom.h"
 #include "ieee80211.h"
 #include "wlan.h"
+#include "usb.h"
 
 struct carlu {
+	libusb_device_handle *dev;
+	libusb_context *ctx;
+
+	SDL_Thread *event_thread;
+	bool stop_event_polling;
+
+	struct libusb_transfer *rx_ring[AR9170_RX_BULK_BUFS];
+
+	struct libusb_transfer *rx_interrupt;
+	unsigned char irq_buf[AR9170_RX_BULK_IRQ_SIZE];
+
+	union {
+		unsigned char buf[CARL9170_MAX_CMD_LEN];
+		uint32_t buf4[CARL9170_MAX_CMD_LEN / sizeof(uint32_t)];
+		struct carl9170_cmd cmd;
+		struct carl9170_rsp rsp;
+	} cmd;
+
+	struct list_head tx_queue;
+	SDL_mutex *tx_queue_lock;
+	unsigned int tx_queue_len;
+
+	struct list_head dev_list;
+	unsigned int idx;
+
+	unsigned int miniboot_size;
+	unsigned int rx_max;
+
+	int event_pipe[2];
+
 	SDL_cond *resp_pend;
 	SDL_mutex *resp_lock;
 	uint8_t *resp_buf;

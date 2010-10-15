@@ -75,7 +75,7 @@ static LIST_HEAD(active_dev_list);
 
 static int carlusb_event_thread(void *_ar)
 {
-	struct carlusb *ar = (void *)_ar;
+	struct carlu *ar = (void *)_ar;
 	dbg("event thread active and polling.\n");
 
 	while (!ar->stop_event_polling)
@@ -103,7 +103,7 @@ static int carlusb_is_ar9170(struct libusb_device_descriptor *desc)
 	return -1;
 }
 
-static bool carlusb_is_dev(struct carlusb *iter,
+static bool carlusb_is_dev(struct carlu *iter,
 			       struct libusb_device *dev)
 {
 	libusb_device *list_dev;
@@ -120,7 +120,7 @@ static bool carlusb_is_dev(struct carlusb *iter,
 	return false;
 }
 
-int carlusb_show_devinfo(struct carlusb *ar)
+int carlusb_show_devinfo(struct carlu *ar)
 {
 	struct libusb_device_descriptor desc;
 	libusb_device *dev;
@@ -142,9 +142,9 @@ int carlusb_show_devinfo(struct carlusb *ar)
 	return 0;
 }
 
-static int carlusb_get_dev(struct carlusb *ar, bool reset)
+static int carlusb_get_dev(struct carlu *ar, bool reset)
 {
-	struct carlusb *iter;
+	struct carlu *iter;
 	libusb_device_handle *dev;
 	libusb_device **list;
 	int ret, err, i, idx = -1;
@@ -227,18 +227,18 @@ skip:
 	return ret;
 }
 
-static void carlusb_tx_cb(struct carlusb *ar,
+static void carlusb_tx_cb(struct carlu *ar,
 			      struct frame *frame)
 {
-	if (ar->common.tx_cb)
-		ar->common.tx_cb(&ar->common, frame);
+	if (ar->tx_cb)
+		ar->tx_cb(ar, frame);
 
-	ar->common.tx_octets += frame->len;
+	ar->tx_octets += frame->len;
 
-	carlu_free_frame(&ar->common, frame);
+	carlu_free_frame(ar, frame);
 }
 
-static void carlusb_zap_queues(struct carlusb *ar)
+static void carlusb_zap_queues(struct carlu *ar)
 {
 	struct frame *frame;
 
@@ -251,7 +251,7 @@ static void carlusb_zap_queues(struct carlusb *ar)
 	SDL_mutexV(ar->tx_queue_lock);
 }
 
-static void carlusb_free_driver(struct carlusb *ar)
+static void carlusb_free_driver(struct carlu *ar)
 {
 	if (ar) {
 		if (ar->event_pipe[0] > -1)
@@ -261,19 +261,19 @@ static void carlusb_free_driver(struct carlusb *ar)
 			close(ar->event_pipe[1]);
 
 		carlusb_zap_queues(ar);
-		carlfw_release(ar->common.fw);
-		ar->common.fw = NULL;
+		carlfw_release(ar->fw);
+		ar->fw = NULL;
 
 		if (ar->dev) {
 			libusb_release_interface(ar->dev, 0);
 			libusb_close(ar->dev);
 			ar->dev = NULL;
 		}
-		carlu_free_driver(&ar->common);
+		carlu_free_driver(ar);
 	}
 }
 
-static int carlusb_init(struct carlusb *ar)
+static int carlusb_init(struct carlu *ar)
 {
 	init_list_head(&ar->tx_queue);
 	ar->tx_queue_lock = SDL_CreateMutex();
@@ -282,9 +282,9 @@ static int carlusb_init(struct carlusb *ar)
 	return 0;
 }
 
-static struct carlusb *carlusb_open(void)
+static struct carlu *carlusb_open(void)
 {
-	struct carlusb *tmp;
+	struct carlu *tmp;
 	int err;
 
 	tmp = carlu_alloc_driver(sizeof(*tmp));
@@ -306,7 +306,7 @@ err_out:
 	return NULL;
 }
 
-static void carlusb_cancel_rings(struct carlusb *ar)
+static void carlusb_cancel_rings(struct carlu *ar)
 {
 	unsigned int i;
 
@@ -316,7 +316,7 @@ static void carlusb_cancel_rings(struct carlusb *ar)
 	libusb_cancel_transfer(ar->rx_interrupt);
 }
 
-static void carlusb_free_rings(struct carlusb *ar)
+static void carlusb_free_rings(struct carlu *ar)
 {
 	unsigned int i;
 
@@ -326,7 +326,7 @@ static void carlusb_free_rings(struct carlusb *ar)
 	libusb_free_transfer(ar->rx_interrupt);
 }
 
-static void carlusb_destroy(struct carlusb *ar)
+static void carlusb_destroy(struct carlu *ar)
 {
 	int event_thread_status;
 
@@ -344,7 +344,7 @@ static void carlusb_destroy(struct carlusb *ar)
 
 static void carlusb_tx_bulk_cb(struct libusb_transfer *transfer);
 
-static void carlusb_tx_pending(struct carlusb *ar)
+static void carlusb_tx_pending(struct carlu *ar)
 {
 	struct frame *frame;
 	struct libusb_transfer *urb;
@@ -364,7 +364,7 @@ static void carlusb_tx_pending(struct carlusb *ar)
 	frame = list_first_entry(&ar->tx_queue, struct frame, dcb.list);
 	list_del(&frame->dcb.list);
 
-	if (ar->common.tx_stream) {
+	if (ar->tx_stream) {
 		struct ar9170_stream *tx_stream;
 
 		tx_stream = frame_push(frame, sizeof(*tx_stream));
@@ -392,10 +392,8 @@ out:
 	return;
 }
 
-void carlusb_tx(struct carlu *_ar, struct frame *frame)
+void carlusb_tx(struct carlu *ar, struct frame *frame)
 {
-	struct carlusb *ar = (void *)_ar;
-
 	BUG_ON(SDL_mutexP(ar->tx_queue_lock) != 0);
 
 	list_add_tail(&frame->dcb.list, &ar->tx_queue);
@@ -407,13 +405,13 @@ void carlusb_tx(struct carlu *_ar, struct frame *frame)
 static void carlusb_tx_bulk_cb(struct libusb_transfer *transfer)
 {
 	struct frame *frame = (void *) transfer->user_data;
-	struct carlusb *ar = (void *) frame->dev;
+	struct carlu *ar = (void *) frame->dev;
 
 	BUG_ON(SDL_mutexP(ar->tx_queue_lock) != 0);
 	ar->tx_queue_len--;
 	SDL_mutexV(ar->tx_queue_lock);
 
-	if (ar->common.tx_stream)
+	if (ar->tx_stream)
 		frame_pull(frame, 4);
 
 	carlusb_tx_cb(ar, frame);
@@ -422,12 +420,12 @@ static void carlusb_tx_bulk_cb(struct libusb_transfer *transfer)
 
 static void carlusb_rx_interrupt_cb(struct libusb_transfer *transfer)
 {
-	struct carlusb *ar = (void *) transfer->user_data;
+	struct carlu *ar = (void *) transfer->user_data;
 	int err;
 
 	switch (transfer->status) {
 	case LIBUSB_TRANSFER_COMPLETED:
-		carlu_handle_command(&ar->common, transfer->buffer, transfer->actual_length);
+		carlu_handle_command(ar, transfer->buffer, transfer->actual_length);
 		break;
 
 	case LIBUSB_TRANSFER_CANCELLED:
@@ -446,14 +444,14 @@ static void carlusb_rx_interrupt_cb(struct libusb_transfer *transfer)
 static void carlusb_rx_bulk_cb(struct libusb_transfer *transfer)
 {
 	struct frame *frame = (void *) transfer->user_data;
-	struct carlusb *ar = (void *) frame->dev;
+	struct carlu *ar = (void *) frame->dev;
 	int err;
 
 	switch (transfer->status) {
 	case LIBUSB_TRANSFER_COMPLETED:
 		frame_put(frame, transfer->actual_length);
 
-		carlu_rx(&ar->common, frame);
+		carlu_rx(ar, frame);
 
 		frame_trim(frame, 0);
 		break;
@@ -471,7 +469,7 @@ static void carlusb_rx_bulk_cb(struct libusb_transfer *transfer)
 		err("->rx_bulk urb resubmit failed (%d)\n", err);
 }
 
-static int carlusb_initialize_rxirq(struct carlusb *ar)
+static int carlusb_initialize_rxirq(struct carlu *ar)
 {
 	int err;
 
@@ -495,7 +493,7 @@ static int carlusb_initialize_rxirq(struct carlusb *ar)
 	return 0;
 }
 
-static int carlusb_initialize_rxrings(struct carlusb *ar)
+static int carlusb_initialize_rxrings(struct carlu *ar)
 {
 	struct frame *tmp;
 	unsigned int i;
@@ -529,17 +527,17 @@ static int carlusb_initialize_rxrings(struct carlusb *ar)
 	return 0;
 }
 
-static int carlusb_load_firmware(struct carlusb *ar)
+static int carlusb_load_firmware(struct carlu *ar)
 {
 	int ret = 0;
 
 	dbg("loading firmware...\n");
 
-	ar->common.fw = carlfw_load(CARL9170_FIRMWARE_FILE);
-	if (IS_ERR_OR_NULL(ar->common.fw))
-		return PTR_ERR(ar->common.fw);
+	ar->fw = carlfw_load(CARL9170_FIRMWARE_FILE);
+	if (IS_ERR_OR_NULL(ar->fw))
+		return PTR_ERR(ar->fw);
 
-	ret = carlu_fw_check(&ar->common);
+	ret = carlu_fw_check(ar);
 	if (ret)
 		return ret;
 
@@ -550,7 +548,7 @@ static int carlusb_load_firmware(struct carlusb *ar)
 	return 0;
 }
 
-static int carlusb_upload_firmware(struct carlusb *ar, bool boot)
+static int carlusb_upload_firmware(struct carlu *ar, bool boot)
 {
 	uint32_t addr = 0x200000;
 	size_t len;
@@ -559,7 +557,7 @@ static int carlusb_upload_firmware(struct carlusb *ar, bool boot)
 
 	dbg("initiating firmware image upload procedure.\n");
 
-	buf = carlfw_get_fw(ar->common.fw, &len);
+	buf = carlfw_get_fw(ar->fw, &len);
 	if (IS_ERR_OR_NULL(buf))
 		return PTR_ERR(buf);
 
@@ -610,21 +608,22 @@ static int carlusb_upload_firmware(struct carlusb *ar, bool boot)
 	return 0;
 }
 
-int carlusb_cmd_async(struct carlu *_ar, struct carl9170_cmd *cmd,
+int carlusb_cmd_async(struct carlu *ar, struct carl9170_cmd *cmd,
 		      const bool free_buf)
 {
-	struct carlusb *ar = (void *)_ar;
 	struct libusb_transfer *urb;
 	int ret, send;
 
 	if (cmd->hdr.len > (CARL9170_MAX_CMD_LEN - 4)) {
 		err("|-> too much payload\n");
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 
 	if (cmd->hdr.len % 4) {
 		err("|-> invalid command length\n");
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 
 	ret = libusb_interrupt_transfer(ar->dev, AR9170_EP_CMD, (void *) cmd, cmd->hdr.len + 4, &send, 32);
@@ -633,17 +632,17 @@ int carlusb_cmd_async(struct carlu *_ar, struct carl9170_cmd *cmd,
 		print_hex_dump_bytes(ERROR, "CMD:", cmd, cmd->hdr.len);
 	}
 
+out:
 	if (free_buf)
 		free((void *)cmd);
 
 	return ret;
 }
 
-int carlusb_cmd(struct carlu *_ar, uint8_t oid,
+int carlusb_cmd(struct carlu *ar, uint8_t oid,
 		      uint8_t *cmd, size_t clen,
 		      uint8_t *rsp, size_t rlen)
 {
-	struct carlusb *ar = (void *)_ar;
 	int ret, send;
 
 	if (clen > (CARL9170_MAX_CMD_LEN - 4)) {
@@ -651,7 +650,7 @@ int carlusb_cmd(struct carlu *_ar, uint8_t oid,
 		return -EINVAL;
 	}
 
-	ret = SDL_mutexP(ar->common.resp_lock);
+	ret = SDL_mutexP(ar->resp_lock);
 	if (ret != 0) {
 		err("failed to acquire resp_lock.\n");
 		print_hex_dump_bytes(ERROR, "CMD:", ar->cmd.buf, clen);
@@ -664,32 +663,32 @@ int carlusb_cmd(struct carlu *_ar, uint8_t oid,
 	if (clen && cmd != (uint8_t *)(&ar->cmd.cmd.data))
 		memcpy(&ar->cmd.cmd.data, cmd, clen);
 
-	ar->common.resp_buf = (uint8_t *)rsp;
-	ar->common.resp_len = rlen;
+	ar->resp_buf = (uint8_t *)rsp;
+	ar->resp_len = rlen;
 
-	ret = carlusb_cmd_async(_ar, &ar->cmd.cmd, false);
+	ret = carlusb_cmd_async(ar, &ar->cmd.cmd, false);
 	if (ret != 0) {
 		err("OID:0x%.2x failed due to (%d) (%d).\n", oid, ret, send);
 		print_hex_dump_bytes(ERROR, "CMD:", ar->cmd.buf, clen);
-		SDL_mutexV(ar->common.resp_lock);
+		SDL_mutexV(ar->resp_lock);
 		return ret;
 	}
 
-	ret = SDL_CondWaitTimeout(ar->common.resp_pend, ar->common.resp_lock, 100);
+	ret = SDL_CondWaitTimeout(ar->resp_pend, ar->resp_lock, 100);
 	if (ret != 0) {
 		err("|-> OID:0x%.2x timed out %d.\n", oid, ret);
-		ar->common.resp_buf = NULL;
-		ar->common.resp_len = 0;
+		ar->resp_buf = NULL;
+		ar->resp_len = 0;
 		ret = -ETIMEDOUT;
 	}
 
-	SDL_mutexV(ar->common.resp_lock);
+	SDL_mutexV(ar->resp_lock);
 	return ret;
 }
 
 struct carlu *carlusb_probe(void)
 {
-	struct carlusb *ar;
+	struct carlu *ar;
 	int ret = -ENOMEM;
 
 	ar = carlusb_open();
@@ -723,7 +722,7 @@ struct carlu *carlusb_probe(void)
 	if (ret)
 		goto err_kill;
 
-	ret = carlu_cmd_echo(&ar->common, 0x44110dee);
+	ret = carlu_cmd_echo(ar, 0x44110dee);
 	if (ret) {
 		err("echo test failed...\n");
 		goto err_kill;
@@ -731,9 +730,9 @@ struct carlu *carlusb_probe(void)
 
 	info("firmware is active and running.\n");
 
-	carlu_fw_info(&ar->common);
+	carlu_fw_info(ar);
 
-	return &ar->common;
+	return ar;
 
 err_kill:
 	carlusb_destroy(ar);
@@ -745,11 +744,9 @@ err_out:
 	return NULL;
 }
 
-void carlusb_close(struct carlu *_ar)
+void carlusb_close(struct carlu *ar)
 {
-	struct carlusb *ar = (void *) _ar;
-
-	carlu_cmd_reboot(_ar);
+	carlu_cmd_reboot(ar);
 
 	carlusb_destroy(ar);
 	carlusb_free_driver(ar);
