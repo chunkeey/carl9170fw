@@ -562,14 +562,6 @@ static int carlusb_upload_firmware(struct carlusb *ar, bool boot)
 	if (IS_ERR_OR_NULL(buf))
 		return PTR_ERR(buf);
 
-	ret = carlu_fw_check(&ar->common);
-	if (ret)
-		return ret;
-
-	ret = carlusb_fw_check(ar);
-	if (ret)
-		return ret;
-
 	if (ar->miniboot_size) {
 		dbg("Miniboot firmware size:%d\n", ar->miniboot_size);
 		len -= ar->miniboot_size;
@@ -688,10 +680,6 @@ struct carlu *carlusb_probe(void)
 
 	ar->stop_event_polling = false;
 	ar->event_thread = SDL_CreateThread(carlusb_event_thread, ar);
-
-	ret = carlusb_load_firmware(ar);
-	if (ret)
-		goto err_out;
 
 	ret = carlusb_upload_firmware(ar, true);
 	if (ret)
