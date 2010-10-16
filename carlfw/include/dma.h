@@ -44,7 +44,7 @@ struct dma_desc {
 		void *dataAddr;
 	} __packed;
 	struct dma_desc *nextAddr;	/* Next TD address */
-} __packed;
+} __packed __aligned(4);
 
 /* (Up, Dn, 5x Tx, Rx), USB Int, (5x delayed Tx + retry), CAB, BA */
 #define AR9170_TERMINATOR_NUMBER_B	8
@@ -169,8 +169,8 @@ struct ar9170_data_block {
 struct ar9170_dma_memory {
 	struct dma_desc			terminator[AR9170_TERMINATOR_NUMBER];
 	struct dma_desc			block[AR9170_BLOCK_NUMBER];
-	struct ar9170_data_block	data[AR9170_BLOCK_NUMBER] __attribute__((aligned(BLOCK_ALIGNMENT)));
-	struct carl9170_sram_reserved	reserved __attribute__((aligned(BLOCK_ALIGNMENT)));
+	struct ar9170_data_block	data[AR9170_BLOCK_NUMBER] __aligned(BLOCK_ALIGNMENT);
+	struct carl9170_sram_reserved	reserved __aligned(BLOCK_ALIGNMENT);
 };
 
 extern struct ar9170_dma_memory dma_mem;

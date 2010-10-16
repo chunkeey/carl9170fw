@@ -799,7 +799,7 @@ struct ieee80211_bar {
 	__u8 ta[6];
 	__le16 control;
 	__le16 start_seq_num;
-} __attribute__((packed));
+} __attribute__((packed)) __aligned(4);
 
 /* 802.11 BA(R) control masks */
 #define IEEE80211_BAR_CTRL_ACK_POLICY_NORMAL     0x0000

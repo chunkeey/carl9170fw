@@ -97,13 +97,13 @@ struct carl9170_set_key_cmd {
 	__le16		type;
 	u8		macAddr[6];
 	u32		key[4];
-} __packed;
+} __packed __aligned(4);
 #define CARL9170_SET_KEY_CMD_SIZE		28
 
 struct carl9170_disable_key_cmd {
 	__le16		user;
 	__le16		padding;
-} __packed;
+} __packed __aligned(4);
 #define CARL9170_DISABLE_KEY_CMD_SIZE		4
 
 struct carl9170_u32_list {
@@ -206,7 +206,7 @@ struct carl9170_cmd {
 		struct carl9170_rx_filter_cmd	rx_filter;
 		u8 data[CARL9170_MAX_CMD_PAYLOAD_LEN];
 	} __packed;
-} __packed;
+} __packed __aligned(4);
 
 #define	CARL9170_TX_STATUS_QUEUE	3
 #define	CARL9170_TX_STATUS_QUEUE_S	0
@@ -279,6 +279,6 @@ struct carl9170_rsp {
 		struct carl9170_psm		psm;
 		u8 data[CARL9170_MAX_CMD_PAYLOAD_LEN];
 	} __packed;
-} __packed;
+} __packed __aligned(4);
 
 #endif /* __CARL9170_SHARED_FWCMD_H */
