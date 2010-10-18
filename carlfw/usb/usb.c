@@ -696,8 +696,10 @@ void usb_ep0setup(void)
 
 	if (status < 0)
 		fw.usb.ep0_action |= CARL9170_EP0_STALL;
+#ifdef CONFIG_CARL9170FW_USB_STANDARD_CMDS
 	if (status > 0)
 		fw.usb.ep0_action |= CARL9170_EP0_TRIGGER;
+#endif /* CONFIG_CARL9170FW_USB_STANDARD_CMDS */
 }
 
 void usb_ep0rx(void)
