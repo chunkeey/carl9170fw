@@ -137,21 +137,25 @@ static void carlu_tx_fb_cb(struct carlu *ar,
 void carlu_tx_feedback(struct carlu *ar,
 		       struct carl9170_rsp *cmd)
 {
-	unsigned int i, n, k;
+	unsigned int i, n, k, q;
 	struct frame *frame;
 	struct carlu_tx_info *tx_info;
 
 	n = cmd->hdr.ext;
 
 	for (i = 0; i < n; i++) {
-		frame = carlu_find_frame(ar, cmd->tx_status[i].queue,
-					    cmd->tx_status[i].cookie);
+		q = (cmd->_tx_status[i].info >> CARL9170_TX_STATUS_QUEUE_S) &
+		    CARL9170_TX_STATUS_QUEUE;
+		frame = carlu_find_frame(ar, q, cmd->_tx_status[i].cookie);
 		if (frame) {
 			carlu_free_dev_mem(ar, frame);
 			tx_info = get_tx_info(frame);
 
-			k = cmd->tx_status[i].rix;
-			tx_info->rates[k].cnt = cmd->tx_status[i].tries;
+			k = (cmd->_tx_status[i].info >> CARL9170_TX_STATUS_RIX)
+			    & CARL9170_TX_STATUS_RIX_S;
+			tx_info->rates[k].cnt = (cmd->_tx_status[i].info >>
+						 CARL9170_TX_STATUS_TRIES_S) &
+						CARL9170_TX_STATUS_TRIES;
 			for (k++; k < CARL9170_TX_MAX_RATES; k++) {
 				tx_info->rates[k].rix = -1;
 				tx_info->rates[k].cnt = -1;
@@ -160,7 +164,7 @@ void carlu_tx_feedback(struct carlu *ar,
 			carlu_tx_fb_cb(ar, frame);
 		} else {
 			err("Found no frame for cookie %d.\n",
-			    cmd->tx_status[i].cookie);
+			    cmd->_tx_status[i].cookie);
 		}
 	}
 }

@@ -83,12 +83,9 @@ static int carlu_loopback_cmd(struct carlu *ar __unused,
 		dbg("received tx feedback (%d).\n", n);
 
 		for (i = 0; i < n; i++) {
-			dbg("cookie:%x success:%d rix:%d tries:%d queue:%d\n",
-				cmd->tx_status[i].cookie,
-				cmd->tx_status[i].success,
-				cmd->tx_status[i].rix,
-				cmd->tx_status[i].tries,
-				cmd->tx_status[i].queue);
+			dbg("cookie:%x info:%x\n",
+				cmd->_tx_status[i].cookie,
+				cmd->_tx_status[i].info);
 		}
 		return -1;
 
@@ -201,7 +198,7 @@ int carlu_gpio_test(struct carlu *ar)
 #define CHK(cmd)				\
 	do {					\
 		int __err;			\
-		if (__err = cmd)		\
+		if ((__err = cmd))		\
 			return __err;		\
 	} while (0)
 
