@@ -7,7 +7,7 @@ include("../config.cmake")
 
 set(CARLFW_CFLAGS_WARNING "-W -Wall -Wextra -Wunreachable-code -Winline -Wlogical-op -Wno-packed-bitfield-compat -Winit-self -Wshadow -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wformat=2 -Wcast-align -Wmissing-format-attribute -Wmissing-prototypes -Wtype-limits -Wmissing-declarations -Wmissing-noreturn -Wredundant-decls -Wnested-externs -Wdisabled-optimization -Wpointer-arith -Wvolatile-register-var -Waddress -Wbad-function-cast -Wunsafe-loop-optimizations")
 set(CARLFW_CFLAGS_EXTRA "-mbitops -std=gnu99 -ffunction-sections -Wframe-larger-than=128 -Werror")
-
+set(CARLFW_CFLAGS_DEF "-D__CARL9170FW__")
 if (CONFIG_CARL9170FW_AGGRESSIVE_CFLAGS)
 	set(CARLFW_CFLAGS_AGGRESSIVE "-fomit-frame-pointer -fsee -frename-registers -ftree-vectorize")
 endif (CONFIG_CARL9170FW_AGGRESSIVE_CFLAGS)
@@ -33,7 +33,7 @@ add_executable(carl9170.elf ${carl9170_src})
 set_target_properties(carl9170.elf PROPERTIES LINKER_LANGUAGE C)
 
 set_target_properties(carl9170.elf PROPERTIES COMPILE_FLAGS
-	"${CARLFW_CFLAGS_EXTRA} ${CARLFW_CFLAGS_AGGRESSIVE} ${CARLFW_CFLAGS_WARNING}")
+	" ${CARLFW_CFLAGS_DEF} ${CARLFW_CFLAGS_EXTRA} ${CARLFW_CFLAGS_AGGRESSIVE} ${CARLFW_CFLAGS_WARNING}")
 set_target_properties(carl9170.elf PROPERTIES LINK_FLAGS "-Tcarl9170.lds")
 
 add_custom_target(

@@ -216,6 +216,7 @@ struct carl9170_cmd {
 #define	CARL9170_TX_STATUS_TRIES	(7 << CARL9170_TX_STATUS_TRIES_S)
 #define	CARL9170_TX_STATUS_SUCCESS	0x80
 
+#ifdef __CARL9170FW__
 /*
  * NOTE:
  * Both structs [carl9170_tx_status and _carl9170_tx_status]
@@ -232,6 +233,8 @@ struct carl9170_tx_status {
 	u8 tries:3;
 	u8 success:1;
 } __packed;
+#endif /* __CARL9170FW__ */
+
 struct _carl9170_tx_status {
 	/*
 	 * This version should be immune to all alignment bugs.
@@ -272,7 +275,9 @@ struct carl9170_rsp {
 		struct carl9170_rf_init_result	rf_init_res;
 		struct carl9170_u32_list	rreg_res;
 		struct carl9170_u32_list	echo;
+#ifdef __CARL9170FW__
 		struct carl9170_tx_status	tx_status[0];
+#endif /* __CARL9170FW__ */
 		struct _carl9170_tx_status	_tx_status[0];
 		struct carl9170_gpio		gpio;
 		struct carl9170_tsf_rsp		tsf;
