@@ -737,4 +737,8 @@ struct ar9170_stream {
 
 #define MOD_VAL(reg, value, newvalue)					\
 	(((value) & ~reg) | (((newvalue) << reg##_S) & reg))
+
+#define GET_VAL(reg, value)						\
+	(((value) & reg) >> reg##_S)
+
 #endif	/* __CARL9170_SHARED_HW_H */
