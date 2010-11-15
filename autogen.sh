@@ -25,11 +25,18 @@ case "$1" in
 
 
 		if [ "$CONFIG_CARL9170FW_MAKE_RELEASE" = "y" ]; then
-			echo "Installing firmware..."
+			echo -n "Installing firmware..."
 			tmpfwfile=`mktemp`
 			cat carlfw/carl9170.fw carlfw/carl9170.dsc > $tmpfwfile
+			if [ "$CONFIG_CARL9170FW_BUILD_TOOLS" = "y" ] &&
+			   [ "$CONFIG_CARL9170FW_BUILD_MINIBOOT" = "y" ]; then
+				echo -n "Apply miniboot..."
+				tools/src/miniboot a $tmpfwfile minifw/miniboot.fw
+			fi
+
 			sudo install $tmpfwfile /lib/firmware/carl9170-$CONFIG_CARL9170FW_RELEASE_VERSION.fw
 			rm $tmpfwfile
+			echo "done."
 		fi
 	;;
 
