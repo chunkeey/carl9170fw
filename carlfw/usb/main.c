@@ -272,12 +272,14 @@ static void turn_power_off(void)
 
 void __noreturn reboot(void)
 {
+	set(AR9170_MAC_REG_DMA_TRIGGER, 0);
+
 	/* write watchdog magic pattern for suspend  */
 	andl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0xffff);
 	orl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0x98760000);
 
 	/* Disable watchdog */
-	orl(AR9170_TIMER_REG_WATCH_DOG, 0xffff);
+	set(AR9170_TIMER_REG_WATCH_DOG, 0xffff);
 
 	/* Turn off power */
 	turn_power_off();
