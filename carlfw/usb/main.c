@@ -284,6 +284,9 @@ void __noreturn reboot(void)
 	/* Turn off power */
 	turn_power_off();
 
+	/* clean bootloader workspace */
+	memset(&dma_mem, 0, sizeof(dma_mem));
+
 	/* add by ygwei for work around USB PHY chirp sequence problem */
 	set(0x10f100, 0x12345678);
 
