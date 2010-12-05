@@ -62,7 +62,7 @@ struct ar9170_hwtype {
 
 struct ar9170_rom {
 	/* 0x00000000 */
-	uint8_t __nulldata[8];
+	uint32_t *irq_table[2];
 
 	/* 0x00000008 */
 	uint8_t bootcode[4968];
