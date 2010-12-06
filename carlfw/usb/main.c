@@ -224,6 +224,17 @@ static void turn_power_off(void)
 
 	set(AR9170_MAC_REG_DMA_TRIGGER, 0);
 
+	andl(AR9170_USB_REG_DMA_CTL, ~(AR9170_USB_DMA_CTL_ENABLE_TO_DEVICE |
+				       AR9170_USB_DMA_CTL_ENABLE_FROM_DEVICE |
+				       AR9170_USB_DMA_CTL_UP_PACKET_MODE |
+				       AR9170_USB_DMA_CTL_DOWN_STREAM));
+
+	/* Do a software reset to PTA component */
+	orl(AR9170_PTA_REG_DMA_MODE_CTRL, AR9170_PTA_DMA_MODE_CTRL_RESET);
+	andl(AR9170_PTA_REG_DMA_MODE_CTRL, ~AR9170_PTA_DMA_MODE_CTRL_RESET);
+
+	orl(AR9170_PTA_REG_DMA_MODE_CTRL, AR9170_PTA_DMA_MODE_CTRL_DISABLE_USB);
+
 	set(AR9170_MAC_REG_POWER_STATE_CTRL,
 	    AR9170_MAC_POWER_STATE_CTRL_RESET);
 
@@ -272,8 +283,6 @@ static void turn_power_off(void)
 
 void __noreturn reboot(void)
 {
-	set(AR9170_MAC_REG_DMA_TRIGGER, 0);
-
 	/* write watchdog magic pattern for suspend  */
 	andl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0xffff);
 	orl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0x98760000);
