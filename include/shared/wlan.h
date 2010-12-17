@@ -413,6 +413,23 @@ enum ar9170_txq {
 	__AR9170_NUM_TXQ,
 };
 
+/*
+ * This is an workaround for several undocumented bugs.
+ * Don't mess with the QoS/AC <-> HW Queue map, if you don't
+ * know what you are doing.
+ *
+ * Known problems [hardware]:
+ *  * The MAC does not aggregate frames on anything other
+ *    than the first HW queue.
+ *  * when an AMPDU is placed [in the first hw queue] and
+ *    additional frames are already queued on a different
+ *    hw queue, the MAC will ALWAYS freeze.
+ *
+ * In a nutshell: The hardware can either do QoS or
+ * Aggregation but not both at the same time. As a
+ * result, this makes the device pretty much useless
+ * for any serious 802.11n setup.
+ */
 static const u8 ar9170_qmap[__AR9170_NUM_TXQ] = { 2, 1, 0, 3 };
 
 #define	AR9170_TXQ_DEPTH			32
