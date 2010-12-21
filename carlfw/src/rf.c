@@ -181,10 +181,6 @@ static uint32_t rf_init(const uint32_t delta_slope_coeff_exp,
 		set(AR9170_PHY_REG_ANALOG_SWAP, AR9170_PHY_ANALOG_SWAP_AB |
 						AR9170_PHY_ANALOG_SWAP_ALT_CHAIN);
 
-		/* configure mask */
-		set(AR9170_PHY_REG_RX_CHAINMASK, 0x5);	/* chain 0 + chain 2 */
-		set(AR9170_PHY_REG_CAL_CHAINMASK, 0x5);	/* chain 0 + chain 2 */
-
 		/* Activate BB */
 		set(AR9170_PHY_REG_ACTIVE, AR9170_PHY_ACTIVE_EN);
 		delay(10);
