@@ -281,14 +281,22 @@ static void turn_power_off(void)
 	set(AR9170_PHY_REG_ADC_SERIAL_CTL, AR9170_PHY_ADC_SCTL_SEL_INTERNAL_ADDAC);
 }
 
-void __noreturn reboot(void)
+static void disable_watchdog(void)
 {
+	if (!fw.watchdog_enable)
+		return;
+
 	/* write watchdog magic pattern for suspend  */
 	andl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0xffff);
 	orl(AR9170_PWR_REG_WATCH_DOG_MAGIC, 0x98760000);
 
 	/* Disable watchdog */
 	set(AR9170_TIMER_REG_WATCH_DOG, 0xffff);
+}
+
+void __noreturn reboot(void)
+{
+	disable_watchdog();
 
 	/* Turn off power */
 	turn_power_off();
@@ -370,20 +378,18 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 		}
 
 		if (usb_interrupt_level2 & BIT(2)) {
-			/* ACK USB suspend interrupt */
 			usb_suspend_ack();
 
-			/* Set GO_TO_SUSPEND bit to USB main control register */
-			setb(AR9170_USB_REG_MAIN_CTRL, BIT(3));
+			disable_watchdog();
 
-			/* add by ygwei for work around USB PHY chirp sequence problem */
-			set(0x10f100, 0x12345678);
-
-			reboot();
+			/* GO_TO_SUSPEND stops the CPU clock too. */
+			orb(AR9170_USB_REG_MAIN_CTRL, AR9170_USB_MAIN_CTRL_GO_TO_SUSPEND);
 		}
 
-		if (usb_interrupt_level2 & BIT(3))
+		if (usb_interrupt_level2 & BIT(3)) {
 			usb_resume_ack();
+			reboot();
+		}
 	}
 }
 
