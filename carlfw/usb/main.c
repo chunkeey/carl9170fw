@@ -328,21 +328,22 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 	if (usb_interrupt_level1 & BIT(0)) {
 		usb_interrupt_level2 = getb(AR9170_USB_REG_INTR_SOURCE_0);
 
-		if (usb_interrupt_level2 & BIT(0))
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC0_SETUP)
 			usb_ep0setup();
 
-		if (usb_interrupt_level2 & BIT(1))
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC0_IN)
 			usb_ep0tx();
 
-		if (usb_interrupt_level2 & BIT(2))
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC0_OUT)
 			usb_ep0rx();
 
-		if (usb_interrupt_level2 & BIT(7)) {
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC0_ABORT) {
 			/* Clear the command abort interrupt */
-			andb(AR9170_USB_REG_INTR_SOURCE_0, 0x7f);
+			andb(AR9170_USB_REG_INTR_SOURCE_0, (uint8_t)
+			     ~AR9170_USB_INTR_SRC0_ABORT);
 		}
 
-		if (usb_interrupt_level2 & BIT(3) ||
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC0_FAIL ||
 		    fw.usb.ep0_action & CARL9170_EP0_STALL) {
 			/*
 			 * transmission failure.
@@ -352,7 +353,7 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 			fw.usb.ep0_action &= ~CARL9170_EP0_STALL;
 		}
 
-		if (usb_interrupt_level2 & BIT(4) ||
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC0_END ||
 		    fw.usb.ep0_action & CARL9170_EP0_TRIGGER) {
 			/*
 			 * transmission done.
@@ -366,18 +367,18 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 	if (usb_interrupt_level1 & BIT(7)) {
 		usb_interrupt_level2 = getb(AR9170_USB_REG_INTR_SOURCE_7);
 
-		if (usb_interrupt_level2 & BIT(7))
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_RX0BYTE)
 			usb_data_out0Byte();
 
-		if (usb_interrupt_level2 & BIT(6))
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_TX0BYTE)
 			usb_data_in0Byte();
 
-		if (usb_interrupt_level2 & BIT(1)) {
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_RESET) {
 			usb_reset_ack();
 			reboot();
 		}
 
-		if (usb_interrupt_level2 & BIT(2)) {
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_SUSPEND) {
 			usb_suspend_ack();
 
 			disable_watchdog();
@@ -386,7 +387,7 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 			orb(AR9170_USB_REG_MAIN_CTRL, AR9170_USB_MAIN_CTRL_GO_TO_SUSPEND);
 		}
 
-		if (usb_interrupt_level2 & BIT(3)) {
+		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_RESUME) {
 			usb_resume_ack();
 			reboot();
 		}
