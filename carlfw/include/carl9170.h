@@ -96,11 +96,15 @@ struct firmware_context_struct {
 		/* Hardware DMA queue unstuck/fix detection */
 		unsigned int last_tx_desc_num[__AR9170_NUM_TX_QUEUES];
 		struct dma_desc *last_tx_desc[__AR9170_NUM_TX_QUEUES];
-		unsigned int rx_filter;
-		unsigned int rx_total;
-		unsigned int rx_overruns;
 		unsigned int mac_reset;
 		unsigned int soft_int;
+
+		/* rx filter */
+		unsigned int rx_filter;
+
+		/* rx statistics */
+		unsigned int rx_total;
+		unsigned int rx_overruns;
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 		/* CAB */
