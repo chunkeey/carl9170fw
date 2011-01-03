@@ -426,13 +426,6 @@ void __hot wlan_tx(struct dma_desc *desc)
 	super->s.cnt = 1;
 	hide_super(desc);
 
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
-	if (!queue_empty(&fw.wlan.tx_queue[super->s.queue])) {
-		dma_put(&fw.wlan.tx_delay[super->s.queue], desc);
-		return;
-	}
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
-
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	if (unlikely(super->s.cab)) {
 		fw.wlan.cab_queue_len[super->s.vif_id]++;
@@ -440,6 +433,13 @@ void __hot wlan_tx(struct dma_desc *desc)
 		return;
 	}
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
+
+#ifdef CONFIG_CARL9170FW_DELAYED_TX
+	if (!queue_empty(&fw.wlan.tx_queue[super->s.queue])) {
+		dma_put(&fw.wlan.tx_delay[super->s.queue], desc);
+		return;
+	}
+#endif /* CONFIG_CARL9170FW_DELAYED_TX */
 
 	_wlan_tx(desc);
 }
