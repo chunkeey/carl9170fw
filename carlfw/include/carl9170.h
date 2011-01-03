@@ -106,6 +106,11 @@ struct firmware_context_struct {
 		unsigned int rx_total;
 		unsigned int rx_overruns;
 
+#ifdef CONFIG_CARL9170FW_TX_AMPDU
+		/* tx aggregate scheduling */
+		struct carl9170_tx_superframe *ampdu_prev[__AR9170_NUM_TX_QUEUES];
+#endif /* CONFIG_CARL9170FW_TX_AMPDU */
+
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 		/* CAB */
 		struct dma_queue cab_queue[CARL9170_INTF_NUM];

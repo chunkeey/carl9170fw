@@ -152,6 +152,11 @@ config CARL9170FW_DELAYED_TX
 	 Doesn't work 100% yet, but in most cases other HW designs can
 	 deal with the fallout.
 
+config CARL9170FW_TX_AMPDU
+	def_bool n
+	prompt "Firmware-supported ampdu scheduling"
+	depends on CARL9170FW_EXPERIMENTAL
+
 config CARL9170FW_VIFS_NUM
 	default 1
 	int

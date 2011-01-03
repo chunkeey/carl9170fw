@@ -35,14 +35,12 @@
 static void wlan_txunstuck(unsigned int queue)
 {
 	set_wlan_txq_dma_addr(queue, ((uint32_t) fw.wlan.tx_queue[queue].head) | 1);
-	wlan_trigger(BIT(queue));
 }
 
 #ifdef CONFIG_CARL9170FW_DMA_QUEUE_BUMP
 static void wlan_txupdate(unsigned int queue)
 {
 	set_wlan_txq_dma_addr(queue, ((uint32_t) fw.wlan.tx_queue[queue].head));
-	wlan_trigger(BIT(queue));
 }
 
 static void wlan_dma_bump(unsigned int qidx)
@@ -212,13 +210,48 @@ static bool wlan_tx_consume_retry(struct carl9170_tx_superframe *super)
 	return true;
 }
 
+static inline u16 get_tid(struct ieee80211_hdr *hdr)
+{
+        return (ieee80211_get_qos_ctl(hdr))[0] & IEEE80211_QOS_CTL_TID_MASK;
+}
+
+/* This function will only work on uint32_t-aligned pointers! */
+static inline bool compare_ether_address(const void *_d0, const void *_d1)
+{
+	const uint32_t *d0 = _d0;
+	const uint32_t *d1 = _d1;
+
+	/* BUG_ON((unsigned long)d0 & 3 || (unsigned long)d1 & 3)) */
+	return !((d0[0] ^ d1[0]) | (unsigned short)(d0[1] ^ d1[1]));
+}
+
+#ifdef CONFIG_CARL9170FW_TX_AMPDU
+static void wlan_tx_ampdu(struct carl9170_tx_superframe *super)
+{
+	unsigned int qidx = super->s.queue;
+	struct carl9170_tx_superframe *ht_prev = fw.wlan.ampdu_prev[qidx];
+
+	if (!super->f.hdr.mac.ampdu) {
+		fw.wlan.ampdu_prev[qidx] = NULL;
+
+		if (ht_prev)
+			ht_prev->f.hdr.mac.ba_end = 1;
+	} else {
+		fw.wlan.ampdu_prev[qidx] = super;
+
+		if (ht_prev && (get_tid(&super->f.data.i3e) != get_tid(&ht_prev->f.data.i3e) ||
+		    !compare_ether_address(super->f.data.i3e.addr1, ht_prev->f.data.i3e.addr1)))
+			ht_prev->f.hdr.mac.ba_end = 1;
+		else
+			super->f.hdr.mac.ba_end = 0;
+	}
+}
+#endif /* CONFIG_CARL9170FW_TX_AMPDU */
+
 /* for all tries */
 static void __wlan_tx(struct dma_desc *desc)
 {
 	struct carl9170_tx_superframe *super = get_super(desc);
-#ifdef CONFIG_CARL9170FW_NORMAL_TX_RX
-	unsigned int queue = super->s.queue;
-#endif /* CONFIG_CARL9170FW_LOOPBACK */
 
 	if (unlikely(super->s.fill_in_tsf)) {
 		struct ieee80211_mgmt *mgmt = (void *) &super->f.data.i3e;
@@ -237,6 +270,10 @@ static void __wlan_tx(struct dma_desc *desc)
 		read_tsf(tsf);
 	}
 
+#ifdef CONFIG_CARL9170FW_TX_AMPDU
+	wlan_tx_ampdu(super);
+#endif /* CONFIG_CARL9170FW_TX_AMPDU */
+
 #if (defined CONFIG_CARL9170FW_LOOPBACK) || (defined CONFIG_CARL9170FW_DISCARD)
 	wlan_tx_complete(super, true);
 	unhide_super(desc);
@@ -254,8 +291,7 @@ static void __wlan_tx(struct dma_desc *desc)
 # endif /* CONFIG_CARL9170FW_DEBUG && CONFIG_CARL9170FW_PSM */
 
 	/* insert desc into the right queue */
-	dma_put(&fw.wlan.tx_queue[queue], desc);
-	wlan_trigger(BIT(queue));
+	dma_put(&fw.wlan.tx_queue[super->s.queue], desc);
 #endif /* CONFIG_CARL9170FW_LOOPBACK */
 }
 
@@ -414,6 +450,7 @@ static void handle_tx_completion(void)
 		for_each_desc(desc, &fw.wlan.tx_delay[i])
 			_wlan_tx(desc);
 #endif /* CONFIG_CARL9170FW_DELAYED_TX */
+		wlan_trigger(BIT(i));
 	}
 }
 
@@ -442,6 +479,7 @@ void __hot wlan_tx(struct dma_desc *desc)
 #endif /* CONFIG_CARL9170FW_DELAYED_TX */
 
 	_wlan_tx(desc);
+	wlan_trigger(BIT(super->s.queue));
 }
 
 #ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
@@ -934,6 +972,7 @@ static void wlan_check_hang(void)
 				 */
 
 				wlan_dma_bump(i);
+				wlan_trigger(BIT(i));
 			}
 #endif /* CONFIG_CARL9170FW_DMA_QUEUE_BUMP */
 		} else {
