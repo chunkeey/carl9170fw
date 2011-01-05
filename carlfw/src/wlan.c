@@ -731,6 +731,7 @@ void wlan_cab_flush_queue(const unsigned int vif)
 
 		/* ready to roll! */
 		_wlan_tx(desc);
+		wlan_trigger(BIT(super->s.queue));
 	}
 }
 
