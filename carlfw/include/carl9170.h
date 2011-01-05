@@ -70,6 +70,7 @@ enum carl9170_mac_reset_state {
 
 struct firmware_context_struct {
 	/* timer / clocks */
+	unsigned int ticks_per_msec;
 	unsigned int counter;			/* main() cycles */
 
 	/* misc */

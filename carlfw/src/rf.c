@@ -200,9 +200,9 @@ void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp)
 	fw.phy.frequency = cmd->rf_init.freq;
 
 	if ((fw.phy.ht_settings & EIGHTY_FLAG) == EIGHTY_FLAG)
-		clock_set(true, AHB_80_88MHZ);
+		clock_set(AHB_80_88MHZ, true);
 	else
-		clock_set(true, AHB_40_44MHZ);
+		clock_set(AHB_40_44MHZ, true);
 
 	ret = rf_init(le32_to_cpu(cmd->rf_init.delta_slope_coeff_exp),
 		      le32_to_cpu(cmd->rf_init.delta_slope_coeff_man),

@@ -169,7 +169,7 @@ static void __noreturn main_loop(void)
 
 void start(void)
 {
-	clock_set(true, AHB_40MHZ_OSC);
+	clock_set(AHB_40MHZ_OSC, true);
 
 	/* watchdog magic pattern check */
 	if ((get(AR9170_PWR_REG_WATCH_DOG_MAGIC) & 0xffff0000) == 0x12340000) {
