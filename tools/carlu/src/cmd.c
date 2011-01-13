@@ -116,6 +116,35 @@ int carlu_cmd_mem_dump(struct carlu *ar, const uint32_t start,
 	return 0;
 }
 
+int carlu_cmd_mem_watch(struct carlu *ar, const uint32_t mem,
+			const unsigned int len, void *_buf)
+{
+#define RW	8	/* number of words to read at once */
+#define RB	(sizeof(uint32_t) * RW)
+	uint8_t *buf = _buf;
+	unsigned int i, j, block;
+	int err;
+	__le32 offsets[RW];
+
+	for (i = 0; i < (len + RB - 1) / RB; i++) {
+		block = min_t(unsigned int, (len - RB * i) / sizeof(uint32_t), RW);
+		for (j = 0; j < block; j++)
+			offsets[j] = cpu_to_le32(mem);
+
+		err = carlusb_cmd(ar, CARL9170_CMD_RREG,
+				    (void *) &offsets, block * sizeof(uint32_t),
+				    (void *) buf + RB * i, RB);
+
+		if (err)
+			return err;
+	}
+
+#undef RW
+#undef RB
+
+	return 0;
+}
+
 int carlu_cmd_write_mem(struct carlu *ar, const uint32_t addr,
 			const uint32_t val)
 {

@@ -220,3 +220,18 @@ int carlu_gpio_test(struct carlu *ar)
 	CHK(carlu_cmd_read_mem(ar, AR9170_GPIO_REG_PORT_DATA, &gpio));
 	info("GPIO state:%x\n", gpio);
 }
+
+int carlu_random_test(struct carlu *ar)
+{
+	uint32_t buf[4096];
+	int err, i;
+
+	err = carlu_cmd_mem_watch(ar, AR9170_RAND_REG_NUM, sizeof(buf), buf);
+	if (err)
+		return err;
+
+	for (i = 0; i < ARRAY_SIZE(buf); i++)
+		info("%.2x %.2x ", buf[i] & 0xff, buf[i] >> 8);
+
+	info("\n");
+}
