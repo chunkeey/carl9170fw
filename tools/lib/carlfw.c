@@ -190,18 +190,18 @@ static void *__carlfw_find_desc(struct carlfw_file *file,
 	struct carl9170fw_desc_head *tmp = NULL;
 
 	while (scan >= 0) {
-		if (file->data[scan] == descid[sizeof(descid) - found - 1])
+		if (file->data[scan] == descid[CARL9170FW_MAGIC_SIZE - found - 1])
 			found++;
 		else
 			found = 0;
 
-		if (found == sizeof(descid))
+		if (found == CARL9170FW_MAGIC_SIZE)
 			break;
 
 		scan--;
 	}
 
-	if (found == sizeof(descid)) {
+	if (found == CARL9170FW_MAGIC_SIZE) {
 		tmp = (void *) &file->data[scan];
 
 		if (!CHECK_HDR_VERSION(tmp, compatible_revision) &&
