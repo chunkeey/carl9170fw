@@ -140,7 +140,7 @@ void carlu_rx(struct carlu *ar, struct frame *frame);
 int carlu_tx(struct carlu *ar, struct frame *frame);
 void carlu_tx_feedback(struct carlu *ar,
 			  struct carl9170_rsp *cmd);
-void carlu_handle_command(struct carlu *ar, void *buf, size_t len);
+void carlu_handle_command(struct carlu *ar, void *buf, unsigned int len);
 
 struct frame *carlu_alloc_frame(struct carlu *ar, unsigned int size);
 void carlu_free_frame(struct carlu *ar, struct frame *frame);
