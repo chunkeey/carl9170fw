@@ -25,7 +25,7 @@ int carlfw_desc_add(struct carlfw *fw,
 
 void *carlfw_desc_mod_len(struct carlfw *fw,
 			  struct carl9170fw_desc_head *desc,
-			  int len);
+			  size_t len);
 
 int carlfw_desc_add_before(struct carlfw *fw,
 			   const struct carl9170fw_desc_head *desc,

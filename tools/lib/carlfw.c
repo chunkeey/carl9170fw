@@ -280,7 +280,7 @@ void carlfw_desc_del(struct carlfw *fw,
 }
 
 void *carlfw_desc_mod_len(struct carlfw *fw __unused,
-	struct carl9170fw_desc_head *desc, int len)
+	struct carl9170fw_desc_head *desc, size_t len)
 {
 	struct carlfw_list_entry *obj, tmp;
 	int new_len = le16_to_cpu(desc->length) + len;

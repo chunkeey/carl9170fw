@@ -255,7 +255,7 @@ int main(int argc, char *args[])
 
 	carlfw_get_fw(fw, &len);
 	fprintf(stdout, "General Firmware Statistics:\n");
-	fprintf(stdout, "\tFirmware file size: %u Bytes\n", len);
+	fprintf(stdout, "\tFirmware file size: %u Bytes\n", (unsigned int)len);
 	fprintf(stdout, "\t%d Descriptors in %d Bytes\n",
 		carlfw_get_descs_num(fw), carlfw_get_descs_size(fw));
 
