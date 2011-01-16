@@ -50,9 +50,14 @@ static inline __inline bool usb_configured(void)
 		  AR9170_USB_DEVICE_ADDRESS_CONFIGURE);
 }
 
-static inline __inline void usb_remote_wakeup(void)
+static inline __inline void usb_enable_remote_wakeup(void)
 {
 	orb(AR9170_USB_REG_MAIN_CTRL, AR9170_USB_MAIN_CTRL_REMOTE_WAKEUP);
+}
+
+static inline __inline void usb_disable_remote_wakeup(void)
+{
+	andb(AR9170_USB_REG_MAIN_CTRL, ~AR9170_USB_MAIN_CTRL_REMOTE_WAKEUP);
 }
 
 static inline __inline void usb_enable_global_int(void)

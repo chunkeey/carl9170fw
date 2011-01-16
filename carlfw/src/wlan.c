@@ -31,6 +31,7 @@
 #include "printf.h"
 #include "rf.h"
 #include "linux/ieee80211.h"
+#include "rom.h"
 
 static void wlan_txunstuck(unsigned int queue)
 {
@@ -629,6 +630,83 @@ static void wlan_check_rx_overrun(void)
 	}
 }
 
+#ifdef CONFIG_CARL9170FW_WOL
+static void wlan_rx_wol(struct ieee80211_hdr *hdr, unsigned int len)
+{
+	const unsigned char *data, *end, *mac;
+	unsigned int found = 0;
+
+	/*
+	 * LIMITATION:
+	 * We can only scan the first AR9170_BLOCK_SIZE [=~320] bytes
+	 * for MAGIC patterns!
+	 */
+
+	/*
+	 * TODO:
+	 * Currently, the MAGIC MAC Address is fixed to the EEPROM default.
+	 * It's possible to make it fully configurable, e.g:
+	 *
+	 * mac = (const unsigned char *) AR9170_MAC_REG_MAC_ADDR_L;
+	 * But this will clash with the driver's suspend path, because it
+	 * needs to reset the registers.
+	 */
+	mac = rom.sys.mac_address;
+
+	data = (u8 *)((unsigned long)hdr + ieee80211_hdrlen(hdr->frame_control));
+	end = (u8 *)((unsigned long)hdr + len);
+
+	/*
+	 * scan for standard WOL Magic frame
+	 *
+	 * "A physical WakeOnLAN (Magic Packet) will look like this:
+	 * ---------------------------------------------------------------
+	 * | Synchronization Stream |  Target MAC |  Password (optional) |
+	 * |  	6 octets	    |   96 octets |   0, 4 or 6		 |
+	 * ---------------------------------------------------------------
+	 *
+	 * The Synchronization Stream is defined as 6 bytes of FFh.
+	 * The Target MAC block contains 16 duplications of the IEEEaddress
+	 * of the target, with no breaks or interruptions.
+	 *
+	 * The Password field is optional, but if present, contains either
+	 * 4 bytes or 6 bytes. The WakeOnLAN dissector was implemented to
+	 * dissect the password, if present, according to the command-line
+	 * format that ether-wake uses, therefore, if a 4-byte password is
+	 * present, it will be dissected as an IPv4 address and if a 6-byte
+	 * password is present, it will be dissected as an Ethernet address.
+	 *
+	 * <http://wiki.wireshark.org/WakeOnLAN>
+	 */
+
+	while (data < end) {
+		if (found >= 6) {
+			if (*data == mac[found % 6])
+				found++;
+			else
+				found = 0;
+		}
+
+		/* previous check might reset found counter */
+		if (found < 6) {
+			if (*data == 0xff)
+				found++;
+			else
+				found = 0;
+		}
+
+		if (found == (6 + 16 * 6)) {
+			fw.suspend_mode = CARL9170_AWAKE_HOST;
+			return;
+		}
+
+		data++;
+	}
+
+	return;
+}
+#endif /* CONFIG_CARL9170FW_WOL */
+
 static unsigned int wlan_rx_filter(struct dma_desc *desc)
 {
 	struct ieee80211_hdr *hdr;
@@ -682,6 +760,14 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 		/* ieee80211_is_mgmt */
 		rx_filter |= CARL9170_RX_FILTER_MGMT;
 	}
+
+#ifdef CONFIG_CARL9170FW_WOL
+	if (unlikely(fw.suspend_mode == CARL9170_HOST_SUSPENDED)) {
+		if (rx_filter & CARL9170_RX_FILTER_DATA)
+			wlan_rx_wol(hdr, min(data_len,
+				    (unsigned int)AR9170_BLOCK_SIZE));
+	}
+#endif /* CONFIG_CARL9170FW_WOL */
 
 #undef AR9170_RX_ERROR_BAD
 

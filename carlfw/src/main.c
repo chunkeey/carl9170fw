@@ -29,6 +29,7 @@
 #include "printf.h"
 #include "gpio.h"
 #include "wl.h"
+#include "usb.h"
 
 #define AR9170_WATCH_DOG_TIMER		   0x100
 
@@ -104,6 +105,8 @@ static void timer0_isr(void)
 #ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
 	gpio_timer();
 #endif /* CONFIG_CARL9170FW_GPIO_INTERRUPT */
+
+	usb_timer();
 
 #ifdef CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT
 	set(AR9170_GPIO_REG_PORT_DATA, get(AR9170_GPIO_REG_PORT_DATA) ^ 1);

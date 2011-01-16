@@ -265,6 +265,15 @@ void wlan_cab_modify_dtim_beacon(const unsigned int vif,
 				 const unsigned int bcn_addr,
 				 const unsigned int bcn_len);
 
+static inline void wlan_prepare_wol(void)
+{
+	/* set filter policy to: discard everything */
+	fw.wlan.rx_filter = CARL9170_RX_FILTER_EVERYTHING;
+
+	/* reenable rx dma */
+	wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
+}
+
 static inline void __check_wlantx(void)
 {
 	BUILD_BUG_ON(CARL9170_TX_SUPERDESC_LEN & 3);

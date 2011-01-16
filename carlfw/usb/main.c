@@ -27,6 +27,7 @@
 #include "printf.h"
 #include "timer.h"
 #include "rom.h"
+#include "wl.h"
 #include "shared/phy.h"
 
 #ifdef CONFIG_CARL9170FW_DEBUG_USB
@@ -381,13 +382,22 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_SUSPEND) {
 			usb_suspend_ack();
 
-			disable_watchdog();
+			fw.suspend_mode = CARL9170_HOST_SUSPENDED;
 
-			/* GO_TO_SUSPEND stops the CPU clock too. */
-			orb(AR9170_USB_REG_MAIN_CTRL, AR9170_USB_MAIN_CTRL_GO_TO_SUSPEND);
+			if (!(fw.usb.device_feature & USB_DEVICE_REMOTE_WAKEUP)) {
+				disable_watchdog();
+
+				/* GO_TO_SUSPEND stops the CPU clock too. */
+				orb(AR9170_USB_REG_MAIN_CTRL, AR9170_USB_MAIN_CTRL_GO_TO_SUSPEND);
+			} else {
+				wlan_prepare_wol();
+			}
 		}
 
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_RESUME) {
+			fw.suspend_mode = CARL9170_HOST_AWAKE;
+			andl(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
+
 			usb_resume_ack();
 			reboot();
 		}
@@ -407,3 +417,11 @@ void handle_usb(void)
 		usb_trigger_in();
 }
 
+void usb_timer(void)
+{
+#ifdef CONFIG_CARL9170FW_WOL
+	if (fw.suspend_mode == CARL9170_AWAKE_HOST) {
+		orl(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
+	}
+#endif /* CONFIG_CARL9170FW_WOL */
+}

@@ -66,6 +66,9 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 					BIT(CARL9170FW_PSM) |
 #endif /* CONFIG_CARL9170FW_PSM */
 					BIT(CARL9170FW_RX_FILTER) |
+#ifdef CONFIG_CARL9170FW_WOL
+					BIT(CARL9170FW_WOL) |
+#endif /* CONFIG_CARL9170FW_WOL */
 					   (0)),
 
 	     .miniboot_size = cpu_to_le16(0),

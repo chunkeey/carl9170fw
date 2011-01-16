@@ -40,7 +40,11 @@ static struct ar9170_usb_config usb_config_highspeed = {
 		.bNumInterfaces = 1,
 		.bConfigurationValue = 1,
 		.iConfiguration = 0,
-		.bmAttributes = USB_CONFIG_ATT_ONE,
+		.bmAttributes = USB_CONFIG_ATT_ONE |
+#ifdef CONFIG_CARL9170FW_WOL
+				USB_CONFIG_ATT_WAKEUP |
+#endif /* CONFIG_CARL9170FW_WOL */
+				0,
 		.bMaxPower = 0xfa, /* 500 mA */
 	},
 
@@ -103,7 +107,11 @@ static struct ar9170_usb_config usb_config_fullspeed = {
 		.bNumInterfaces = 1,
 		.bConfigurationValue = 1,
 		.iConfiguration = 0,
-		.bmAttributes = USB_CONFIG_ATT_ONE,
+		.bmAttributes = USB_CONFIG_ATT_ONE |
+#ifdef CONFIG_CARL9170FW_WOL
+				USB_CONFIG_ATT_WAKEUP |
+#endif /* CONFIG_CARL9170FW_WOL */
+				0,
 		.bMaxPower = 0xfa, /* 500 mA */
 	},
 
@@ -258,7 +266,13 @@ void usb_init(void)
 	 *
 	 * fw.usb.interface_setting = 0;
 	 * fw.usb.alternate_interface_setting = 0;
+	 * fw.usb.device_feature = 0;
 	 */
+
+#ifdef CONFIG_CARL9170FW_WOL
+	fw.usb.device_feature |= USB_DEVICE_REMOTE_WAKEUP;
+	usb_enable_remote_wakeup();
+#endif /* CONFIG_CARL9170FW_WOL */
 }
 
 #define GET_ARRAY(a, o)	((uint32_t *) (((unsigned long) data) + offset))
@@ -311,7 +325,7 @@ static int usb_ep0tx_data(const void *data, const unsigned int len)
 #ifdef CONFIG_CARL9170FW_USB_STANDARD_CMDS
 static int usb_get_status(const struct usb_ctrlrequest *ctrl)
 {
-	__le16 status = cpu_to_le16(0);
+	__le16 status = cpu_to_le16(fw.usb.device_feature);
 
 	if ((ctrl->bRequestType & USB_DIR_MASK) != USB_DIR_IN)
 		return -1;
@@ -558,6 +572,34 @@ static int usb_get_interface(const struct usb_ctrlrequest *ctrl)
 	return usb_ep0tx_data(&fw.usb.alternate_interface_setting, 1);
 }
 
+static int usb_manipulate_feature(const struct usb_ctrlrequest *ctrl, bool __unused clear)
+{
+	unsigned int feature;
+        if (USB_CHECK_REQTYPE(ctrl, USB_RECIP_DEVICE, USB_DIR_OUT))
+		return -1;
+
+	if (usb_configured() == false)
+		return -1;
+
+	feature = le16_to_cpu(ctrl->wValue);
+
+#ifdef CONFIG_CARL9170FW_WOL
+	if (feature & USB_DEVICE_REMOTE_WAKEUP) {
+		if (clear)
+			usb_disable_remote_wakeup();
+		else
+			usb_enable_remote_wakeup();
+	}
+#endif /* CONFIG_CARL9170FW_WOL */
+
+	if (clear)
+		fw.usb.device_feature &= ~feature;
+	else
+		fw.usb.device_feature |= feature;
+
+	return 1;
+}
+
 #ifdef CONFIG_CARL9170FW_USB_MODESWITCH
 static int usb_set_interface(const struct usb_ctrlrequest *ctrl)
 {
@@ -606,9 +648,8 @@ static int usb_standard_command(const struct usb_ctrlrequest *ctrl __unused)
 		break;
 
 	case USB_REQ_CLEAR_FEATURE:
-		break;
-
 	case USB_REQ_SET_FEATURE:
+		usb_manipulate_feature(ctrl, ctrl->bRequest == USB_REQ_CLEAR_FEATURE);
 		break;
 
 	case USB_REQ_SET_ADDRESS:

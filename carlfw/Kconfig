@@ -157,6 +157,15 @@ config CARL9170FW_TX_AMPDU
 	prompt "Firmware-supported ampdu scheduling"
 	depends on CARL9170FW_EXPERIMENTAL
 
+config CARL9170FW_WOL
+	def_bool n
+	prompt "Wakeup on WLAN"
+	depends on CARL9170FW_EXPERIMENTAL
+	---help---
+	 With this option enabled, the firmware can wake-up
+	 suspended hosts... As long as they fully support
+	 USB remote wakeup.
+
 config CARL9170FW_VIFS_NUM
 	default 1
 	int

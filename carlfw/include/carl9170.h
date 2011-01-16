@@ -63,6 +63,12 @@ enum carl9170_mac_reset_state {
 	CARL9170_MAC_RESET_FORCE,
 };
 
+enum carl9170_suspend_mode {
+	CARL9170_HOST_AWAKE			= 0,
+	CARL9170_HOST_SUSPENDED,
+	CARL9170_AWAKE_HOST,
+};
+
 /*
  * This platform - being an odd 32-bit architecture - prefers to
  * have 32-Bit variables.
@@ -76,6 +82,7 @@ struct firmware_context_struct {
 	/* misc */
 	unsigned int watchdog_enable;
 	unsigned int reboot;
+	unsigned int suspend_mode;
 
 	struct {
 		/* Host Interface DMA queues */
@@ -139,7 +146,8 @@ struct firmware_context_struct {
 	struct {
 		unsigned int config,
 			     interface_setting,
-			     alternate_interface_setting;
+			     alternate_interface_setting,
+			     device_feature;
 		enum carl9170_ep0_action ep0_action;
 
 		void *ep0_txrx_buffer;
