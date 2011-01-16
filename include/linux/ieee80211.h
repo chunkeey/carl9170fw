@@ -527,6 +527,22 @@ static inline int ieee80211_is_qos_nullfunc(__le16 fc)
 	       cpu_to_le16(IEEE80211_FTYPE_DATA | IEEE80211_STYPE_QOS_NULLFUNC);
 }
 
+static inline unsigned int ieee80211_hdrlen(__le16 fc)
+{
+	unsigned int hdrlen = 24;
+
+	if (ieee80211_has_a4(fc))
+		hdrlen = 30;
+
+	if (ieee80211_is_data_qos(fc)) {
+		hdrlen += IEEE80211_QOS_CTL_LEN;
+		if (ieee80211_has_order(fc))
+			hdrlen += IEEE80211_HT_CTL_LEN;
+	}
+
+        return hdrlen;
+}
+
 struct ieee80211s_hdr {
 	u8 flags;
 	u8 ttl;
