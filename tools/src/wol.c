@@ -193,10 +193,12 @@ int main(int argc, char **args)
 
 	while (num--) {
 		err = inject_frame(sock, wol_magic_tmpl, sizeof(wol_magic_tmpl));
-		if (err < 0)
+		if (err < 0) {
 			fprintf(stderr, "failed to send WOL packet.\n");
-		else if (verbose)
+			break;
+		} else if (verbose) {
 			fprintf(stdout, "WOL packet sent.\n");
+		}
 	}
 
 	close(sock);
