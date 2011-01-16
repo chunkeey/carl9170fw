@@ -69,6 +69,9 @@ enum carl9170fw_feature_list {
 	/* Firmware RX filter | CARL9170_CMD_RX_FILTER */
 	CARL9170FW_RX_FILTER,
 
+	/* Wake up on WLAN */
+	CARL9170FW_WOL,
+
 	/* KEEP LAST */
 	__CARL9170FW_FEATURE_NUM
 };
