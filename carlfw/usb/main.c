@@ -395,10 +395,11 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 		}
 
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_RESUME) {
-			fw.suspend_mode = CARL9170_HOST_AWAKE;
-			andl(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
-
 			usb_resume_ack();
+
+			fw.suspend_mode = CARL9170_HOST_AWAKE;
+			set(AR9170_USB_REG_WAKE_UP, 0);
+
 			reboot();
 		}
 	}
@@ -421,7 +422,7 @@ void usb_timer(void)
 {
 #ifdef CONFIG_CARL9170FW_WOL
 	if (fw.suspend_mode == CARL9170_AWAKE_HOST) {
-		orl(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
+		set(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
 	}
 #endif /* CONFIG_CARL9170FW_WOL */
 }
