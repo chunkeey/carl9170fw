@@ -81,6 +81,7 @@ enum carl9170fw_feature_list {
 #define FIX_MAGIC	"FIX\0"
 #define DBG_MAGIC	"DBG\0"
 #define CHK_MAGIC	"CHK\0"
+#define TXSQ_MAGIC	"TXSQ"
 #define LAST_MAGIC	"LAST"
 
 #define CARL9170FW_SET_DAY(d) (((d) - 1) % 31)
@@ -174,6 +175,16 @@ struct carl9170fw_chk_desc {
 } __packed;
 #define CARL9170FW_CHK_DESC_SIZE			\
 	(sizeof(struct carl9170fw_chk_desc))
+
+#define CARL9170FW_TXSQ_DESC_MIN_VER			1
+#define CARL9170FW_TXSQ_DESC_CUR_VER			1
+struct carl9170fw_txsq_desc {
+	struct carl9170fw_desc_head head;
+
+	__le32 seq_table_addr;
+} __packed;
+#define CARL9170FW_TXSQ_DESC_SIZE			\
+	(sizeof(struct carl9170fw_txsq_desc))
 
 #define CARL9170FW_LAST_DESC_MIN_VER			1
 #define CARL9170FW_LAST_DESC_CUR_VER			2

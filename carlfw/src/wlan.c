@@ -296,10 +296,23 @@ static void __wlan_tx(struct dma_desc *desc)
 #endif /* CONFIG_CARL9170FW_LOOPBACK */
 }
 
+static void wlan_assign_seq(struct ieee80211_hdr *hdr, unsigned int vif)
+{
+	hdr->seq_ctrl &= cpu_to_le16(~IEEE80211_SCTL_SEQ);
+	hdr->seq_ctrl |= cpu_to_le16(fw.wlan.sequence[vif]);
+
+	if (!(hdr->seq_ctrl & cpu_to_le16(IEEE80211_SCTL_FRAG)))
+		fw.wlan.sequence[vif] += 0x10;
+}
+
 /* prepares frame for the first transmission */
 static void _wlan_tx(struct dma_desc *desc)
 {
 	struct carl9170_tx_superframe *super = get_super(desc);
+
+	if (unlikely(super->s.assign_seq)) {
+		wlan_assign_seq(&super->f.data.i3e, super->s.vif_id);
+	}
 
 	if (unlikely(super->s.ampdu_commit_density)) {
 		set(AR9170_MAC_REG_AMPDU_DENSITY,
@@ -842,7 +855,7 @@ static uint8_t *beacon_find_ie(uint8_t ie, void *addr,
 	return NULL;
 }
 
-void wlan_cab_modify_dtim_beacon(const unsigned int vif,
+void wlan_modify_beacon(const unsigned int vif,
 	const unsigned int addr, const unsigned int len)
 {
 	uint8_t *_ie;
@@ -867,6 +880,15 @@ void wlan_cab_modify_dtim_beacon(const unsigned int vif,
 			ie->bitmap_ctrl |= 0x1;
 		}
 	}
+
+	/*
+	 * Ideally, the sequence number should be assigned by the TX arbiter
+	 * hardware. But AFAIK that's not possible, so we have to go for the
+	 * next best thing and write it into the beacon fifo during the open
+	 * beacon update window.
+	 */
+
+	wlan_assign_seq((struct ieee80211_hdr *)addr, vif);
 }
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
@@ -877,8 +899,6 @@ static void handle_beacon_config(void)
 	bcn_count = get(AR9170_MAC_REG_BCN_COUNT);
 	send_cmd_to_host(4, CARL9170_RSP_BEACON_CONFIG, 0x00,
 			 (uint8_t *) &bcn_count);
-
-	set(AR9170_MAC_REG_BCN_CTRL, AR9170_BCN_CTRL_READY);
 }
 
 static void handle_pretbtt(void)

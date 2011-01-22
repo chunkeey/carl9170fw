@@ -261,9 +261,9 @@ void wlan_timer(void);
 void handle_wlan(void);
 
 void wlan_cab_flush_queue(const unsigned int vif);
-void wlan_cab_modify_dtim_beacon(const unsigned int vif,
-				 const unsigned int bcn_addr,
-				 const unsigned int bcn_len);
+void wlan_modify_beacon(const unsigned int vif,
+			const unsigned int bcn_addr,
+			const unsigned int bcn_len);
 
 static inline void wlan_prepare_wol(void)
 {

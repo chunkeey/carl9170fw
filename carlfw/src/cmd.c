@@ -91,7 +91,7 @@ void handle_cmd(struct carl9170_rsp *resp)
 		resp->hdr.len = 0;
 
 		if (cmd->bcn_ctrl.mode & CARL9170_BCN_CTRL_CAB_TRIGGER) {
-			wlan_cab_modify_dtim_beacon(cmd->bcn_ctrl.vif_id,
+			wlan_modify_beacon(cmd->bcn_ctrl.vif_id,
 				cmd->bcn_ctrl.bcn_addr, cmd->bcn_ctrl.bcn_len);
 			set(AR9170_MAC_REG_BCN_ADDR, cmd->bcn_ctrl.bcn_addr);
 			set(AR9170_MAC_REG_BCN_LENGTH, cmd->bcn_ctrl.bcn_len);

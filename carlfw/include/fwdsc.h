@@ -30,6 +30,7 @@
 
 struct carl9170_firmware_descriptor {
 	struct carl9170fw_otus_desc otus;
+	struct carl9170fw_txsq_desc txsq;
 	struct carl9170fw_motd_desc motd;
 	struct carl9170fw_dbg_desc  dbg;
 	struct carl9170fw_last_desc last;

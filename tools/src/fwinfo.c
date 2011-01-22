@@ -165,6 +165,15 @@ static void show_dbg_desc(const struct carl9170fw_desc_head *head,
 	DBG_ADDR("rx filer     ", rx_filter);
 }
 
+static void show_txsq_desc(const struct carl9170fw_desc_head *head,
+			    struct carlfw *fw __unused)
+{
+	const struct carl9170fw_txsq_desc *txsq = (const void *) head;
+
+	fprintf(stdout, "\t\ttx-seq table addr: 0x%x\n",
+		le32_to_cpu(txsq->seq_table_addr));
+}
+
 static void show_chk_desc(const struct carl9170fw_desc_head *head,
 			    struct carlfw *fw __unused)
 {
@@ -200,6 +209,7 @@ static const struct {
 	uint16_t size;
 } known_magics[] = {
 	ADD_HANDLER(OTUS, show_otus_desc),
+	ADD_HANDLER(TXSQ, show_txsq_desc),
 	ADD_HANDLER(MOTD, show_motd_desc),
 	ADD_HANDLER(DBG, show_dbg_desc),
 	ADD_HANDLER(FIX, show_fix_desc),
