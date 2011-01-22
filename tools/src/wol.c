@@ -187,7 +187,7 @@ int main(int argc, char **args)
 		return EXIT_FAILURE;
 
 	if (verbose)
-		fprintf(stdout, "Generating WOL packet for ["MAC_STR"].\n", MAC_ARG2(mac));
+		fprintf(stdout, "Generating %d WOL packet for ["MAC_STR"].\n", num, MAC_ARG2(mac));
 
 	prepare_wol(wol_magic_tmpl, mac);
 
