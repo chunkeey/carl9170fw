@@ -157,7 +157,7 @@ config CARL9170FW_TX_AMPDU
 	prompt "Firmware-supported ampdu scheduling"
 	depends on CARL9170FW_EXPERIMENTAL
 
-config CARL9170FW_WOL
+config CARL9170FW_WOL_OPTION
 	def_bool n
 	prompt "Wakeup on WLAN"
 	depends on CARL9170FW_EXPERIMENTAL
@@ -165,6 +165,32 @@ config CARL9170FW_WOL
 	 With this option enabled, the firmware can wake-up
 	 suspended hosts... As long as they fully support
 	 USB remote wakeup.
+
+config CARL9170FW_WOL
+	def_bool n
+	depends on CARL9170FW_WOL_OPTION
+
+config CARL9170FW_WOL_MAGIC_PACKET
+	def_bool n
+	prompt "Magic Packet(tm)"
+	depends on CARL9170FW_WOL_OPTION
+	select CARL9170FW_WOL
+	---help---
+	 Sniff all incoming data frames for the magic packet pattern.
+
+config CARL9170FW_WOL_PROBE_REQUEST
+	def_bool n
+	prompt "Probe Request"
+	depends on CARL9170FW_WOL_OPTION
+	select CARL9170FW_WOL_CHECK
+	---help---
+	 Scan probe requests for a given SSID.
+
+config CARL9170FW_WOL_PROBE_REQUEST_SSID
+	string
+	prompt "Wakeup on WLAN SSID"
+	default "CARL9170_WAKEUP"
+	depends on CARL9170FW_WOL_PROBE_REQUEST
 
 config CARL9170FW_VIFS_NUM
 	default 1

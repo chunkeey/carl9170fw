@@ -644,7 +644,9 @@ static void wlan_check_rx_overrun(void)
 }
 
 #ifdef CONFIG_CARL9170FW_WOL
-static void wlan_rx_wol(struct ieee80211_hdr *hdr, unsigned int len)
+
+#ifdef CONFIG_CARL9170FW_WOL_MAGIC_PACKET
+static bool wlan_rx_wol_magic_packet(struct ieee80211_hdr *hdr, unsigned int len)
 {
 	const unsigned char *data, *end, *mac;
 	unsigned int found = 0;
@@ -709,14 +711,81 @@ static void wlan_rx_wol(struct ieee80211_hdr *hdr, unsigned int len)
 		}
 
 		if (found == (6 + 16 * 6)) {
-			fw.suspend_mode = CARL9170_AWAKE_HOST;
-			return;
+			return true;
 		}
 
 		data++;
 	}
 
-	return;
+	return false;
+}
+#endif /* CONFIG_CARL9170FW_WOL_MAGIC_PACKET */
+
+#ifdef CONFIG_CARL9170FW_WOL_PROBE_REQUEST
+
+/*
+ * Note: CONFIG_CARL9170FW_WOL_PROBE_REQUEST_SSID is not a real
+ * string. We have to be careful not to add a \0 at the end.
+ */
+static const struct {
+	u8 ssid_ie;
+	u8 ssid_len;
+	u8 ssid[sizeof(CONFIG_CARL9170FW_WOL_PROBE_REQUEST_SSID) - 1];
+} __packed probe_req = {
+	.ssid_ie = WLAN_EID_SSID,
+	.ssid_len = sizeof(CONFIG_CARL9170FW_WOL_PROBE_REQUEST_SSID) - 1,
+	.ssid = CONFIG_CARL9170FW_WOL_PROBE_REQUEST_SSID,
+};
+
+static bool wlan_rx_wol_probe_ssid(struct ieee80211_hdr *hdr, unsigned int len)
+{
+	const unsigned char *data, *end, *scan = (void *) &probe_req;
+
+	/*
+	 * IEEE 802.11-2007 7.3.2.1 specifies that the SSID is no
+	 * longer than 32 octets.
+	 */
+	BUILD_BUG_ON((sizeof(CONFIG_CARL9170FW_WOL_PROBE_REQUEST_SSID) - 1) > 32);
+
+	if (ieee80211_is_probe_req(hdr->frame_control)) {
+		unsigned int i;
+		end = (u8 *)((unsigned long)hdr + len);
+
+		/*
+		 * The position of the SSID information element inside
+		 * a probe request frame is more or less "fixed".
+		 */
+		data = (u8 *)((struct ieee80211_mgmt *)hdr)->u.probe_req.variable;
+		for (i = 0; i < (unsigned int)(probe_req.ssid_len + 1); i++) {
+			if (scan[i] != data[i])
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+#endif /* CONFIG_CARL9170FW_WOL_PROBE_REQUEST */
+
+static void wlan_rx_wol(unsigned int rx_filter __unused, struct ieee80211_hdr *hdr __unused, unsigned int len __unused)
+{
+	bool __unused wake_up = false;
+
+#ifdef CONFIG_CARL9170FW_WOL_MAGIC_PACKET
+	if (rx_filter & CARL9170_RX_FILTER_DATA)
+		wake_up |= wlan_rx_wol_magic_packet(hdr, len);
+#endif /* CONFIG_CARL9170FW_WOL_MAGIC_PACKET */
+
+#ifdef CONFIG_CARL9170FW_WOL_PROBE_REQUEST
+	if (rx_filter & CARL9170_RX_FILTER_MGMT)
+		wake_up |= wlan_rx_wol_probe_ssid(hdr, len);
+#endif /* CONFIG_CARL9170FW_WOL_PROBE_REQUEST */
+
+	if (wake_up) {
+		fw.suspend_mode = CARL9170_AWAKE_HOST;
+		set(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
+	}
 }
 #endif /* CONFIG_CARL9170FW_WOL */
 
@@ -776,9 +845,8 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 
 #ifdef CONFIG_CARL9170FW_WOL
 	if (unlikely(fw.suspend_mode == CARL9170_HOST_SUSPENDED)) {
-		if (rx_filter & CARL9170_RX_FILTER_DATA)
-			wlan_rx_wol(hdr, min(data_len,
-				    (unsigned int)AR9170_BLOCK_SIZE));
+		wlan_rx_wol(rx_filter, hdr, min(data_len,
+			    (unsigned int)AR9170_BLOCK_SIZE));
 	}
 #endif /* CONFIG_CARL9170FW_WOL */
 

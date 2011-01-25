@@ -420,9 +420,4 @@ void handle_usb(void)
 
 void usb_timer(void)
 {
-#ifdef CONFIG_CARL9170FW_WOL
-	if (fw.suspend_mode == CARL9170_AWAKE_HOST) {
-		set(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
-	}
-#endif /* CONFIG_CARL9170FW_WOL */
 }

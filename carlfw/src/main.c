@@ -106,8 +106,6 @@ static void timer0_isr(void)
 	gpio_timer();
 #endif /* CONFIG_CARL9170FW_GPIO_INTERRUPT */
 
-	usb_timer();
-
 #ifdef CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT
 	set(AR9170_GPIO_REG_PORT_DATA, get(AR9170_GPIO_REG_PORT_DATA) ^ 1);
 #endif /* CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT */
