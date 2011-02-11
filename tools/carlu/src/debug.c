@@ -73,7 +73,7 @@ void print_hex_dump_bytes(const enum debug_level_t lvl, const char *pre,
 	char str[17] = { 0 };
 	const unsigned char *tmp = (void *) buf;
 	char *pbuf = line;
-	size_t i;
+	size_t i, j;
 
 	for (i = 0; i < len; i++) {
 		if (i % 16 == 0) {
@@ -92,7 +92,7 @@ void print_hex_dump_bytes(const enum debug_level_t lvl, const char *pre,
 		if ((i % 16)) {
 			str[i % 16] = '\0';
 
-			for (i = 0; i < (16 - (i % 16)); i++)
+			for (j = 0; j < (16 - (i % 16)); j++)
 				pbuf += sprintf(pbuf, "   ");
 		}
 
