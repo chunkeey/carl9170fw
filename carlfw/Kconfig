@@ -1,13 +1,7 @@
 menu "General"
 
-config CARL9170FW_MAKE_RELEASE
-	def_bool y
-	prompt "Update/Generate new release/revision files"
-
 config CARL9170FW_RELEASE_VERSION
 	int
-	depends on CARL9170FW_MAKE_RELEASE
-	prompt "Major CARL9170 Firmware Revision"
 	default 1
 
 menu "Selectable Hardware Options"

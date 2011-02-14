@@ -45,7 +45,7 @@
 
 #define AR9170_TX_MAX_ACTIVE_URBS		8
 
-#define CARL9170_FIRMWARE_FILE "/lib/firmware/carl9170-1"
+#define CARL9170_FIRMWARE_FILE (CARLU_PATH "/../../carlfw/carl9170.fw")
 
 struct carlu;
 

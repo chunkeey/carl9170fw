@@ -9,6 +9,7 @@ set(carlu_src src/debug.c src/cmd.c src/usb.c src/rx.c src/tx.c src/fw.c
 	      src/test.c src/main.c)
 
 add_definitions(-D_GNU_SOURCE ${USB-1.0_DEFINITIONS})
+add_definitions(-DCARLU_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
 include_directories(${SDL_INCLUDE_DIR} ${USB-1.0_INCLUDE_DIRS})
 
