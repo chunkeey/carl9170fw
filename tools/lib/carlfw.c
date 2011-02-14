@@ -409,19 +409,10 @@ struct carlfw *carlfw_load(const char *basename)
 
 	init_list_head(&fw->desc_list);
 
-	snprintf(filename, sizeof(filename), "%s.dsc", basename);
-	err = __carlfw_load(&fw->hdr, filename, "r");
-
-	snprintf(filename, sizeof(filename), "%s.fw", basename);
-	err = __carlfw_load(&fw->fw, filename, "r");
-	if (!err)
-		goto found;
-
 	err = __carlfw_load(&fw->fw, basename, "r");
 	if (err)
 		goto err_out;
 
-found:
 	if (fw->hdr.name)
 		hdr_file = &fw->hdr;
 	else
