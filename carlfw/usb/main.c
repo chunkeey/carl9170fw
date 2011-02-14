@@ -4,7 +4,7 @@
  * Copyright (c) 2000-2005 ZyDAS Technology Corporation
  * Copyright (c) 2007-2009 Atheros Communications, Inc.
  * Copyright	2009	Johannes Berg <johannes@sipsolutions.net>
- * Copyright	2009	Christian Lamparter <chunkeey@googlemail.com>
+ * Copyright 2009-2011	Christian Lamparter <chunkeey@googlemail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
