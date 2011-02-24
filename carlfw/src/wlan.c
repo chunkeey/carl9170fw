@@ -226,28 +226,50 @@ static inline bool compare_ether_address(const void *_d0, const void *_d1)
 	return !((d0[0] ^ d1[0]) | (unsigned short)(d0[1] ^ d1[1]));
 }
 
-#ifdef CONFIG_CARL9170FW_TX_AMPDU
+/* This function will only work on uint32_t-aligned pointers! */
+static bool same_hdr(const void *_d0, const void *_d1)
+{
+	const uint32_t *d0 = _d0;
+	const uint32_t *d1 = _d1;
+
+	/* BUG_ON((unsigned long)d0 & 3 || (unsigned long)d1 & 3)) */
+	return !((d0[0] ^ d1[0]) |			/* FC + DU */
+		 (d0[1] ^ d1[1]) |			/* addr1 */
+		 (d0[2] ^ d1[2]) | (d0[3] ^ d1[3]) |	/* addr2 + addr3 */
+		 (d0[4] ^ d1[4]));			/* addr3 */
+}
+
+static inline bool same_aggr(struct ieee80211_hdr *a, struct ieee80211_hdr *b)
+{
+	return (get_tid(a) == get_tid(b)) || same_hdr(a, b);
+}
+
+static void wlan_tx_ampdu_end(unsigned int qidx)
+{
+	struct carl9170_tx_superframe *ht_prev = fw.wlan.ampdu_prev[qidx];
+
+	fw.wlan.ampdu_prev[qidx] = NULL;
+	if (ht_prev)
+		ht_prev->f.hdr.mac.ba_end = 1;
+}
+
 static void wlan_tx_ampdu(struct carl9170_tx_superframe *super)
 {
 	unsigned int qidx = super->s.queue;
 	struct carl9170_tx_superframe *ht_prev = fw.wlan.ampdu_prev[qidx];
 
 	if (!super->f.hdr.mac.ampdu) {
-		fw.wlan.ampdu_prev[qidx] = NULL;
-
-		if (ht_prev)
-			ht_prev->f.hdr.mac.ba_end = 1;
+		wlan_tx_ampdu_end(qidx);
 	} else {
 		fw.wlan.ampdu_prev[qidx] = super;
 
-		if (ht_prev && (get_tid(&super->f.data.i3e) != get_tid(&ht_prev->f.data.i3e) ||
-		    !compare_ether_address(super->f.data.i3e.addr1, ht_prev->f.data.i3e.addr1)))
+		if (ht_prev &&
+		    !same_aggr(&super->f.data.i3e, &ht_prev->f.data.i3e))
 			ht_prev->f.hdr.mac.ba_end = 1;
 		else
 			super->f.hdr.mac.ba_end = 0;
 	}
 }
-#endif /* CONFIG_CARL9170FW_TX_AMPDU */
 
 /* for all tries */
 static void __wlan_tx(struct dma_desc *desc)
@@ -271,9 +293,7 @@ static void __wlan_tx(struct dma_desc *desc)
 		read_tsf(tsf);
 	}
 
-#ifdef CONFIG_CARL9170FW_TX_AMPDU
 	wlan_tx_ampdu(super);
-#endif /* CONFIG_CARL9170FW_TX_AMPDU */
 
 #if (defined CONFIG_CARL9170FW_LOOPBACK) || (defined CONFIG_CARL9170FW_DISCARD)
 	wlan_tx_complete(super, true);
@@ -397,11 +417,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 				 */
 
 				dma_unlink_head(queue);
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
 				dma_put(&fw.wlan.tx_retry, desc);
-#else
-				__wlan_tx(desc);
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
 				return true;
 			}
 		} else {
@@ -447,7 +463,8 @@ static bool wlan_tx_status(struct dma_queue *queue,
 static void handle_tx_completion(void)
 {
 	struct dma_desc *desc;
-	unsigned int i;
+	unsigned int map = 0;
+	int i;
 
 	for (i = 0; i < __AR9170_NUM_TX_QUEUES; i++) {
 		__while_desc_bits(desc, &fw.wlan.tx_queue[i], AR9170_OWN_BITS_SW) {
@@ -457,15 +474,15 @@ static void handle_tx_completion(void)
 			}
 		}
 
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
 		for_each_desc(desc, &fw.wlan.tx_retry)
 			__wlan_tx(desc);
 
-		for_each_desc(desc, &fw.wlan.tx_delay[i])
-			_wlan_tx(desc);
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
-		wlan_trigger(BIT(i));
+		wlan_tx_ampdu_end(i);
+		if (!queue_empty(&fw.wlan.tx_queue[i]))
+			map |= BIT(i);
+
 	}
+	wlan_trigger(map);
 }
 
 void __hot wlan_tx(struct dma_desc *desc)
@@ -484,13 +501,6 @@ void __hot wlan_tx(struct dma_desc *desc)
 		return;
 	}
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
-
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
-	if (!queue_empty(&fw.wlan.tx_queue[super->s.queue])) {
-		dma_put(&fw.wlan.tx_delay[super->s.queue], desc);
-		return;
-	}
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
 
 	_wlan_tx(desc);
 	wlan_trigger(BIT(super->s.queue));
@@ -865,7 +875,7 @@ static void handle_rx(void)
 			up_trigger();
 		} else {
 			dma_reclaim(&fw.wlan.rx_queue, desc);
-			_wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
+			wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
 		}
 	}
 }
@@ -1038,13 +1048,6 @@ static void wlan_janitor(void)
 
 	}
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
-
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
-	if (fw.wlan.tx_trigger) {
-		_wlan_trigger(fw.wlan.tx_trigger);
-		fw.wlan.tx_trigger = 0;
-	}
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
 
 	wlan_send_buffered_tx_status();
 
@@ -1250,6 +1253,7 @@ static void wlan_mac_reset(void)
 	 * set(AR9170_PHY_REG_CCA_THRESHOLD, 0x0);
 	 */
 
+	val = AR9170_DMA_TRIGGER_RXQ;
 	/* Reinitialize all WLAN TX DMA queues. */
 	for (i = 0; i < __AR9170_NUM_TX_QUEUES; i++) {
 		struct dma_desc *iter;
@@ -1258,7 +1262,7 @@ static void wlan_mac_reset(void)
 
 		set_wlan_txq_dma_addr(i, (uint32_t) iter);
 		if (!is_terminator(&fw.wlan.tx_queue[i], iter))
-			wlan_trigger(BIT(i));
+			val |= BIT(i);
 
 		DBG("Q:%d l:%d h:%p t:%p cu:%p it:%p ct:%x st:%x\n", i, queue_len(&fw.wlan.tx_queue[i]),
 		     fw.wlan.tx_queue[i].head, fw.wlan.tx_queue[i].terminator,
@@ -1269,7 +1273,7 @@ static void wlan_mac_reset(void)
 			    AR9170_MAC_INT_RETRY_FAIL;
 
 	set(AR9170_MAC_REG_DMA_RXQ_ADDR, (uint32_t) fw.wlan.rx_queue.head);
-	wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
+	wlan_trigger(val);
 }
 #else
 static void wlan_mac_reset(void)

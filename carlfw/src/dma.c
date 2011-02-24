@@ -78,6 +78,7 @@ void dma_init_descriptors(void)
 	fw.pta.down_queue.head = fw.pta.down_queue.terminator = &dma_mem.terminator[i++];
 	for (j = 0; j < __AR9170_NUM_TX_QUEUES; j++)
 		fw.wlan.tx_queue[j].head = fw.wlan.tx_queue[j].terminator = &dma_mem.terminator[i++];
+	fw.wlan.tx_retry.head = fw.wlan.tx_retry.terminator = &dma_mem.terminator[i++];
 	fw.wlan.rx_queue.head = fw.wlan.rx_queue.terminator = &dma_mem.terminator[i++];
 	fw.usb.int_desc = &dma_mem.terminator[i++];
 
@@ -95,13 +96,6 @@ void dma_init_descriptors(void)
 #ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 	fw.wlan.ba_desc = &dma_mem.terminator[i++];
 #endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
-
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
-	fw.wlan.tx_retry.head = fw.wlan.tx_retry.terminator = &dma_mem.terminator[i++];
-
-	for (j = 0; j < __AR9170_NUM_TX_QUEUES; j++)
-		fw.wlan.tx_delay[j].head = fw.wlan.tx_delay[j].terminator = &dma_mem.terminator[i++];
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
 
 	BUILD_BUG_ON(AR9170_TERMINATOR_NUMBER != j);
 

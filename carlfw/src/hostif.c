@@ -101,7 +101,7 @@ static void handle_upload(void)
 			down_trigger();
 #else
 			dma_reclaim(&fw.wlan.rx_queue, desc);
-			_wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
+			wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
 #endif /* CONFIG_CARL9170FW_LOOPBACK */
 		}
 	}

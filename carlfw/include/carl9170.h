@@ -93,13 +93,11 @@ struct firmware_context_struct {
 	struct {
 		/* Hardware DMA queues */
 		struct dma_queue tx_queue[__AR9170_NUM_TX_QUEUES];	/* wlan tx queue */
+		struct dma_queue tx_retry;
 		struct dma_queue rx_queue;				/* wlan rx queue */
 
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
-		struct dma_queue tx_delay[__AR9170_NUM_TX_QUEUES];
-		struct dma_queue tx_retry;
-		unsigned int tx_trigger;
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
+		/* tx aggregate scheduling */
+		struct carl9170_tx_superframe *ampdu_prev[__AR9170_NUM_TX_QUEUES];
 
 		/* Hardware DMA queue unstuck/fix detection */
 		unsigned int last_tx_desc_num[__AR9170_NUM_TX_QUEUES];
@@ -116,11 +114,6 @@ struct firmware_context_struct {
 
 		/* tx sequence control counters */
 		unsigned int sequence[CARL9170_INTF_NUM];
-
-#ifdef CONFIG_CARL9170FW_TX_AMPDU
-		/* tx aggregate scheduling */
-		struct carl9170_tx_superframe *ampdu_prev[__AR9170_NUM_TX_QUEUES];
-#endif /* CONFIG_CARL9170FW_TX_AMPDU */
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 		/* CAB */
