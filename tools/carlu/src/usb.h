@@ -1,9 +1,9 @@
 /*
- * carl9170user - userspace testing utility for ar9170 devices
+ * carlu - userspace testing utility for ar9170 devices
  *
  * USB back-end API declaration
  *
- * Copyright 2009, 2010 Christian Lamparter <chunkeey@googlemail.com>
+ * Copyright 2009-2011 Christian Lamparter <chunkeey@googlemail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
 
 #define AR9170_TX_MAX_ACTIVE_URBS		8
 
-#define CARL9170_FIRMWARE_FILE "/lib/firmware/carl9170-1"
+#define CARL9170_FIRMWARE_FILE (CARLU_PATH "/../../carlfw/carl9170.fw")
 
 struct carlu;
 

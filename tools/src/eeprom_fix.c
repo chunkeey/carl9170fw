@@ -1,5 +1,5 @@
 /*
- * Copyright 2010, Christian Lamparter <chunkeey@googlemail.com>
+ * Copyright 2010-2011 Christian Lamparter <chunkeey@googlemail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

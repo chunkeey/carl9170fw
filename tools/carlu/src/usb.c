@@ -1,9 +1,9 @@
 /*
- * carl9170user - userspace testing utility for ar9170 devices
+ * carlu - userspace testing utility for ar9170 devices
  *
  * USB back-end driver
  *
- * Copyright 2009, 2010 Christian Lamparter <chunkeey@googlemail.com>
+ * Copyright 2009-2011 Christian Lamparter <chunkeey@googlemail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -253,7 +253,7 @@ static void carlusb_zap_queues(struct carlu *ar)
 
 static void carlusb_free_driver(struct carlu *ar)
 {
-	if (ar) {
+	if (!IS_ERR_OR_NULL(ar)) {
 		if (ar->event_pipe[0] > -1)
 			close(ar->event_pipe[0]);
 
@@ -303,7 +303,7 @@ static struct carlu *carlusb_open(void)
 
 err_out:
 	carlusb_free_driver(tmp);
-	return NULL;
+	return ERR_PTR(err);
 }
 
 static void carlusb_cancel_rings(struct carlu *ar)
@@ -692,8 +692,11 @@ struct carlu *carlusb_probe(void)
 	int ret = -ENOMEM;
 
 	ar = carlusb_open();
-	if (ar == NULL)
+	if (IS_ERR_OR_NULL(ar)) {
+		if (IS_ERR(ar))
+			ret = PTR_ERR(ar);
 		goto err_out;
+	}
 
 	ret = carlusb_show_devinfo(ar);
 	if (ret)
@@ -740,8 +743,7 @@ err_kill:
 err_out:
 	carlusb_free_driver(ar);
 	err("usb device rendezvous failed (%d).\n", ret);
-
-	return NULL;
+	return ERR_PTR(ret);
 }
 
 void carlusb_close(struct carlu *ar)
