@@ -158,7 +158,7 @@ config CARL9170FW_WOL_PROBE_REQUEST
 	def_bool n
 	prompt "Probe Request"
 	depends on CARL9170FW_WOL_OPTION
-	select CARL9170FW_WOL_CHECK
+	select CARL9170FW_WOL
 	---help---
 	 Scan probe requests for a given SSID.
 
