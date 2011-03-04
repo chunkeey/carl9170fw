@@ -46,16 +46,10 @@ struct dma_desc {
 	struct dma_desc *nextAddr;	/* Next TD address */
 } __packed __aligned(4);
 
-/* (Up, Dn, 5x Tx, Rx), USB Int, (5x delayed Tx + retry), CAB, BA */
-#define AR9170_TERMINATOR_NUMBER_B	8
+/* Up, Dn, 5x Tx, retry, Rx, [USB Int], (CAB), (BA) */
+#define AR9170_TERMINATOR_NUMBER_B	9
 
 #define AR9170_TERMINATOR_NUMBER_INT	1
-
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
-#define AR9170_TERMINATOR_NUMBER_DELAY	6
-#else
-#define AR9170_TERMINATOR_NUMBER_DELAY	0
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 #define AR9170_TERMINATOR_NUMBER_CAB	CARL9170_INTF_NUM
@@ -70,7 +64,6 @@ struct dma_desc {
 #endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 #define AR9170_TERMINATOR_NUMBER (AR9170_TERMINATOR_NUMBER_B + \
 				  AR9170_TERMINATOR_NUMBER_INT + \
-				  AR9170_TERMINATOR_NUMBER_DELAY + \
 				  AR9170_TERMINATOR_NUMBER_CAB + \
 				  AR9170_TERMINATOR_NUMBER_BA)
 
@@ -121,11 +114,11 @@ struct carl9170_sram_reserved {
  *				|  - Up (to USB host)
  *				|  - Down (from USB host)
  *				|  - TX (5x, to wifi)
+ *				|  - AMPDU TX retry
  *				|  - RX (from wifi)
  *				|  - CAB Queue
  *				|  - FW cmd & req descriptor
  *				|  - BlockAck descriptor
- *				|  - Delayed TX (5x)
  *				| total: AR9170_TERMINATOR_NUMBER
  *				+--
  *				| block descriptors (dma_desc)

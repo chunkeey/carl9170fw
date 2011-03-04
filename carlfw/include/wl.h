@@ -52,22 +52,10 @@ static inline __inline struct dma_desc *get_wlan_txq_addr(const unsigned int q)
 	return getp(AR9170_MAC_REG_DMA_TXQ_CURR_ADDR + (q << 3));
 }
 
-static inline __inline void _wlan_trigger(const uint32_t queue_bit)
+static inline __inline void wlan_trigger(const uint32_t queue_bit)
 {
 	set(AR9170_MAC_REG_DMA_TRIGGER, queue_bit);
 }
-
-#ifdef CONFIG_CARL9170FW_DELAYED_TX
-static inline __inline void wlan_trigger(const uint32_t queue_bit)
-{
-	fw.wlan.tx_trigger |= queue_bit;
-}
-#else
-static inline __inline void wlan_trigger(const uint32_t queue_bit)
-{
-	_wlan_trigger(queue_bit);
-}
-#endif /* CONFIG_CARL9170FW_DELAYED_TX */
 
 static inline __inline uint8_t ar9170_get_rx_macstatus_status(struct dma_desc *desc)
 {

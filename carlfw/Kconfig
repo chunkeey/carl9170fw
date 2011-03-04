@@ -133,24 +133,6 @@ config CARL9170FW_PSM
 	 Firmware will automatically turn it on again, when the
 	 PRETBTT event fires.
 
-config CARL9170FW_DELAYED_TX
-	def_bool n
-	prompt "Delay and reorder TX"
-	depends on CARL9170FW_EXPERIMENTAL
-	---help---
-	 Delay incoming TX' from the application until wlan_complete
-	 has finished.
-
-	 This feature is necessary to keep A-MPDUs partially ordered.
-
-	 Doesn't work 100% yet, but in most cases other HW designs can
-	 deal with the fallout.
-
-config CARL9170FW_TX_AMPDU
-	def_bool n
-	prompt "Firmware-supported ampdu scheduling"
-	depends on CARL9170FW_EXPERIMENTAL
-
 config CARL9170FW_WOL_OPTION
 	def_bool n
 	prompt "Wakeup on WLAN"
