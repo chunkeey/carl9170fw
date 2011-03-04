@@ -31,15 +31,6 @@ config CARL9170FW_RX_FRAME_LEN
 	default 16384 if CARL9170FW_RX_FRAME_LEN_16384
 	default 32768 if CARL9170FW_RX_FRAME_LEN_32768
 
-config CARL9170FW_WATCHDOG
-	def_bool y
-	prompt "Activate HW Watchdog"
-	---help---
-	 The watchdog will notify the application as soon as the firmware
-	 has stalled.
-
-	 Say Y.
-
 config CARL9170FW_GPIO_INTERRUPT
 	def_bool y
 	prompt "GPIO Software Interrupt"
@@ -208,7 +199,7 @@ config CARL9170FW_DEBUG_UART
 
 config CARL9170FW_WATCHDOG_BUTTON
 	def_bool n
-	depends on CARL9170FW_BROKEN && CARL9170FW_WATCHDOG && CARL9170FW_GPIO_INTERRUPT
+	depends on CARL9170FW_BROKEN && CARL9170FW_GPIO_INTERRUPT
 	prompt "Trigger Watchdog by pressing the WPS button"
 
 choice CARL9170FW_UART_CLOCK

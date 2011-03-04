@@ -71,14 +71,9 @@ static void init(void)
 	orl(AR9170_MAC_REG_AFTER_PNP, 1);
 
 	/* Init watch dog control flag */
-#ifdef CONFIG_CARL9170FW_WATCHDOG
 	fw.watchdog_enable = 1;
 
 	set(AR9170_TIMER_REG_WATCH_DOG, AR9170_WATCH_DOG_TIMER);
-#else
-	fw.watchdog_enable = 0;
-	set(AR9170_TIMER_REG_WATCH_DOG, 0xffff);
-#endif /* CONFIG_CARL9170FW_WATCHDOG */
 
 #ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
 	fw.cached_gpio_state.gpio = get(AR9170_GPIO_REG_PORT_DATA) &
