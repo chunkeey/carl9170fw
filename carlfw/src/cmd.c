@@ -128,13 +128,11 @@ void handle_cmd(struct carl9170_rsp *resp)
 		rf_notify_set_channel();
 		break;
 
-# ifdef CONFIG_CARL9170FW_PSM
 	case CARL9170_CMD_PSM:
 		resp->hdr.len = 0;
 		fw.phy.psm.state = le32_to_cpu(cmd->psm.state);
 		rf_psm();
 		break;
-# endif /* CONFIG_CARL9170FW_PSM */
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIOS */
 
 	default:

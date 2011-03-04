@@ -215,7 +215,6 @@ void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp)
 	resp->rf_init_res.ret = cpu_to_le32(ret);
 }
 
-#ifdef CONFIG_CARL9170FW_PSM
 void rf_psm(void)
 {
 	u32 bank3;
@@ -275,6 +274,5 @@ void rf_psm(void)
 
 	set(0x1c58f0, bank3);
 }
-#endif /* CONFIG_CARL9170FW_PSM */
 
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */

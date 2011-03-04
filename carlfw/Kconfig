@@ -114,16 +114,6 @@ config CARL9170FW_EXPERIMENTAL
 	def_bool y
 	prompt "Experimental Features"
 
-config CARL9170FW_PSM
-	def_bool y
-	prompt "Firmware Supported Power-saving Management"
-	depends on CARL9170FW_EXPERIMENTAL && CARL9170FW_RADIO_FUNCTIONS
-	---help---
-	 This options enables a interface for the application to
-	 switch off the RF/PHY (in order to save power). And the
-	 Firmware will automatically turn it on again, when the
-	 PRETBTT event fires.
-
 config CARL9170FW_WOL_OPTION
 	def_bool n
 	prompt "Wakeup on WLAN"

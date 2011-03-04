@@ -35,6 +35,8 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 	FILL(otus, OTUS,
 	     .feature_set = cpu_to_le32(BIT(CARL9170FW_DUMMY_FEATURE) |
 					BIT(CARL9170FW_USB_RESP_EP2) |
+					BIT(CARL9170FW_PSM) |
+					BIT(CARL9170FW_RX_FILTER) |
 #ifdef CONFIG_CARL9170FW_USB_INIT_FIRMWARE
 					BIT(CARL9170FW_USB_INIT_FIRMWARE) |
 # ifdef CONFIG_CARL9170FW_USB_UP_STREAM
@@ -62,14 +64,10 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 #ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
 					BIT(CARL9170FW_GPIO_INTERRUPT) |
 #endif /* CONFIG_CARL9170FW_GPIO_INTERRUPT */
-#ifdef CONFIG_CARL9170FW_PSM
-					BIT(CARL9170FW_PSM) |
-#endif /* CONFIG_CARL9170FW_PSM */
-					BIT(CARL9170FW_RX_FILTER) |
 #ifdef CONFIG_CARL9170FW_WOL
 					BIT(CARL9170FW_WOL) |
 #endif /* CONFIG_CARL9170FW_WOL */
-					   (0)),
+					(0)),
 
 	     .miniboot_size = cpu_to_le16(0),
 	     .tx_descs = AR9170_TX_BLOCK_NUMBER,

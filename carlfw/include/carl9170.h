@@ -182,9 +182,7 @@ struct firmware_context_struct {
 		unsigned int frequency;
 		unsigned int ht_settings;
 
-#ifdef CONFIG_CARL9170FW_PSM
 		struct carl9170_psm psm;
-#endif /* CONFIG_CARL9170FW_PSM */
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 	} phy;
 

@@ -307,9 +307,9 @@ static void __wlan_tx(struct dma_desc *desc)
 # endif
 #else /* CONFIG_CARL9170FW_LOOPBACK */
 
-# if ((defined CONFIG_CARL9170FW_DEBUG) && (defined CONFIG_CARL9170FW_PSM))
+# ifdef CONFIG_CARL9170FW_DEBUG
 	BUG_ON(fw.phy.psm.state != CARL9170_PSM_WAKE);
-# endif /* CONFIG_CARL9170FW_DEBUG && CONFIG_CARL9170FW_PSM */
+# endif /* CONFIG_CARL9170FW_DEBUG */
 
 	/* insert desc into the right queue */
 	dma_put(&fw.wlan.tx_queue[super->s.queue], desc);
@@ -985,14 +985,10 @@ static void handle_pretbtt(void)
 	fw.wlan.cab_flush_time = get_clock_counter();
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
-#ifdef CONFIG_CARL9170FW_PSM
 	rf_psm();
 
 	send_cmd_to_host(4, CARL9170_RSP_PRETBTT, 0x00,
 			 (uint8_t *) &fw.phy.psm.state);
-#else
-	send_cmd_to_host(0, CARL9170_RSP_PRETBTT, 0x00, NULL);
-#endif /* CONFIG_CARL9170FW_PSM */
 }
 
 static void handle_atim(void)
