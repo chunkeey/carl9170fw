@@ -404,16 +404,6 @@ static inline u8 ar9170_get_decrypt_type(struct ar9170_rx_macstatus *t)
 	       (t->DAidx & 0xc0) >> 6;
 }
 
-enum ar9170_txq {
-	AR9170_TXQ_BE,
-
-	AR9170_TXQ_VI,
-	AR9170_TXQ_VO,
-	AR9170_TXQ_BK,
-
-	__AR9170_NUM_TXQ,
-};
-
 /*
  * This is an workaround for several undocumented bugs.
  * Don't mess with the QoS/AC <-> HW Queue map, if you don't
@@ -431,7 +421,14 @@ enum ar9170_txq {
  * result, this makes the device pretty much useless
  * for any serious 802.11n setup.
  */
-static const u8 ar9170_qmap[__AR9170_NUM_TXQ] = { 2, 1, 0, 3 };
+enum ar9170_txq {
+	AR9170_TXQ_BK = 0,	/* TXQ0 */
+	AR9170_TXQ_BE,		/* TXQ1	*/
+	AR9170_TXQ_VI,		/* TXQ2	*/
+	AR9170_TXQ_VO,		/* TXQ3 */
+
+	__AR9170_NUM_TXQ,
+};
 
 #define	AR9170_TXQ_DEPTH			32
 

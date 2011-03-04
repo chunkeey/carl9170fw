@@ -188,7 +188,7 @@ int carlu_tx(struct carlu *ar, struct frame *frame)
 
 	txp->s.len = cpu_to_le16(frame->len);
 
-	queue = ar9170_qmap[frame->queue % ARRAY_SIZE(ar9170_qmap)];
+	queue = (frame->queue % __AR9170_NUM_TXQ);
 
 	SET_VAL(CARL9170_TX_SUPER_MISC_QUEUE, txp->s.misc, queue);
 

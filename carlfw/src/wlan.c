@@ -466,7 +466,7 @@ static void handle_tx_completion(void)
 	unsigned int map = 0;
 	int i;
 
-	for (i = 0; i < __AR9170_NUM_TX_QUEUES; i++) {
+	for (i = AR9170_TXQ_SPECIAL; i >= AR9170_TXQ0; i--) {
 		__while_desc_bits(desc, &fw.wlan.tx_queue[i], AR9170_OWN_BITS_SW) {
 			if (!wlan_tx_status(&fw.wlan.tx_queue[i], desc)) {
 				/* termination requested. */
@@ -1098,9 +1098,9 @@ void handle_wlan(void)
 static void wlan_check_hang(void)
 {
 	struct dma_desc *desc;
-	unsigned int i;
+	int i;
 
-	for (i = 0; i < __AR9170_NUM_TX_QUEUES; i++) {
+	for (i = AR9170_TXQ_SPECIAL; i >= AR9170_TXQ0; i--) {
 		if (queue_empty(&fw.wlan.tx_queue[i])) {
 			/* Nothing to do here... move along */
 			continue;
@@ -1175,7 +1175,7 @@ static void wlan_mac_reset(void)
 	uint32_t ack_power;
 	uint32_t rts_cts_tpc;
 	uint32_t rts_cts_rate;
-	unsigned int i;
+	int i;
 
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 	uint32_t rx_BB;
@@ -1251,7 +1251,7 @@ static void wlan_mac_reset(void)
 
 	val = AR9170_DMA_TRIGGER_RXQ;
 	/* Reinitialize all WLAN TX DMA queues. */
-	for (i = 0; i < __AR9170_NUM_TX_QUEUES; i++) {
+	for (i = AR9170_TXQ_SPECIAL; i >= AR9170_TXQ0; i--) {
 		struct dma_desc *iter;
 
 		__for_each_desc_bits(iter, &fw.wlan.tx_queue[i], AR9170_OWN_BITS_SW);
