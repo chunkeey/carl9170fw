@@ -104,7 +104,7 @@ struct carl9170fw_desc_head {
 	(sizeof(struct carl9170fw_desc_head))
 
 #define CARL9170FW_OTUS_DESC_MIN_VER		6
-#define CARL9170FW_OTUS_DESC_CUR_VER		6
+#define CARL9170FW_OTUS_DESC_CUR_VER		7
 struct carl9170fw_otus_desc {
 	struct carl9170fw_desc_head head;
 	__le32 feature_set;
