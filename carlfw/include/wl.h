@@ -210,6 +210,11 @@ static inline __inline struct carl9170_tx_superframe *get_super(struct dma_desc 
 			    f);
 }
 
+static inline __inline struct carl9170_tx_superframe *__get_super(struct dma_desc *desc)
+{
+	return DESC_PAYLOAD(desc);
+}
+
 static inline __inline void hide_super(struct dma_desc *desc)
 {
 	desc->dataAddr = (uint8_t *)
@@ -252,6 +257,9 @@ void wlan_cab_flush_queue(const unsigned int vif);
 void wlan_modify_beacon(const unsigned int vif,
 			const unsigned int bcn_addr,
 			const unsigned int bcn_len);
+
+void wlan_tx_complete(struct carl9170_tx_superframe *super,
+                      bool txs);
 
 static inline void wlan_prepare_wol(void)
 {

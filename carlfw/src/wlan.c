@@ -156,8 +156,8 @@ static struct carl9170_tx_status *wlan_get_tx_status_buffer(void)
 }
 
 /* generate _aggregated_ tx_status for the host */
-static void wlan_tx_complete(struct carl9170_tx_superframe *super,
-			     bool txs)
+void wlan_tx_complete(struct carl9170_tx_superframe *super,
+		      bool txs)
 {
 	struct carl9170_tx_status *status;
 
@@ -169,6 +169,7 @@ static void wlan_tx_complete(struct carl9170_tx_superframe *super,
 	 */
 	status->cookie = super->s.cookie;
 	status->queue = super->s.queue;
+	super->s.cookie = 0;
 
 	/*
 	 * This field holds the number of tries of the rate in
@@ -364,7 +365,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 	success = true;
 
 	/* update hangcheck */
-	fw.wlan.last_tx_desc_num[qidx] = 0;
+	fw.wlan.last_super_num[qidx] = 0;
 
 	if (!!(desc->ctrl & AR9170_CTRL_FAIL)) {
 		txfail = !!(desc->ctrl & AR9170_CTRL_TXFAIL);
@@ -1095,6 +1096,12 @@ void handle_wlan(void)
 #undef HANDLER
 }
 
+enum {
+	CARL9170FW_TX_MAC_BUMP = 4,
+	CARL9170FW_TX_MAC_DEBUG = 6,
+	CARL9170FW_TX_MAC_RESET = 7,
+};
+
 static void wlan_check_hang(void)
 {
 	struct dma_desc *desc;
@@ -1110,10 +1117,10 @@ static void wlan_check_hang(void)
 		desc = get_wlan_txq_addr(i);
 
 		/* Stuck frame detection */
-		if (unlikely(desc == fw.wlan.last_tx_desc[i])) {
-			fw.wlan.last_tx_desc_num[i]++;
+		if (unlikely(DESC_PAYLOAD(desc) == fw.wlan.last_super[i])) {
+			fw.wlan.last_super_num[i]++;
 
-			if (unlikely(fw.wlan.last_tx_desc_num[i] > 6)) {
+			if (unlikely(fw.wlan.last_super_num[i] >= CARL9170FW_TX_MAC_RESET)) {
 				/*
 				 * schedule MAC reset (aka OFF/ON => dead)
 				 *
@@ -1126,7 +1133,7 @@ static void wlan_check_hang(void)
 			}
 
 #ifdef CONFIG_CARL9170FW_DEBUG
-			if (unlikely(fw.wlan.last_tx_desc_num[i] > 5)) {
+			if (unlikely(fw.wlan.last_super_num[i] >= CARL9170FW_TX_MAC_DEBUG)) {
 				/*
 				 * Sigh, the queue is almost certainly
 				 * dead. Dump the queue content to the
@@ -1139,7 +1146,7 @@ static void wlan_check_hang(void)
 #endif /* CONFIG_CARL9170FW_DEBUG */
 
 #ifdef CONFIG_CARL9170FW_DMA_QUEUE_BUMP
-			if (unlikely(fw.wlan.last_tx_desc_num[i] > 3)) {
+			if (unlikely(fw.wlan.last_super_num[i] >= CARL9170FW_TX_MAC_BUMP)) {
 				/*
 				 * Hrrm, bump the queue a bit.
 				 * maybe this will get it going again.
@@ -1151,8 +1158,8 @@ static void wlan_check_hang(void)
 #endif /* CONFIG_CARL9170FW_DMA_QUEUE_BUMP */
 		} else {
 			/* Nothing stuck */
-			fw.wlan.last_tx_desc[i] = desc;
-			fw.wlan.last_tx_desc_num[i] = 0;
+			fw.wlan.last_super[i] = DESC_PAYLOAD(desc);
+			fw.wlan.last_super_num[i] = 0;
 		}
 	}
 }
@@ -1257,6 +1264,29 @@ static void wlan_mac_reset(void)
 		struct dma_desc *iter;
 
 		__for_each_desc_bits(iter, &fw.wlan.tx_queue[i], AR9170_OWN_BITS_SW);
+
+		/* kill the stuck frame */
+		if (!is_terminator(&fw.wlan.tx_queue[i], iter) &&
+		    fw.wlan.last_super_num[i] >= CARL9170FW_TX_MAC_RESET &&
+		    fw.wlan.last_super[i] == DESC_PAYLOAD(iter)) {
+			struct carl9170_tx_superframe *super = get_super(iter);
+
+			iter->status = AR9170_OWN_BITS_SW;
+			/*
+			 * Mark the frame as failed.
+			 * The BAFAIL flag allows the frame to sail through
+			 * wlan_tx_status without much "unstuck" trouble.
+			 */
+			iter->ctrl &= ~(AR9170_CTRL_FAIL);
+			iter->ctrl |= AR9170_CTRL_BAFAIL;
+
+			super->s.cnt = CARL9170_TX_MAX_RATE_TRIES;
+			super->s.rix = CARL9170_TX_MAX_RETRY_RATES;
+
+			fw.wlan.last_super_num[i] = 0;
+			fw.wlan.last_super[i] = NULL;
+			iter = iter->lastAddr->nextAddr;
+		}
 
 		set_wlan_txq_dma_addr(i, (uint32_t) iter);
 		if (!is_terminator(&fw.wlan.tx_queue[i], iter))

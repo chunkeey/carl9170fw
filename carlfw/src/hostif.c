@@ -30,7 +30,7 @@
 
 static bool length_check(struct dma_desc *desc)
 {
-	volatile struct carl9170_tx_superframe *super = DESC_PAYLOAD(desc);
+	volatile struct carl9170_tx_superframe *super = __get_super(desc);
 
 	if (unlikely(desc->totalLen < sizeof(struct carl9170_tx_superdesc)))
 		return false;
@@ -59,7 +59,7 @@ static void handle_download(void)
 	 * is _SW ( handle_download_exception )
 	 */
 
-	for_each_desc_bits(desc, &fw.pta.down_queue, AR9170_OWN_BITS_SE) {
+	for_each_desc_not_bits(desc, &fw.pta.down_queue, AR9170_OWN_BITS_HW) {
 		if (unlikely((length_check(desc) == false))) {
 			/*
 			 * There is no easy way of telling what was lost.
@@ -69,6 +69,7 @@ static void handle_download(void)
 			 * timeout mechanism.
 			 */
 
+			wlan_tx_complete(__get_super(desc), false);
 			dma_reclaim(&fw.pta.down_queue, desc);
 			down_trigger();
 		} else {

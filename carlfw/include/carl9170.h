@@ -100,8 +100,8 @@ struct firmware_context_struct {
 		struct carl9170_tx_superframe *ampdu_prev[__AR9170_NUM_TX_QUEUES];
 
 		/* Hardware DMA queue unstuck/fix detection */
-		unsigned int last_tx_desc_num[__AR9170_NUM_TX_QUEUES];
-		struct dma_desc *last_tx_desc[__AR9170_NUM_TX_QUEUES];
+		unsigned int last_super_num[__AR9170_NUM_TX_QUEUES];
+		struct carl9170_tx_superframe *last_super[__AR9170_NUM_TX_QUEUES];
 		unsigned int mac_reset;
 		unsigned int soft_int;
 
