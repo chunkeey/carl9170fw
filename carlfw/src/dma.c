@@ -165,11 +165,13 @@ void dma_init_descriptors(void)
  */
 void dma_reclaim(struct dma_queue *q, struct dma_desc *desc)
 {
-	struct dma_desc *tmpDesc;
+	struct dma_desc *tmpDesc, *last;
 	struct dma_desc tdesc;
 
 	/* 1. Set OWN bit to HW for all TDs to be added, clear ctrl and size */
 	tmpDesc = desc;
+	last = desc->lastAddr;
+
 	while (1) {
 		tmpDesc->status = AR9170_OWN_BITS_HW;
 		tmpDesc->ctrl = 0;
@@ -178,24 +180,28 @@ void dma_reclaim(struct dma_queue *q, struct dma_desc *desc)
 
 		/* TODO : Exception handle */
 
-		if (desc->lastAddr == tmpDesc)
+		tmpDesc->lastAddr = tmpDesc;
+
+		if (tmpDesc == last)
 			break;
 
-		tmpDesc->lastAddr = desc->lastAddr;
 		tmpDesc = tmpDesc->nextAddr;
 	}
 
 	/* 2. Next address of Last TD to be added = first TD */
-	desc->lastAddr->nextAddr = desc;
+	tmpDesc->nextAddr = desc;
+
+	/* Link first TD to self */
+	desc->lastAddr = q->terminator;
 
 	/* 3. Copy first TD to be added to TTD */
 	copy_dma_desc(&tdesc, desc);
 
-	/* 4. set first TD OWN bit to SW */
-	desc->status = AR9170_OWN_BITS_SW;
+	/* 4. Initialize new terminator */
+	clear_descriptor(desc);
 
 	/* 5. Copy TTD to last TD */
-	tdesc.status &= (~AR9170_OWN_BITS);
+	tdesc.status = 0;
 	copy_dma_desc((void *)q->terminator, (void *)&tdesc);
 	q->terminator->status |= AR9170_OWN_BITS_HW;
 
@@ -241,14 +247,8 @@ void dma_put(struct dma_queue *q, struct dma_desc *desc)
 	/* 3. Copy first TD to be added to TTD */
 	copy_dma_desc(&tdesc, desc);
 
-	/* 4. set first TD OWN bit to SW */
-	desc->status = AR9170_OWN_BITS_SW;
-	desc->ctrl = 0;
-	desc->totalLen = 0;
-	desc->dataSize = 0;
-	desc->lastAddr = desc;
-	desc->nextAddr = desc;
-	desc->dataAddr = NULL;
+	/* 4. Initialize new terminator */
+	clear_descriptor(desc);
 
 	/* 5. Copy TTD to last TD */
 	tdesc.status &= (~AR9170_OWN_BITS);
