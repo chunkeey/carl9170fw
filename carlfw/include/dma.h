@@ -215,7 +215,6 @@ struct dma_desc *dma_unlink_head(struct dma_queue *queue);
 void dma_init_descriptors(void);
 void dma_reclaim(struct dma_queue *q, struct dma_desc *desc);
 void dma_put(struct dma_queue *q, struct dma_desc *desc);
-void dma_queue_reclaim(struct dma_queue *dst, struct dma_queue *src);
 
 static inline __inline bool is_terminator(struct dma_queue *q, struct dma_desc *desc)
 {
@@ -275,6 +274,10 @@ static inline __inline struct dma_desc *dma_dequeue_not_bits(struct dma_queue *q
 	     (desc->status & AR9170_OWN_BITS) == bits);			\
 	     desc = (queue)->head)
 
+#define __for_each_desc_continue(desc, queue)				\
+	for (;desc != (queue)->terminator;				\
+	     desc = (desc)->lastAddr->nextAddr)
+
 #define __for_each_desc(desc, queue)					\
 	for (desc = (queue)->head;					\
 	     desc != (queue)->terminator;				\
@@ -309,6 +312,15 @@ static inline __inline void dma_rearm(struct dma_desc *desc)
 	/* Set OWN bit to HW */
 	desc->status = ((desc->status & (~AR9170_OWN_BITS)) |
 			AR9170_OWN_BITS_HW);
+}
+
+static inline __inline void dma_fix_downqueue(struct dma_desc *desc)
+{
+	desc->status = AR9170_OWN_BITS_HW;
+	desc->ctrl = 0;
+	desc->dataSize = 0;
+	desc->totalLen = AR9170_BLOCK_SIZE;
+	desc->lastAddr = desc;
 }
 
 static inline void __check_desc(void)

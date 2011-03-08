@@ -56,10 +56,10 @@ static void handle_download(void)
 	 * Under normal conditions, all completed descs should have
 	 * the AR9170_OWN_BITS_SE status flag set.
 	 * However there seems to be a undocumented case where the flag
-	 * is _SW...
+	 * is _SW ( handle_download_exception )
 	 */
 
-	for_each_desc_not_bits(desc, &fw.pta.down_queue, AR9170_OWN_BITS_HW) {
+	for_each_desc_bits(desc, &fw.pta.down_queue, AR9170_OWN_BITS_SE) {
 		if (unlikely((length_check(desc) == false))) {
 			/*
 			 * There is no easy way of telling what was lost.
@@ -71,10 +71,9 @@ static void handle_download(void)
 
 			dma_reclaim(&fw.pta.down_queue, desc);
 			down_trigger();
-			continue;
+		} else {
+			wlan_tx(desc);
 		}
-
-		wlan_tx(desc);
 	}
 
 #ifdef CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT
@@ -111,6 +110,40 @@ static void handle_upload(void)
 #endif /* CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT */
 }
 
+static void handle_download_exception(void)
+{
+	struct dma_desc *desc, *target;
+
+	/* actually, the queue should be stopped by now? */
+	usb_stop_down_queue();
+
+	target = (void *)((get(AR9170_PTA_REG_DN_CURR_ADDRH) << 16) |
+		  get(AR9170_PTA_REG_DN_CURR_ADDRL));
+
+	/*
+	 * Put "forgotten" packets from the head of the queue, back
+	 * to the current position
+	 */
+	__while_desc_bits(desc, &fw.pta.down_queue, AR9170_OWN_BITS_HW) {
+		if (desc == target)
+			break;
+
+		dma_reclaim(&fw.pta.down_queue,
+		    dma_unlink_head(&fw.pta.down_queue));
+	}
+
+	__for_each_desc_continue(desc, &fw.pta.down_queue) {
+		if ((desc->status & AR9170_OWN_BITS) == AR9170_OWN_BITS_SW) {
+			dma_fix_downqueue(desc);
+		}
+	}
+
+
+	usb_start_down_queue();
+
+	down_trigger();
+}
+
 /* handle interrupts from DMA chip */
 void handle_host_interface(void)
 {
@@ -128,6 +161,10 @@ void handle_host_interface(void)
 	HANDLER(pta_int, AR9170_PTA_INT_FLAG_DN, handle_download);
 
 	HANDLER(pta_int, AR9170_PTA_INT_FLAG_UP, handle_upload);
+
+	/* This is just guesswork and MAGIC */
+	pta_int = get(AR9170_PTA_REG_DMA_STATUS);
+	HANDLER(pta_int, 0x1, handle_download_exception);
 
 #undef HANDLER
 }
