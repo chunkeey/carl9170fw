@@ -356,9 +356,7 @@ static void _wlan_tx(struct dma_desc *desc)
 static bool wlan_tx_status(struct dma_queue *queue,
 			   struct dma_desc *desc)
 {
-	struct ar9170_tx_frame *frame = DESC_PAYLOAD(desc);
 	struct carl9170_tx_superframe *super = get_super(desc);
-	struct ieee80211_hdr *hdr = &super->f.data.i3e;
 	unsigned int qidx = super->s.queue;
 	bool txfail, success;
 
@@ -381,7 +379,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 			 * order.
 			 */
 
-			if (!frame->hdr.mac.ampdu) {
+			if (!super->f.hdr.mac.ampdu) {
 				/*
 				 * 802.11 - 7.1.3.1.5.
 				 * set "Retry Field" for consecutive attempts
@@ -389,8 +387,8 @@ static bool wlan_tx_status(struct dma_queue *queue,
 				 * Note: For AMPDU see:
 				 * 802.11n 9.9.1.6 "Retransmit Procedures"
 				 */
-
-				hdr->frame_control |= cpu_to_le16(IEEE80211_FCTL_RETRY);
+				super->f.data.i3e.frame_control |=
+					cpu_to_le16(IEEE80211_FCTL_RETRY);
 			}
 
 			if (txfail) {
@@ -464,7 +462,6 @@ static bool wlan_tx_status(struct dma_queue *queue,
 static void handle_tx_completion(void)
 {
 	struct dma_desc *desc;
-	unsigned int map = 0;
 	int i;
 
 	for (i = AR9170_TXQ_SPECIAL; i >= AR9170_TXQ0; i--) {
@@ -480,10 +477,9 @@ static void handle_tx_completion(void)
 
 		wlan_tx_ampdu_end(i);
 		if (!queue_empty(&fw.wlan.tx_queue[i]))
-			map |= BIT(i);
+			wlan_trigger(BIT(i));
 
 	}
-	wlan_trigger(map);
 }
 
 void __hot wlan_tx(struct dma_desc *desc)
