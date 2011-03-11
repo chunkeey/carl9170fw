@@ -45,6 +45,19 @@ static void timer_init(const unsigned int timer, const unsigned int interval)
 	orl(AR9170_TIMER_REG_INTERRUPT, BIT(timer));
 }
 
+void clock_set(enum cpu_clock_t _clock, bool on)
+{
+	/*
+	 * Word of Warning!
+	 * This setting does more than just mess with the CPU Clock.
+	 * So watch out, if you need _stable_ timer interrupts.
+	 */
+
+	fw.ticks_per_msec = GET_VAL(AR9170_PWR_PLL_ADDAC_DIV, get(AR9170_PWR_REG_PLL_ADDAC)) >> 1;
+
+	set(AR9170_PWR_REG_CLOCK_SEL, (uint32_t) ((on ? 0x70 : 0x600) | _clock));
+}
+
 static void init(void)
 {
 	led_init();
