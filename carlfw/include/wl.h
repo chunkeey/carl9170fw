@@ -52,6 +52,11 @@ static inline __inline struct dma_desc *get_wlan_txq_addr(const unsigned int q)
 	return getp(AR9170_MAC_REG_DMA_TXQ_CURR_ADDR + (q << 3));
 }
 
+static inline __inline struct dma_desc *get_wlan_txq_last_addr(const unsigned int q)
+{
+	return getp(AR9170_MAC_REG_DMA_TXQ_LAST_ADDR + (q << 2));
+}
+
 static inline __inline void wlan_trigger(const uint32_t queue_bit)
 {
 	set(AR9170_MAC_REG_DMA_TRIGGER, queue_bit);
@@ -210,6 +215,11 @@ static inline __inline struct carl9170_tx_superframe *get_super(struct dma_desc 
 			    f);
 }
 
+static inline __inline struct carl9170_tx_superframe *__get_super(struct dma_desc *desc)
+{
+	return DESC_PAYLOAD(desc);
+}
+
 static inline __inline void hide_super(struct dma_desc *desc)
 {
 	desc->dataAddr = (uint8_t *)
@@ -252,6 +262,9 @@ void wlan_cab_flush_queue(const unsigned int vif);
 void wlan_modify_beacon(const unsigned int vif,
 			const unsigned int bcn_addr,
 			const unsigned int bcn_len);
+
+void wlan_tx_complete(struct carl9170_tx_superframe *super,
+                      bool txs);
 
 static inline void wlan_prepare_wol(void)
 {

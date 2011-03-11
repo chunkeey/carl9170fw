@@ -100,8 +100,8 @@ struct firmware_context_struct {
 		struct carl9170_tx_superframe *ampdu_prev[__AR9170_NUM_TX_QUEUES];
 
 		/* Hardware DMA queue unstuck/fix detection */
-		unsigned int last_tx_desc_num[__AR9170_NUM_TX_QUEUES];
-		struct dma_desc *last_tx_desc[__AR9170_NUM_TX_QUEUES];
+		unsigned int last_super_num[__AR9170_NUM_TX_QUEUES];
+		struct carl9170_tx_superframe *last_super[__AR9170_NUM_TX_QUEUES];
 		unsigned int mac_reset;
 		unsigned int soft_int;
 
@@ -182,9 +182,7 @@ struct firmware_context_struct {
 		unsigned int frequency;
 		unsigned int ht_settings;
 
-#ifdef CONFIG_CARL9170FW_PSM
 		struct carl9170_psm psm;
-#endif /* CONFIG_CARL9170FW_PSM */
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 	} phy;
 

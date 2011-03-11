@@ -31,15 +31,6 @@ config CARL9170FW_RX_FRAME_LEN
 	default 16384 if CARL9170FW_RX_FRAME_LEN_16384
 	default 32768 if CARL9170FW_RX_FRAME_LEN_32768
 
-config CARL9170FW_WATCHDOG
-	def_bool y
-	prompt "Activate HW Watchdog"
-	---help---
-	 The watchdog will notify the application as soon as the firmware
-	 has stalled.
-
-	 Say Y.
-
 config CARL9170FW_GPIO_INTERRUPT
 	def_bool y
 	prompt "GPIO Software Interrupt"
@@ -123,16 +114,6 @@ config CARL9170FW_EXPERIMENTAL
 	def_bool y
 	prompt "Experimental Features"
 
-config CARL9170FW_PSM
-	def_bool y
-	prompt "Firmware Supported Power-saving Management"
-	depends on CARL9170FW_EXPERIMENTAL && CARL9170FW_RADIO_FUNCTIONS
-	---help---
-	 This options enables a interface for the application to
-	 switch off the RF/PHY (in order to save power). And the
-	 Firmware will automatically turn it on again, when the
-	 PRETBTT event fires.
-
 config CARL9170FW_WOL_OPTION
 	def_bool n
 	prompt "Wakeup on WLAN"
@@ -179,6 +160,11 @@ config CARL9170FW_FW_MAC_RESET
 	prompt "Firmware MAC Chip recovery"
 	depends on CARL9170FW_EXPERIMENTAL
 
+config CARL9170FW_NOISY_MAC_RESET
+	def_bool n
+	prompt "Notify MAC RESET events"
+	depends on CARL9170FW_FW_MAC_RESET
+
 config CARL9170FW_BROKEN_FEATURES
 	def_bool n
 	prompt "Broken Featurs"
@@ -208,7 +194,7 @@ config CARL9170FW_DEBUG_UART
 
 config CARL9170FW_WATCHDOG_BUTTON
 	def_bool n
-	depends on CARL9170FW_BROKEN && CARL9170FW_WATCHDOG && CARL9170FW_GPIO_INTERRUPT
+	depends on CARL9170FW_BROKEN && CARL9170FW_GPIO_INTERRUPT
 	prompt "Trigger Watchdog by pressing the WPS button"
 
 choice CARL9170FW_UART_CLOCK
