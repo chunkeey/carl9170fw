@@ -358,7 +358,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 {
 	struct carl9170_tx_superframe *super = get_super(desc);
 	unsigned int qidx = super->s.queue;
-	bool txfail, success;
+	bool txfail = false, success;
 
 	success = true;
 
