@@ -517,8 +517,9 @@ static void wlan_send_buffered_ba(void)
 	if (!fw.wlan.ba_desc_available)
 		return;
 
-	ctx = &fw.wlan.ba_cache[fw.wlan.ba_head_idx % CONFIG_CARL9170FW_BACK_REQS_NUM];
+	ctx = &fw.wlan.ba_cache[fw.wlan.ba_head_idx];
 	fw.wlan.ba_head_idx++;
+	fw.wlan.ba_head_idx %= CONFIG_CARL9170FW_BACK_REQS_NUM;
 
 	/* Format BlockAck */
 	fw.wlan.ba_desc->status = 0;
@@ -532,8 +533,8 @@ static void wlan_send_buffered_ba(void)
 		sizeof(struct ar9170_tx_hwdesc) +
 		sizeof(struct ieee80211_ba);
 
-	baf->s.ri[0].tries = 3;
-	baf->s.queue = 0;
+	baf->s.ri[0].tries = 1;
+	baf->s.queue = AR9170_TXQ_VO;
 	baf->f.hdr.length = sizeof(struct ieee80211_ba) + FCS_LEN;
 
 	/* HW Duration / Backoff */
@@ -571,12 +572,9 @@ static struct carl9170_bar_ctx *wlan_get_bar_cache_buffer(void)
 {
 	struct carl9170_bar_ctx *tmp;
 
-	/* expire oldest entry, if we ran out of ba_ctx' */
-	if (fw.wlan.ba_head_idx + CONFIG_CARL9170FW_BACK_REQS_NUM < fw.wlan.ba_tail_idx)
-		fw.wlan.ba_head_idx++;
-
-	tmp = &fw.wlan.ba_cache[fw.wlan.ba_tail_idx % CONFIG_CARL9170FW_BACK_REQS_NUM];
+	tmp = &fw.wlan.ba_cache[fw.wlan.ba_tail_idx];
 	fw.wlan.ba_tail_idx++;
+	fw.wlan.ba_tail_idx %= CONFIG_CARL9170FW_BACK_REQS_NUM;
 
 	return tmp;
 }
