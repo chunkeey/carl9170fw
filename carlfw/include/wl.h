@@ -52,6 +52,11 @@ static inline __inline struct dma_desc *get_wlan_txq_addr(const unsigned int q)
 	return getp(AR9170_MAC_REG_DMA_TXQ_CURR_ADDR + (q << 3));
 }
 
+static inline __inline struct dma_desc *get_wlan_txq_last_addr(const unsigned int q)
+{
+	return getp(AR9170_MAC_REG_DMA_TXQ_LAST_ADDR + (q << 2));
+}
+
 static inline __inline void wlan_trigger(const uint32_t queue_bit)
 {
 	set(AR9170_MAC_REG_DMA_TRIGGER, queue_bit);
