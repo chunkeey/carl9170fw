@@ -6,7 +6,7 @@ NEWLIB_VER=1.19.0
 NEWLIB_URL=ftp://sources.redhat.com/pub/newlib/newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
 
-GCC_VER=4.4.5
+GCC_VER=4.6.0
 GCC_URL=http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/gcc-core-$(GCC_VER).tar.bz2
 GCC_TAR=gcc-core-$(GCC_VER).tar.bz2
 
