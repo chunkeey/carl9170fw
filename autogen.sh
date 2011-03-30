@@ -5,9 +5,9 @@ set -e
 case "$1" in
 	config)
 		echo "Configuring..."
+		cmake .
 		make -C config
 		config/conf Kconfig
-		cmake .
 	;;
 
 	compile)

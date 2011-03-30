@@ -7,6 +7,8 @@ project(carl9170)
 
 include("config.cmake")
 
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/generated")
+
 add_subdirectory(carlfw)
 
 if (CONFIG_CARL9170FW_BUILD_MINIBOOT)
