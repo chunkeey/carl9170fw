@@ -51,7 +51,7 @@ static int get_addr(char *str, unsigned int *val)
 		return -EINVAL;
 	}
 
-	return 0;
+	return err;
 }
 
 static int
