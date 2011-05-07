@@ -69,6 +69,8 @@ enum carl9170_suspend_mode {
 	CARL9170_AWAKE_HOST,
 };
 
+typedef void (*fw_desc_callback_t)(void *, const bool);
+
 /*
  * This platform - being an odd 32-bit architecture - prefers to
  * have 32-Bit variables.
@@ -129,11 +131,15 @@ struct firmware_context_struct {
 			     tx_status_tail_idx;
 		struct carl9170_tx_status tx_status_cache[CARL9170_TX_STATUS_NUM];
 
+		/* internal descriptor for use within the service routines */
+		struct dma_desc *fw_desc;
+		unsigned int fw_desc_available;
+		void *fw_desc_data;
+		fw_desc_callback_t fw_desc_callback;
+
 		/* BA(R) Request Handler */
-		struct dma_desc *ba_desc;
 		struct carl9170_bar_ctx ba_cache[CONFIG_CARL9170FW_BACK_REQS_NUM];
-		unsigned int ba_desc_available,
-			     ba_tail_idx,
+		unsigned int ba_tail_idx,
 			     ba_head_idx;
 	} wlan;
 

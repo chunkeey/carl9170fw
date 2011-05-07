@@ -438,18 +438,21 @@ static bool wlan_tx_status(struct dma_queue *queue,
 
 	unhide_super(desc);
 
-	if (unlikely(super == (void *) &dma_mem.reserved.ba)) {
-		fw.wlan.ba_desc = desc;
-		fw.wlan.ba_desc_available = 1;
+	if (unlikely(super == fw.wlan.fw_desc_data)) {
+		fw.wlan.fw_desc = desc;
+		fw.wlan.fw_desc_available = 1;
+		if (fw.wlan.fw_desc_callback)
+			fw.wlan.fw_desc_callback(super, success);
+
 		return true;
 	}
-
-	wlan_tx_complete(super, success);
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	if (unlikely(super->s.cab))
 		fw.wlan.cab_queue_len[super->s.vif_id]--;
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
+
+	wlan_tx_complete(super, success);
 
 	/* recycle freed descriptors */
 	dma_reclaim(&fw.pta.down_queue, desc);
@@ -500,6 +503,24 @@ void __hot wlan_tx(struct dma_desc *desc)
 	wlan_trigger(BIT(super->s.queue));
 }
 
+static void wlan_tx_fw(struct carl9170_tx_superdesc *super)
+{
+	if (!fw.wlan.fw_desc_available)
+		return;
+
+	fw.wlan.fw_desc_available = 0;
+
+	/* Format BlockAck */
+	fw.wlan.fw_desc->status = AR9170_OWN_BITS_SW;
+	fw.wlan.fw_desc->ctrl = AR9170_CTRL_FS_BIT | AR9170_CTRL_LS_BIT;
+	fw.wlan.fw_desc->totalLen = fw.wlan.fw_desc->dataSize = super->len;
+	fw.wlan.fw_desc_data = fw.wlan.fw_desc->dataAddr = super;
+	fw.wlan.fw_desc->nextAddr = fw.wlan.fw_desc->lastAddr =
+		fw.wlan.fw_desc;
+
+	wlan_tx(fw.wlan.fw_desc);
+}
+
 static void wlan_send_buffered_ba(void)
 {
 	struct carl9170_tx_ba_superframe *baf = &dma_mem.reserved.ba.ba;
@@ -510,26 +531,16 @@ static void wlan_send_buffered_ba(void)
 		return;
 
 	/* there's no point to continue when the ba_desc is not available. */
-	if (!fw.wlan.ba_desc_available)
+	if (!fw.wlan.fw_desc_available)
 		return;
-
-	fw.wlan.ba_desc_available = 0;
 
 	ctx = &fw.wlan.ba_cache[fw.wlan.ba_head_idx];
 	fw.wlan.ba_head_idx++;
 	fw.wlan.ba_head_idx %= CONFIG_CARL9170FW_BACK_REQS_NUM;
 
-	/* Format BlockAck */
-	fw.wlan.ba_desc->status = AR9170_OWN_BITS_SW;
-	fw.wlan.ba_desc->ctrl = AR9170_CTRL_FS_BIT | AR9170_CTRL_LS_BIT;
-	fw.wlan.ba_desc->nextAddr = fw.wlan.ba_desc->lastAddr =
-		fw.wlan.ba_desc;
-
-	baf->s.len = fw.wlan.ba_desc->totalLen = fw.wlan.ba_desc->dataSize =
-		sizeof(struct carl9170_tx_superdesc) +
-		sizeof(struct ar9170_tx_hwdesc) +
-		sizeof(struct ieee80211_ba);
-
+	baf->s.len = sizeof(struct carl9170_tx_superdesc) +
+		     sizeof(struct ar9170_tx_hwdesc) +
+		     sizeof(struct ieee80211_ba);
 	baf->s.ri[0].tries = 1;
 	baf->s.queue = AR9170_TXQ_VO;
 	baf->f.hdr.length = sizeof(struct ieee80211_ba) + FCS_LEN;
@@ -561,8 +572,7 @@ static void wlan_send_buffered_ba(void)
 	 */
 	ba->control = ctx->control | cpu_to_le16(1);
 	ba->start_seq_num = ctx->start_seq_num;
-
-	wlan_tx(fw.wlan.ba_desc);
+	wlan_tx_fw(&baf->s);
 }
 
 static struct carl9170_bar_ctx *wlan_get_bar_cache_buffer(void)

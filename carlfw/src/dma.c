@@ -81,7 +81,7 @@ void dma_init_descriptors(void)
 	fw.wlan.tx_retry.head = fw.wlan.tx_retry.terminator = &dma_mem.terminator[i++];
 	fw.wlan.rx_queue.head = fw.wlan.rx_queue.terminator = &dma_mem.terminator[i++];
 	fw.usb.int_desc = &dma_mem.terminator[i++];
-	fw.wlan.ba_desc = &dma_mem.terminator[i++];
+	fw.wlan.fw_desc = &dma_mem.terminator[i++];
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	/* GCC bug ? */
@@ -132,9 +132,8 @@ void dma_init_descriptors(void)
 	/* rsp is now available for use */
 	fw.usb.int_desc_available = 1;
 
-	fw.wlan.ba_desc->dataAddr = (void *) &dma_mem.reserved.ba;
-	memset(DESC_PAYLOAD(fw.wlan.ba_desc), 0, 128);
-	fw.wlan.ba_desc_available = 1;
+	memset(DESC_PAYLOAD(fw.wlan.fw_desc), 0, 128);
+	fw.wlan.fw_desc_available = 1;
 }
 
 /*
