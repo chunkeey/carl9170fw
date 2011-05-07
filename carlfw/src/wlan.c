@@ -513,14 +513,15 @@ static void wlan_send_buffered_ba(void)
 	if (!fw.wlan.ba_desc_available)
 		return;
 
+	fw.wlan.ba_desc_available = 0;
+
 	ctx = &fw.wlan.ba_cache[fw.wlan.ba_head_idx];
 	fw.wlan.ba_head_idx++;
 	fw.wlan.ba_head_idx %= CONFIG_CARL9170FW_BACK_REQS_NUM;
 
 	/* Format BlockAck */
-	fw.wlan.ba_desc->status = 0;
+	fw.wlan.ba_desc->status = AR9170_OWN_BITS_SW;
 	fw.wlan.ba_desc->ctrl = AR9170_CTRL_FS_BIT | AR9170_CTRL_LS_BIT;
-	fw.wlan.ba_desc_available = 0;
 	fw.wlan.ba_desc->nextAddr = fw.wlan.ba_desc->lastAddr =
 		fw.wlan.ba_desc;
 

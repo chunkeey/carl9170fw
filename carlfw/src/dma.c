@@ -121,13 +121,8 @@ void dma_init_descriptors(void)
 
 	set(AR9170_MAC_REG_DMA_RXQ_ADDR, (uint32_t) fw.wlan.rx_queue.head);
 
-	fw.usb.int_desc->status = AR9170_OWN_BITS_SW;
-	fw.usb.int_desc->ctrl = (AR9170_CTRL_LS_BIT | AR9170_CTRL_FS_BIT);
 	fw.usb.int_desc->dataSize = AR9170_BLOCK_SIZE;
-	fw.usb.int_desc->totalLen = 0;
-	fw.usb.int_desc->lastAddr = fw.usb.int_desc;
 	fw.usb.int_desc->dataAddr = (void *) &dma_mem.reserved.rsp;
-	fw.usb.int_desc->nextAddr = (void *) 0;
 
 	memset(DESC_PAYLOAD(fw.usb.int_desc), 0xff,
 	       AR9170_INT_MAGIC_HEADER_SIZE);
@@ -137,18 +132,8 @@ void dma_init_descriptors(void)
 	/* rsp is now available for use */
 	fw.usb.int_desc_available = 1;
 
-	fw.wlan.ba_desc->status = AR9170_OWN_BITS_SW;
-	fw.wlan.ba_desc->ctrl = (AR9170_CTRL_LS_BIT | AR9170_CTRL_FS_BIT);
-	fw.wlan.ba_desc->dataSize = fw.wlan.ba_desc->totalLen =
-		sizeof(struct carl9170_tx_superdesc) +
-		sizeof(struct ar9170_tx_hwdesc) +
-		sizeof(struct ieee80211_ba) + FCS_LEN;
-	fw.wlan.ba_desc->lastAddr = fw.wlan.ba_desc;
-	fw.wlan.ba_desc->nextAddr = fw.wlan.ba_desc;
 	fw.wlan.ba_desc->dataAddr = (void *) &dma_mem.reserved.ba;
-
 	memset(DESC_PAYLOAD(fw.wlan.ba_desc), 0, 128);
-
 	fw.wlan.ba_desc_available = 1;
 }
 
