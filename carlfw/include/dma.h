@@ -46,8 +46,8 @@ struct dma_desc {
 	struct dma_desc *nextAddr;	/* Next TD address */
 } __packed __aligned(4);
 
-/* Up, Dn, 5x Tx, retry, Rx, [USB Int], (CAB), (BA) */
-#define AR9170_TERMINATOR_NUMBER_B	9
+/* Up, Dn, 5x Tx, retry, Rx, [USB Int], (CAB), FW */
+#define AR9170_TERMINATOR_NUMBER_B	10
 
 #define AR9170_TERMINATOR_NUMBER_INT	1
 
@@ -57,15 +57,9 @@ struct dma_desc {
 #define AR9170_TERMINATOR_NUMBER_CAB	0
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
-#define AR9170_TERMINATOR_NUMBER_BA	1
-#else
-#define AR9170_TERMINATOR_NUMBER_BA	0
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 #define AR9170_TERMINATOR_NUMBER (AR9170_TERMINATOR_NUMBER_B + \
 				  AR9170_TERMINATOR_NUMBER_INT + \
-				  AR9170_TERMINATOR_NUMBER_CAB + \
-				  AR9170_TERMINATOR_NUMBER_BA)
+				  AR9170_TERMINATOR_NUMBER_CAB)
 
 #define AR9170_BLOCK_SIZE           (256 + 64)
 
@@ -85,12 +79,11 @@ struct carl9170_tx_ba_superframe {
 #define CARL9170_RSP_BUFFER_LEN	AR9170_BLOCK_SIZE
 
 struct carl9170_sram_reserved {
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 	union {
 		uint32_t buf[CARL9170_BA_BUFFER_LEN / sizeof(uint32_t)];
 		struct carl9170_tx_ba_superframe ba;
 	} ba;
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
+
 	union {
 		uint32_t buf[CARL9170_MAX_CMD_LEN / sizeof(uint32_t)];
 		struct carl9170_cmd cmd;
@@ -331,9 +324,7 @@ static inline void __check_desc(void)
 
 	BUILD_BUG_ON(sizeof(mem) > AR9170_SRAM_SIZE);
 
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 	BUILD_BUG_ON(offsetof(struct carl9170_sram_reserved, ba.buf) & (BLOCK_ALIGNMENT - 1));
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 	BUILD_BUG_ON(offsetof(struct carl9170_sram_reserved, cmd.buf) & (BLOCK_ALIGNMENT - 1));
 	BUILD_BUG_ON(offsetof(struct carl9170_sram_reserved, rsp.buf) & (BLOCK_ALIGNMENT - 1));
 	BUILD_BUG_ON(offsetof(struct carl9170_sram_reserved, bcn.buf) & (BLOCK_ALIGNMENT - 1));

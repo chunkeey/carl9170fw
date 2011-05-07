@@ -67,20 +67,6 @@ endmenu
 
 menu "802.11 Firmware Features"
 
-config CARL9170FW_HANDLE_BACK_REQ
-	def_bool y
-	prompt "Handle BlockACK Requests in Firmware"
-	---help---
-	 Enables a firmware mechanism to answer incoming BlockACK requests.
-	 This feature is necessary to comply with 802.11n. So say Y,
-	 if you have plans to support this operation mode.
-
-config CARL9170FW_BACK_REQS_NUM
-	default 4
-	int
-	prompt "Number of max. active BlockACK Request"
-	depends on CARL9170FW_HANDLE_BACK_REQ
-
 config CARL9170FW_CAB_QUEUE
 	def_bool y
 	prompt "Support software-based Content after Beacon Queue"

@@ -81,6 +81,7 @@ void dma_init_descriptors(void)
 	fw.wlan.tx_retry.head = fw.wlan.tx_retry.terminator = &dma_mem.terminator[i++];
 	fw.wlan.rx_queue.head = fw.wlan.rx_queue.terminator = &dma_mem.terminator[i++];
 	fw.usb.int_desc = &dma_mem.terminator[i++];
+	fw.wlan.ba_desc = &dma_mem.terminator[i++];
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	/* GCC bug ? */
@@ -92,10 +93,6 @@ void dma_init_descriptors(void)
 	fw.wlan.cab_queue[1].head = fw.wlan.cab_queue[1].terminator = &dma_mem.terminator[i++];
 #endif
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
-
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
-	fw.wlan.ba_desc = &dma_mem.terminator[i++];
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 
 	BUILD_BUG_ON(AR9170_TERMINATOR_NUMBER != j);
 
@@ -140,7 +137,6 @@ void dma_init_descriptors(void)
 	/* rsp is now available for use */
 	fw.usb.int_desc_available = 1;
 
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 	fw.wlan.ba_desc->status = AR9170_OWN_BITS_SW;
 	fw.wlan.ba_desc->ctrl = (AR9170_CTRL_LS_BIT | AR9170_CTRL_FS_BIT);
 	fw.wlan.ba_desc->dataSize = fw.wlan.ba_desc->totalLen =
@@ -154,7 +150,6 @@ void dma_init_descriptors(void)
 	memset(DESC_PAYLOAD(fw.wlan.ba_desc), 0, 128);
 
 	fw.wlan.ba_desc_available = 1;
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 }
 
 /*

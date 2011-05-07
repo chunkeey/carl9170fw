@@ -438,13 +438,11 @@ static bool wlan_tx_status(struct dma_queue *queue,
 
 	unhide_super(desc);
 
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 	if (unlikely(super == (void *) &dma_mem.reserved.ba)) {
 		fw.wlan.ba_desc = desc;
 		fw.wlan.ba_desc_available = 1;
 		return true;
 	}
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 
 	wlan_tx_complete(super, success);
 
@@ -502,7 +500,6 @@ void __hot wlan_tx(struct dma_desc *desc)
 	wlan_trigger(BIT(super->s.queue));
 }
 
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 static void wlan_send_buffered_ba(void)
 {
 	struct carl9170_tx_ba_superframe *baf = &dma_mem.reserved.ba.ba;
@@ -629,7 +626,6 @@ static void handle_bar(struct dma_desc *desc, struct ieee80211_hdr *hdr,
 		ctx->phy = cpu_to_le32(0x2cc301);
 	}
 }
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 
 static void wlan_check_rx_overrun(void)
 {
@@ -829,9 +825,7 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 	} else if (ieee80211_is_ctl(hdr->frame_control)) {
 		switch (le16_to_cpu(hdr->frame_control) & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BACK_REQ:
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 			handle_bar(desc, hdr, data_len, mac_err);
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 			/* fallthrough */
 			rx_filter |= CARL9170_RX_FILTER_CTL_BACKR;
 			break;
@@ -1041,9 +1035,7 @@ static void wlan_janitor(void)
 
 	wlan_send_buffered_tx_status();
 
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 	wlan_send_buffered_ba();
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 }
 
 void handle_wlan(void)

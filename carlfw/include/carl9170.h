@@ -129,14 +129,12 @@ struct firmware_context_struct {
 			     tx_status_tail_idx;
 		struct carl9170_tx_status tx_status_cache[CARL9170_TX_STATUS_NUM];
 
-#ifdef CONFIG_CARL9170FW_HANDLE_BACK_REQ
 		/* BA(R) Request Handler */
 		struct dma_desc *ba_desc;
 		struct carl9170_bar_ctx ba_cache[CONFIG_CARL9170FW_BACK_REQS_NUM];
 		unsigned int ba_desc_available,
 			     ba_tail_idx,
 			     ba_head_idx;
-#endif /* CONFIG_CARL9170FW_HANDLE_BACK_REQ */
 	} wlan;
 
 	struct {
