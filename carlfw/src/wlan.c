@@ -967,6 +967,38 @@ void wlan_modify_beacon(const unsigned int vif,
 
 	wlan_assign_seq((struct ieee80211_hdr *)addr, vif);
 }
+
+static void wlan_send_buffered_cab(void)
+{
+	unsigned int i;
+
+	for (i = 0; i < CARL9170_INTF_NUM; i++) {
+		if (unlikely(fw.wlan.cab_flush_trigger[i] == CARL9170_CAB_TRIGGER_ARMED)) {
+			/*
+			 * This is hardcoded into carl9170usb driver.
+			 *
+			 * The driver must set the PRETBTT event to beacon_interval -
+			 * CARL9170_PRETBTT_KUS (usually 6) Kus.
+			 *
+			 * But still, we can only do so much about 802.11-2007 9.3.2.1 &
+			 * 11.2.1.6. Let's hope the current solution is adequate enough.
+			 */
+
+			if (is_after_msecs(fw.wlan.cab_flush_time, (CARL9170_TBTT_DELTA))) {
+				wlan_cab_flush_queue(i);
+
+				/*
+				 * This prevents the code from sending new BC/MC frames
+				 * which were queued after the previous buffered traffic
+				 * has been sent out... They will have to wait until the
+				 * next DTIM beacon comes along.
+				 */
+				fw.wlan.cab_flush_trigger[i] = CARL9170_CAB_TRIGGER_DEFER;
+			}
+		}
+
+	}
+}
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 static void handle_beacon_config(void)
@@ -1014,34 +1046,7 @@ static void handle_radar(void)
 static void wlan_janitor(void)
 {
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
-	unsigned int i;
-
-	for (i = 0; i < CARL9170_INTF_NUM; i++) {
-		if (unlikely(fw.wlan.cab_flush_trigger[i] == CARL9170_CAB_TRIGGER_ARMED)) {
-			/*
-			 * This is hardcoded into carl9170usb driver.
-			 *
-			 * The driver must set the PRETBTT event to beacon_interval -
-			 * CARL9170_PRETBTT_KUS (usually 6) Kus.
-			 *
-			 * But still, we can only do so much about 802.11-2007 9.3.2.1 &
-			 * 11.2.1.6. Let's hope the current solution is adequate enough.
-			 */
-
-			if (is_after_msecs(fw.wlan.cab_flush_time, (CARL9170_TBTT_DELTA))) {
-				wlan_cab_flush_queue(i);
-
-				/*
-				 * This prevents the code from sending new BC/MC frames
-				 * which were queued after the previous buffered traffic
-				 * has been sent out... They will have to wait until the
-				 * next DTIM beacon comes along.
-				 */
-				fw.wlan.cab_flush_trigger[i] = CARL9170_CAB_TRIGGER_DEFER;
-			}
-		}
-
-	}
+	wlan_send_buffered_cab();
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	wlan_send_buffered_tx_status();
