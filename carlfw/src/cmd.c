@@ -86,6 +86,12 @@ void handle_cmd(struct carl9170_rsp *resp)
 		fw.wlan.rx_filter = cmd->rx_filter.rx_filter;
 		break;
 
+#ifdef CONFIG_CARL9170FW_WOL
+	case CARL9170_CMD_WOL:
+		memcpy(&fw.wlan.wol.cmd, &cmd->wol, sizeof(cmd->wol));
+		break;
+#endif /* CONFIG_CARL9170FW_WOL */
+
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	case CARL9170_CMD_BCN_CTRL:
 		resp->hdr.len = 0;

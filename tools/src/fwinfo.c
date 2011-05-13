@@ -27,6 +27,7 @@
 
 #include "carlfw.h"
 
+#include "fwcmd.h"
 #include "compiler.h"
 
 struct feature_list {
@@ -166,7 +167,7 @@ static void show_dbg_desc(const struct carl9170fw_desc_head *head,
 }
 
 static void show_txsq_desc(const struct carl9170fw_desc_head *head,
-			    struct carlfw *fw __unused)
+			   struct carlfw *fw __unused)
 {
 	const struct carl9170fw_txsq_desc *txsq = (const void *) head;
 
@@ -174,8 +175,26 @@ static void show_txsq_desc(const struct carl9170fw_desc_head *head,
 		le32_to_cpu(txsq->seq_table_addr));
 }
 
+
+static const struct feature_list wol_triggers_v1[] = {
+	CHECK_FOR_FEATURE(CARL9170_WOL_DISCONNECT),
+	CHECK_FOR_FEATURE(CARL9170_WOL_MAGIC_PKT),
+};
+
+static void show_wol_desc(const struct carl9170fw_desc_head *head,
+			  struct carlfw *fw __unused)
+{
+	const struct carl9170fw_wol_desc *wol = (const void *) head;
+
+	fprintf(stdout, "\tSupported WOWLAN triggers: (raw:%.08x)\n",
+		le32_to_cpu(wol->supported_triggers));
+
+	check_feature_list(head, wol->supported_triggers, wol_triggers_v1,
+			   ARRAY_SIZE(wol_triggers_v1), fw);
+}
+
 static void show_chk_desc(const struct carl9170fw_desc_head *head,
-			    struct carlfw *fw __unused)
+			  struct carlfw *fw __unused)
 {
 	const struct carl9170fw_chk_desc *chk = (const void *) head;
 
@@ -214,6 +233,7 @@ static const struct {
 	ADD_HANDLER(DBG, show_dbg_desc),
 	ADD_HANDLER(FIX, show_fix_desc),
 	ADD_HANDLER(CHK, show_chk_desc),
+	ADD_HANDLER(WOL, show_wol_desc),
 	ADD_HANDLER(LAST, show_last_desc),
 };
 

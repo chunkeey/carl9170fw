@@ -83,6 +83,14 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 	     .seq_table_addr = cpu_to_le32(&fw.wlan.sequence),
 	),
 
+#ifdef CONFIG_CARL9170FW_WOL
+	FILL(wol, WOL,
+	     .supported_triggers = BIT(CARL9170_WOL_DISCONNECT) |
+				   BIT(CARL9170_WOL_MAGIC_PKT),
+	),
+#endif /* CONFIG_CARL9170FW_WOL */
+
+
 	FILL(motd, MOTD,
 	     .fw_year_month_day = cpu_to_le32(
 			CARL9170FW_SET_DAY(CARL9170FW_VERSION_DAY) +

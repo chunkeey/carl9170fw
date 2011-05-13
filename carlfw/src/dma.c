@@ -120,7 +120,6 @@ void dma_init_descriptors(void)
 		set_wlan_txq_dma_addr(i, (uint32_t) fw.wlan.tx_queue[i].head);
 
 	set(AR9170_MAC_REG_DMA_RXQ_ADDR, (uint32_t) fw.wlan.rx_queue.head);
-
 	fw.usb.int_desc->dataSize = AR9170_BLOCK_SIZE;
 	fw.usb.int_desc->dataAddr = (void *) &dma_mem.reserved.rsp;
 

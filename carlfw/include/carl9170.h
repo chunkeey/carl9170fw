@@ -141,6 +141,16 @@ struct firmware_context_struct {
 		struct carl9170_bar_ctx ba_cache[CONFIG_CARL9170FW_BACK_REQS_NUM];
 		unsigned int ba_tail_idx,
 			     ba_head_idx;
+
+#ifdef CONFIG_CARL9170FW_WOL
+		struct {
+			struct carl9170_wol_cmd cmd;
+			unsigned int last_beacon;
+			unsigned int lost_null;
+			unsigned int last_null;
+			bool wake_up;
+		} wol;
+#endif /* CONFIG_CARL9170FW_WOL */
 	} wlan;
 
 	struct {

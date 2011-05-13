@@ -384,7 +384,9 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 
 			fw.suspend_mode = CARL9170_HOST_SUSPENDED;
 
-			if (!(fw.usb.device_feature & USB_DEVICE_REMOTE_WAKEUP)) {
+#ifdef CONFIG_CARL9170FW_WOL
+			if (!(fw.usb.device_feature & USB_DEVICE_REMOTE_WAKEUP) ||
+			    !fw.wlan.wol.cmd.flags) {
 				disable_watchdog();
 
 				/* GO_TO_SUSPEND stops the CPU clock too. */
@@ -392,6 +394,12 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 			} else {
 				wlan_prepare_wol();
 			}
+#else /* CONFIG_CARL9170FW_WOL */
+			disable_watchdog();
+
+			/* GO_TO_SUSPEND stops the CPU clock too. */
+			orb(AR9170_USB_REG_MAIN_CTRL, AR9170_USB_MAIN_CTRL_GO_TO_SUSPEND);
+#endif /* CONFIG_CARL9170FW_WOL */
 		}
 
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_RESUME) {

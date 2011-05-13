@@ -113,13 +113,15 @@ config CARL9170FW_WOL
 	def_bool n
 	depends on CARL9170FW_WOL_OPTION
 
-config CARL9170FW_WOL_MAGIC_PACKET
+config CARL9170FW_WOL_NL80211_TRIGGERS
 	def_bool n
-	prompt "Magic Packet(tm)"
+	prompt "Standard NL80211 wakeup triggers"
 	depends on CARL9170FW_WOL_OPTION
 	select CARL9170FW_WOL
 	---help---
-	 Sniff all incoming data frames for the magic packet pattern.
+	 Available triggers:
+	  * Magic Packet(tm) pattern
+	  * disconnect event
 
 config CARL9170FW_WOL_PROBE_REQUEST
 	def_bool n

@@ -38,14 +38,14 @@ binutils: src/binutils-$(BINUTILS_VER)
 	mkdir -p build/binutils
 	cd build/binutils; \
 	$(BASEDIR)/$</configure --target=sh-elf --prefix=$(BASEDIR)/inst; \
-	$(MAKE); \
+	$(MAKE) -j3; \
 	$(MAKE) install
 
 gcc: src/gcc-$(GCC_VER) binutils
 	mkdir -p build/gcc
 	cd build/gcc; \
 	$(BASEDIR)/$</configure --target=sh-elf --prefix=$(BASEDIR)/inst -enable-languages=c --without-pkgversion --with-newlib; \
-	$(MAKE); \
+	$(MAKE) -j3; \
 	$(MAKE) install
 
 clean:

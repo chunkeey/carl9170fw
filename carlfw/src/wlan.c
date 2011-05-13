@@ -31,7 +31,6 @@
 #include "printf.h"
 #include "rf.h"
 #include "linux/ieee80211.h"
-#include "rom.h"
 
 static void wlan_txunstuck(unsigned int queue)
 {
@@ -441,6 +440,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 	if (unlikely(super == fw.wlan.fw_desc_data)) {
 		fw.wlan.fw_desc = desc;
 		fw.wlan.fw_desc_available = 1;
+
 		if (fw.wlan.fw_desc_callback)
 			fw.wlan.fw_desc_callback(super, success);
 
@@ -503,7 +503,7 @@ void __hot wlan_tx(struct dma_desc *desc)
 	wlan_trigger(BIT(super->s.queue));
 }
 
-static void wlan_tx_fw(struct carl9170_tx_superdesc *super)
+static void wlan_tx_fw(struct carl9170_tx_superdesc *super, fw_desc_callback_t cb)
 {
 	if (!fw.wlan.fw_desc_available)
 		return;
@@ -511,13 +511,14 @@ static void wlan_tx_fw(struct carl9170_tx_superdesc *super)
 	fw.wlan.fw_desc_available = 0;
 
 	/* Format BlockAck */
-	fw.wlan.fw_desc->status = AR9170_OWN_BITS_SW;
 	fw.wlan.fw_desc->ctrl = AR9170_CTRL_FS_BIT | AR9170_CTRL_LS_BIT;
+	fw.wlan.fw_desc->status = AR9170_OWN_BITS_SW;
+
 	fw.wlan.fw_desc->totalLen = fw.wlan.fw_desc->dataSize = super->len;
 	fw.wlan.fw_desc_data = fw.wlan.fw_desc->dataAddr = super;
 	fw.wlan.fw_desc->nextAddr = fw.wlan.fw_desc->lastAddr =
 		fw.wlan.fw_desc;
-
+	fw.wlan.fw_desc_callback = cb;
 	wlan_tx(fw.wlan.fw_desc);
 }
 
@@ -542,6 +543,7 @@ static void wlan_send_buffered_ba(void)
 		     sizeof(struct ar9170_tx_hwdesc) +
 		     sizeof(struct ieee80211_ba);
 	baf->s.ri[0].tries = 1;
+	baf->s.cookie = 0;
 	baf->s.queue = AR9170_TXQ_VO;
 	baf->f.hdr.length = sizeof(struct ieee80211_ba) + FCS_LEN;
 
@@ -554,7 +556,7 @@ static void wlan_send_buffered_ba(void)
 	baf->f.hdr.phy.tx_power = 29; /* 14.5 dBm */
 
 	/* format outgoing BA */
-	ba->frame_control = cpu_to_le16(IEEE80211_FTYPE_CTL | IEEE80211_STYPE_BACK);
+	ba->frame_control = cpu_to_le16(IEEE80211_FTYPE_CTL | IEEE80211_STYPE_NULLFUNC);
 	ba->duration = cpu_to_le16(0);
 	memcpy(ba->ta, ctx->ta, 6);
 	memcpy(ba->ra, ctx->ra, 6);
@@ -572,7 +574,7 @@ static void wlan_send_buffered_ba(void)
 	 */
 	ba->control = ctx->control | cpu_to_le16(1);
 	ba->start_seq_num = ctx->start_seq_num;
-	wlan_tx_fw(&baf->s);
+	wlan_tx_fw(&baf->s, NULL);
 }
 
 static struct carl9170_bar_ctx *wlan_get_bar_cache_buffer(void)
@@ -655,8 +657,24 @@ static void wlan_check_rx_overrun(void)
 }
 
 #ifdef CONFIG_CARL9170FW_WOL
+void wlan_prepare_wol(void)
+{
+	/* set MAC filter */
+	memcpy((void *)AR9170_MAC_REG_MAC_ADDR_L, fw.wlan.wol.cmd.mac, 6);
+	memcpy((void *)AR9170_MAC_REG_BSSID_L, fw.wlan.wol.cmd.bssid, 6);
+	set(AR9170_MAC_REG_RX_CONTROL, AR9170_MAC_RX_CTRL_DEAGG);
 
-#ifdef CONFIG_CARL9170FW_WOL_MAGIC_PACKET
+	/* set filter policy to: discard everything */
+	fw.wlan.rx_filter = CARL9170_RX_FILTER_EVERYTHING;
+
+	/* reenable rx dma */
+	wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
+
+	/* initialize the last_beacon timer */
+	fw.wlan.wol.last_null = fw.wlan.wol.last_beacon = get_clock_counter();
+}
+
+#ifdef CONFIG_CARL9170FW_WOL_NL80211_TRIGGERS
 static bool wlan_rx_wol_magic_packet(struct ieee80211_hdr *hdr, unsigned int len)
 {
 	const unsigned char *data, *end, *mac;
@@ -668,16 +686,7 @@ static bool wlan_rx_wol_magic_packet(struct ieee80211_hdr *hdr, unsigned int len
 	 * for MAGIC patterns!
 	 */
 
-	/*
-	 * TODO:
-	 * Currently, the MAGIC MAC Address is fixed to the EEPROM default.
-	 * It's possible to make it fully configurable, e.g:
-	 *
-	 * mac = (const unsigned char *) AR9170_MAC_REG_MAC_ADDR_L;
-	 * But this will clash with the driver's suspend path, because it
-	 * needs to reset the registers.
-	 */
-	mac = rom.sys.mac_address;
+	mac = (const unsigned char *) AR9170_MAC_REG_MAC_ADDR_L;
 
 	data = (u8 *)((unsigned long)hdr + ieee80211_hdrlen(hdr->frame_control));
 	end = (u8 *)((unsigned long)hdr + len);
@@ -730,7 +739,77 @@ static bool wlan_rx_wol_magic_packet(struct ieee80211_hdr *hdr, unsigned int len
 
 	return false;
 }
-#endif /* CONFIG_CARL9170FW_WOL_MAGIC_PACKET */
+
+static void wlan_wol_connect_callback(void __unused *dummy, bool success)
+{
+	if (success)
+		fw.wlan.wol.lost_null = 0;
+	else
+		fw.wlan.wol.lost_null++;
+}
+
+static void wlan_wol_connection_monitor(void)
+{
+	struct carl9170_tx_null_superframe *nullf = &dma_mem.reserved.cmd.null;
+	struct ieee80211_hdr *null = (struct ieee80211_hdr *) &nullf->f.null;
+
+	if (!fw.wlan.fw_desc_available)
+		return;
+
+	memset(nullf, 0, sizeof(nullf));
+
+	nullf->s.len = sizeof(struct carl9170_tx_superdesc) +
+		     sizeof(struct ar9170_tx_hwdesc) +
+		     sizeof(struct ieee80211_hdr);
+	nullf->s.ri[0].tries = 3;
+	nullf->s.assign_seq = true;
+	nullf->s.queue = AR9170_TXQ_VO;
+	nullf->f.hdr.length = sizeof(struct ieee80211_hdr) + FCS_LEN;
+
+	nullf->f.hdr.mac.backoff = 1;
+	nullf->f.hdr.mac.hw_duration = 1;
+	nullf->f.hdr.mac.erp_prot = AR9170_TX_MAC_PROT_RTS;
+
+	nullf->f.hdr.phy.modulation = AR9170_TX_PHY_MOD_OFDM;
+	nullf->f.hdr.phy.bandwidth = AR9170_TX_PHY_BW_20MHZ;
+	nullf->f.hdr.phy.chains = AR9170_TX_PHY_TXCHAIN_2;
+	nullf->f.hdr.phy.tx_power = 29; /* 14.5 dBm */
+	nullf->f.hdr.phy.mcs = AR9170_TXRX_PHY_RATE_OFDM_6M;
+
+	/* format outgoing nullfunc */
+	null->frame_control = cpu_to_le16(IEEE80211_FTYPE_DATA |
+		IEEE80211_STYPE_NULLFUNC | IEEE80211_FCTL_TODS);
+
+        memcpy(null->addr1, fw.wlan.wol.cmd.bssid, 6);
+        memcpy(null->addr2, fw.wlan.wol.cmd.mac, 6);
+        memcpy(null->addr3, fw.wlan.wol.cmd.bssid, 6);
+
+	wlan_tx_fw(&nullf->s, wlan_wol_connect_callback);
+}
+
+static bool wlan_rx_wol_disconnect(const unsigned int rx_filter,
+				   struct ieee80211_hdr *hdr,
+				   unsigned int __unused len)
+{
+	const unsigned char *bssid;
+	bssid = (const unsigned char *) AR9170_MAC_REG_BSSID_L;
+
+	/* should catch both broadcast and unicast MLMEs */
+	if (!(rx_filter & CARL9170_RX_FILTER_OTHER_RA)) {
+		if (ieee80211_is_deauth(hdr->frame_control) ||
+		    ieee80211_is_disassoc(hdr->frame_control))
+			return true;
+	}
+
+	if (ieee80211_is_beacon(hdr->frame_control) &&
+	    compare_ether_address(hdr->addr3, bssid)) {
+		fw.wlan.wol.last_beacon = get_clock_counter();
+	}
+
+	return false;
+}
+
+#endif /* CARL9170FW_WOL_NL80211_TRIGGERS */
 
 #ifdef CONFIG_CARL9170FW_WOL_PROBE_REQUEST
 
@@ -781,21 +860,46 @@ static bool wlan_rx_wol_probe_ssid(struct ieee80211_hdr *hdr, unsigned int len)
 
 static void wlan_rx_wol(unsigned int rx_filter __unused, struct ieee80211_hdr *hdr __unused, unsigned int len __unused)
 {
-	bool __unused wake_up = false;
+#ifdef CONFIG_CARL9170FW_WOL_NL80211_TRIGGERS
+	/* Disconnect is always enabled */
+	if (fw.wlan.wol.cmd.flags & CARL9170_WOL_DISCONNECT &&
+	    rx_filter & CARL9170_RX_FILTER_MGMT)
+		fw.wlan.wol.wake_up |= wlan_rx_wol_disconnect(rx_filter, hdr, len);
 
-#ifdef CONFIG_CARL9170FW_WOL_MAGIC_PACKET
-	if (rx_filter & CARL9170_RX_FILTER_DATA)
-		wake_up |= wlan_rx_wol_magic_packet(hdr, len);
-#endif /* CONFIG_CARL9170FW_WOL_MAGIC_PACKET */
+	if (fw.wlan.wol.cmd.flags & CARL9170_WOL_MAGIC_PKT &&
+	    rx_filter & CARL9170_RX_FILTER_DATA)
+		fw.wlan.wol.wake_up |= wlan_rx_wol_magic_packet(hdr, len);
+#endif /* CONFIG_CARL9170FW_WOL_NL80211_TRIGGERS */
 
 #ifdef CONFIG_CARL9170FW_WOL_PROBE_REQUEST
 	if (rx_filter & CARL9170_RX_FILTER_MGMT)
-		wake_up |= wlan_rx_wol_probe_ssid(hdr, len);
+		fw.wlan.wol.wake_up |= wlan_rx_wol_probe_ssid(hdr, len);
 #endif /* CONFIG_CARL9170FW_WOL_PROBE_REQUEST */
+}
 
-	if (wake_up) {
-		fw.suspend_mode = CARL9170_AWAKE_HOST;
-		set(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
+static void wlan_wol_janitor(void)
+{
+	if (unlikely(fw.suspend_mode == CARL9170_HOST_SUSPENDED)) {
+		if (fw.wlan.wol.cmd.flags & CARL9170_WOL_DISCONNECT) {
+			/*
+			 * connection lost after 10sec without receiving
+			 * a beacon
+			  */
+			if (is_after_msecs(fw.wlan.wol.last_beacon, 10000))
+				fw.wlan.wol.wake_up |= true;
+
+			if (fw.wlan.wol.cmd.null_interval &&
+			    is_after_msecs(fw.wlan.wol.last_null, fw.wlan.wol.cmd.null_interval))
+				wlan_wol_connection_monitor();
+
+			if (fw.wlan.wol.lost_null >= 5)
+				fw.wlan.wol.wake_up |= true;
+		}
+
+		if (fw.wlan.wol.wake_up) {
+			fw.suspend_mode = CARL9170_AWAKE_HOST;
+			set(AR9170_USB_REG_WAKE_UP, AR9170_USB_WAKE_UP_WAKE);
+		}
 	}
 }
 #endif /* CONFIG_CARL9170FW_WOL */
@@ -855,7 +959,7 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 #ifdef CONFIG_CARL9170FW_WOL
 	if (unlikely(fw.suspend_mode == CARL9170_HOST_SUSPENDED)) {
 		wlan_rx_wol(rx_filter, hdr, min(data_len,
-			    (unsigned int)AR9170_BLOCK_SIZE));
+			       (unsigned int)AR9170_BLOCK_SIZE));
 	}
 #endif /* CONFIG_CARL9170FW_WOL */
 
@@ -1052,6 +1156,10 @@ static void wlan_janitor(void)
 	wlan_send_buffered_tx_status();
 
 	wlan_send_buffered_ba();
+
+#ifdef CONFIG_CARL9170FW_WOL
+	wlan_wol_janitor();
+#endif /* CONFIG_CARL9170FW_WOL */
 }
 
 void handle_wlan(void)

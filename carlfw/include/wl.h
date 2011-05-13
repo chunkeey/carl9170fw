@@ -266,14 +266,7 @@ void wlan_modify_beacon(const unsigned int vif,
 void wlan_tx_complete(struct carl9170_tx_superframe *super,
                       bool txs);
 
-static inline void wlan_prepare_wol(void)
-{
-	/* set filter policy to: discard everything */
-	fw.wlan.rx_filter = CARL9170_RX_FILTER_EVERYTHING;
-
-	/* reenable rx dma */
-	wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
-}
+void wlan_prepare_wol(void);
 
 static inline void __check_wlantx(void)
 {

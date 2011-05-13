@@ -75,6 +75,16 @@ struct carl9170_tx_ba_superframe {
 	struct ar9170_tx_ba_frame f;
 } __packed;
 
+struct ar9170_tx_null_frame {
+	struct ar9170_tx_hwdesc hdr;
+	struct ieee80211_hdr null;
+} __packed;
+
+struct carl9170_tx_null_superframe {
+	struct carl9170_tx_superdesc s;
+	struct ar9170_tx_null_frame f;
+} __packed;
+
 #define CARL9170_BA_BUFFER_LEN	(__roundup(sizeof(struct carl9170_tx_ba_superframe), 16))
 #define CARL9170_RSP_BUFFER_LEN	AR9170_BLOCK_SIZE
 
@@ -87,6 +97,10 @@ struct carl9170_sram_reserved {
 	union {
 		uint32_t buf[CARL9170_MAX_CMD_LEN / sizeof(uint32_t)];
 		struct carl9170_cmd cmd;
+
+#ifdef CONFIG_CARL9170FW_WOL
+		struct carl9170_tx_null_superframe null;
+#endif /* CONFIG_CARL9170FW_WOL */
 	} cmd;
 
 	union {
@@ -123,6 +137,7 @@ struct carl9170_sram_reserved {
  *				| BA buffer (128 bytes)
  *				+--
  *				| CMD buffer (128 bytes)
+ *				| - used as NULLFRAME buffer (128 bytes) for WOL
  *				+--
  *				| RSP buffer (320 bytes)
  *				+--
@@ -328,6 +343,7 @@ static inline void __check_desc(void)
 	BUILD_BUG_ON(offsetof(struct carl9170_sram_reserved, cmd.buf) & (BLOCK_ALIGNMENT - 1));
 	BUILD_BUG_ON(offsetof(struct carl9170_sram_reserved, rsp.buf) & (BLOCK_ALIGNMENT - 1));
 	BUILD_BUG_ON(offsetof(struct carl9170_sram_reserved, bcn.buf) & (BLOCK_ALIGNMENT - 1));
+	BUILD_BUG_ON(sizeof(struct carl9170_tx_null_superframe) > CARL9170_MAX_CMD_LEN);
 }
 
 #endif /* __CARL9170FW_DMA_H */
