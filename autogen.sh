@@ -1,19 +1,21 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
 case "$1" in
 	config)
 		echo "Configuring..."
+		pushd config
 		cmake .
-		make -C config
+		make
+		popd
 		config/conf Kconfig
+		cmake .
 	;;
 
 	compile)
 		echo "Compile time..."
 		make
-
 	;;
 
 	install)
