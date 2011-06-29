@@ -9,7 +9,7 @@ set(CARLFW_CFLAGS_WARNING "-W -Wall -Wextra -Wunreachable-code -Winline -Wlogica
 set(CARLFW_CFLAGS_EXTRA "-mbitops -std=gnu99 -ffunction-sections -Wframe-larger-than=128 -Werror")
 set(CARLFW_CFLAGS_DEF "-D__CARL9170FW__")
 if (CONFIG_CARL9170FW_AGGRESSIVE_CFLAGS)
-	set(CARLFW_CFLAGS_AGGRESSIVE "-fomit-frame-pointer -fsee -frename-registers -ftree-vectorize -flto -fstrict-volatile-bitfields")
+	set(CARLFW_CFLAGS_AGGRESSIVE "-fomit-frame-pointer -fsee -frename-registers -ftree-vectorize -flto -fstrict-volatile-bitfields -fmodulo-sched")
 endif (CONFIG_CARL9170FW_AGGRESSIVE_CFLAGS)
 
 include_directories (../include/linux ../include/shared ../include include)
