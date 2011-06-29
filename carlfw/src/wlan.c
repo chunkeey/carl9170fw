@@ -1223,7 +1223,7 @@ static void wlan_check_hang(void)
 		}
 
 		/* fetch the current DMA queue position */
-		desc = get_wlan_txq_addr(i);
+		desc = (struct dma_desc *)get_wlan_txq_addr(i);
 
 		/* Stuck frame detection */
 		if (unlikely(DESC_PAYLOAD(desc) == fw.wlan.last_super[i])) {

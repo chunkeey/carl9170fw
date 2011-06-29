@@ -31,14 +31,14 @@ static inline __inline uint16_t readw(const volatile void *addr)
 	return *(const volatile uint16_t *) addr;
 }
 
-static inline __inline void *readp(const volatile void *addr)
+static inline __inline volatile void *readp(const volatile void *addr)
 {
-	return *(void **) addr;
+	return *(volatile void **) addr;
 }
 
 static inline __inline uint32_t readl(const volatile void *addr)
 {
-	return (uint32_t) (const unsigned int *) readp(addr);
+	return *(const volatile unsigned int *) addr;
 }
 
 static inline __inline void writeb(volatile void *addr, const volatile uint8_t val)
@@ -119,10 +119,10 @@ static inline __inline void incl(const volatile uint32_t addr)
 
 static inline __inline uint32_t get(const volatile uint32_t addr)
 {
-	return readl((const volatile void *) addr);
+	return readl((volatile void *) addr);
 }
 
-static inline __inline void *getp(const volatile uint32_t addr)
+static inline __inline volatile void *getp(const volatile uint32_t addr)
 {
 	return readp((const volatile void *) addr);
 }

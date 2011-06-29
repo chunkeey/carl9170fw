@@ -42,17 +42,17 @@ static inline __inline void set_wlan_txq_dma_curr_addr(const unsigned int q, con
 	set(AR9170_MAC_REG_DMA_TXQ_CURR_ADDR + (q << 3), v);
 }
 
-static inline __inline struct dma_desc *get_wlan_txq_dma_addr(const unsigned int q)
+static inline __inline volatile struct dma_desc *get_wlan_txq_dma_addr(const unsigned int q)
 {
 	return getp(AR9170_MAC_REG_DMA_TXQ_ADDR + (q << 3));
 }
 
-static inline __inline struct dma_desc *get_wlan_txq_addr(const unsigned int q)
+static inline __inline volatile struct dma_desc *get_wlan_txq_addr(const unsigned int q)
 {
 	return getp(AR9170_MAC_REG_DMA_TXQ_CURR_ADDR + (q << 3));
 }
 
-static inline __inline struct dma_desc *get_wlan_txq_last_addr(const unsigned int q)
+static inline __inline volatile struct dma_desc *get_wlan_txq_last_addr(const unsigned int q)
 {
 	return getp(AR9170_MAC_REG_DMA_TXQ_LAST_ADDR + (q << 2));
 }
