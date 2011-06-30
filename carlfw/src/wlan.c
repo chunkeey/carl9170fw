@@ -644,8 +644,8 @@ static void wlan_check_rx_overrun(void)
 {
 	uint32_t overruns, total;
 
-	fw.wlan.rx_total += total = get(AR9170_MAC_REG_RX_TOTAL);
-	fw.wlan.rx_overruns += overruns = get(AR9170_MAC_REG_RX_OVERRUN);
+	fw.tally.rx_total += total = get(AR9170_MAC_REG_RX_TOTAL);
+	fw.tally.rx_overrun += overruns = get(AR9170_MAC_REG_RX_OVERRUN);
 	if (unlikely(overruns)) {
 		if (overruns == total) {
 			DBG("RX Overrun");
@@ -1120,10 +1120,12 @@ static void handle_pretbtt(void)
 	fw.wlan.cab_flush_time = get_clock_counter();
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
+#ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 	rf_psm();
 
 	send_cmd_to_host(4, CARL9170_RSP_PRETBTT, 0x00,
 			 (uint8_t *) &fw.phy.psm.state);
+#endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 }
 
 static void handle_atim(void)

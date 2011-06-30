@@ -29,6 +29,7 @@
 #include "printf.h"
 #include "gpio.h"
 #include "wl.h"
+#include "rf.h"
 #include "usb.h"
 
 #define AR9170_WATCH_DOG_TIMER		   0x100
@@ -52,10 +53,14 @@ void clock_set(enum cpu_clock_t clock_, bool on)
 	 * This setting does more than just mess with the CPU Clock.
 	 * So watch out, if you need _stable_ timer interrupts.
 	 */
+#ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
         if (fw.phy.frequency < 3000000)
 		set(AR9170_PWR_REG_PLL_ADDAC, 0x5163);
         else
                 set(AR9170_PWR_REG_PLL_ADDAC, 0x5143);
+#else
+	set(AR9170_PWR_REG_PLL_ADDAC, 0x5163);
+#endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 
 	fw.ticks_per_usec = GET_VAL(AR9170_PWR_PLL_ADDAC_DIV,
 		get(AR9170_PWR_REG_PLL_ADDAC));
@@ -130,6 +135,10 @@ static void timer0_isr(void)
 #ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
 	gpio_timer();
 #endif /* CONFIG_CARL9170FW_GPIO_INTERRUPT */
+
+#ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
+	tally_update();
+#endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 
 #ifdef CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT
 	set(AR9170_GPIO_REG_PORT_DATA, get(AR9170_GPIO_REG_PORT_DATA) ^ 1);

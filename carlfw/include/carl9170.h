@@ -69,6 +69,11 @@ enum carl9170_suspend_mode {
 	CARL9170_AWAKE_HOST,
 };
 
+enum carl9170_phy_state {
+	CARL9170_PHY_OFF		= 0,
+	CARL9170_PHY_ON
+};
+
 typedef void (*fw_desc_callback_t)(void *, const bool);
 
 /*
@@ -109,10 +114,6 @@ struct firmware_context_struct {
 
 		/* rx filter */
 		unsigned int rx_filter;
-
-		/* rx statistics */
-		unsigned int rx_total;
-		unsigned int rx_overruns;
 
 		/* tx sequence control counters */
 		unsigned int sequence[CARL9170_INTF_NUM];
@@ -196,9 +197,13 @@ struct firmware_context_struct {
 		unsigned int frequency;
 		unsigned int ht_settings;
 
+		enum carl9170_phy_state state;
 		struct carl9170_psm psm;
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 	} phy;
+
+	unsigned int tally_clock;
+	struct carl9170_tally_rsp tally;
 
 #ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
 	struct carl9170_gpio cached_gpio_state;

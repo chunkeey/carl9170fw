@@ -92,6 +92,13 @@ void handle_cmd(struct carl9170_rsp *resp)
 		break;
 #endif /* CONFIG_CARL9170FW_WOL */
 
+	case CARL9170_CMD_TALLY:
+		resp->hdr.len = sizeof(struct carl9170_tally_rsp);
+		memcpy(&resp->tally, &fw.tally, sizeof(struct carl9170_tally_rsp));
+		tally_update();
+		memset(&fw.tally, 0, sizeof(struct carl9170_tally_rsp));
+		break;
+
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	case CARL9170_CMD_BCN_CTRL:
 		resp->hdr.len = 0;
