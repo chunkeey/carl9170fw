@@ -72,6 +72,9 @@ enum carl9170fw_feature_list {
 	/* Wake up on WLAN */
 	CARL9170FW_WOL,
 
+	/* Firmware supports PSM in the 5GHZ Band */
+	CARL9170FW_FIXED_5GHZ_PSM,
+
 	/* KEEP LAST */
 	__CARL9170FW_FEATURE_NUM
 };
