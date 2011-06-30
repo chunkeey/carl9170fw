@@ -243,7 +243,7 @@ void rf_psm(void)
 		/* Synthesizer off + RX off */
 		bank3 = 0x00400018;
 
-		clock_set(true, AHB_20_22MHZ);
+		clock_set(AHB_20_22MHZ, false);
 	} else {
 		/* advance to the next PSM step */
 		fw.phy.psm.state--;
@@ -261,9 +261,9 @@ void rf_psm(void)
 			bank3 = 0x01420098;
 
 			if ((fw.phy.ht_settings & EIGHTY_FLAG) == EIGHTY_FLAG)
-				clock_set(true, AHB_80_88MHZ);
+				clock_set(AHB_80_88MHZ, true);
 			else
-				clock_set(true, AHB_40_44MHZ);
+				clock_set(AHB_40_44MHZ, true);
 		} else {
 			return ;
 		}
