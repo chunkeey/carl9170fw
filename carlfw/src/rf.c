@@ -222,10 +222,6 @@ void rf_psm(void)
 {
 	u32 bank3;
 
-	/*
-	 * FIXME: Does not work on 5GHz band!
-	 */
-
 	if (fw.phy.psm.state == CARL9170_PSM_SOFTWARE) {
 		/* not enabled by the driver */
 		return;

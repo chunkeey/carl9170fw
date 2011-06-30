@@ -73,8 +73,6 @@ void clock_set(enum cpu_clock_t clock_, bool on)
 	}
 
 	timer_init(1, (fw.ticks_per_usec * 25) >> 1);
-
-	INFO("SET CLOCK c:%d t:%d tt:%d f:%d\n", clock_, fw.ticks_per_usec, (fw.ticks_per_usec * 25) >> 1, fw.phy.frequency);
 }
 
 static void init(void)
