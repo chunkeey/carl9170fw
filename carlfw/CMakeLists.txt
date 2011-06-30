@@ -18,7 +18,7 @@ set(carl9170_main_src src/main.c src/wlan.c src/fw.c src/gpio.c
 		      src/cmd.c src/uart.c src/dma.c src/hostif.c src/reboot.S
 		      src/printf.c src/rf.c src/cam.c)
 
-set(carl9170_lib_src src/ashlsi3.S src/memcpy.S src/memset.S)
+set(carl9170_lib_src src/ashlsi3.S src/memcpy.S src/memset.S src/udivsi3_i4i-Os.S)
 set(carl9170_usb_src usb/main.c usb/usb.c usb/fifo.c)
 
 set(carl9170_src ${carl9170_main_src} ${carl9170_lib_src} ${carl9170_usb_src})
@@ -27,6 +27,7 @@ set_source_files_properties(src/ashlsi3.S PROPERTIES LANGUAGE C)
 set_source_files_properties(src/memcpy.S PROPERTIES LANGUAGE C)
 set_source_files_properties(src/memset.S PROPERTIES LANGUAGE C)
 set_source_files_properties(src/reboot.S PROPERTIES LANGUAGE C)
+set_source_files_properties(src/udivsi3_i4i-Os.S PROPERTIES LANGUAGE C)
 
 add_executable(carl9170.elf ${carl9170_src})
 
