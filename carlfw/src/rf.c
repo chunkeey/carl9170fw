@@ -199,6 +199,9 @@ void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp)
 	fw.phy.ht_settings = cmd->rf_init.ht_settings;
 	fw.phy.frequency = cmd->rf_init.freq;
 
+	/*
+	 * Is the clock controlled by the PHY?
+	 */
 	if ((fw.phy.ht_settings & EIGHTY_FLAG) == EIGHTY_FLAG)
 		clock_set(AHB_80_88MHZ, true);
 	else
@@ -269,7 +272,7 @@ void rf_psm(void)
 		}
 	}
 
-	if (fw.phy.frequency < 30000000)
+	if (fw.phy.frequency < 3000000)
 		bank3 |= 0x00800000;
 
 	set(0x1c58f0, bank3);

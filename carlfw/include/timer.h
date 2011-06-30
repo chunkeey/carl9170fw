@@ -47,7 +47,7 @@ static inline __inline uint32_t get_clock_counter(void)
  */
 static inline __inline bool is_after_msecs(const uint32_t t0, const uint32_t msecs)
 {
-	return ((get_clock_counter() - t0) / 1000) > (msecs * fw.ticks_per_msec);
+	return ((get_clock_counter() - t0) / 1000) > (msecs * fw.ticks_per_usec);
 }
 
 /*
@@ -60,7 +60,7 @@ static inline __inline void delay(const uint32_t msec)
 {
 	uint32_t t1, t2, dt, wt;
 
-	wt = msec * fw.ticks_per_msec;
+	wt = msec * fw.ticks_per_usec;
 
 	t1 = get_clock_counter();
 	while (1) {
@@ -79,7 +79,7 @@ static inline __inline void udelay(const uint32_t usec)
 	while (1) {
 		t2 = get_clock_counter();
 		dt = (t2 - t1);
-		if (dt >= (usec * fw.ticks_per_msec))
+		if (dt >= (usec * fw.ticks_per_usec))
 			break;
 	}
 }

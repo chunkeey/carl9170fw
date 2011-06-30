@@ -78,7 +78,7 @@ typedef void (*fw_desc_callback_t)(void *, const bool);
 
 struct firmware_context_struct {
 	/* timer / clocks */
-	unsigned int ticks_per_msec;
+	unsigned int ticks_per_usec;
 	unsigned int counter;			/* main() cycles */
 
 	/* misc */

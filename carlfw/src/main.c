@@ -45,17 +45,36 @@ static void timer_init(const unsigned int timer, const unsigned int interval)
 	orl(AR9170_TIMER_REG_INTERRUPT, BIT(timer));
 }
 
-void clock_set(enum cpu_clock_t _clock, bool on)
+void clock_set(enum cpu_clock_t clock_, bool on)
 {
 	/*
 	 * Word of Warning!
 	 * This setting does more than just mess with the CPU Clock.
 	 * So watch out, if you need _stable_ timer interrupts.
 	 */
+        if (fw.phy.frequency < 3000000)
+		set(AR9170_PWR_REG_PLL_ADDAC, 0x5163);
+        else
+                set(AR9170_PWR_REG_PLL_ADDAC, 0x5143);
 
-	fw.ticks_per_msec = GET_VAL(AR9170_PWR_PLL_ADDAC_DIV, get(AR9170_PWR_REG_PLL_ADDAC)) >> 1;
+	fw.ticks_per_usec = GET_VAL(AR9170_PWR_PLL_ADDAC_DIV,
+		get(AR9170_PWR_REG_PLL_ADDAC));
 
-	set(AR9170_PWR_REG_CLOCK_SEL, (uint32_t) ((on ? 0x70 : 0x600) | _clock));
+	set(AR9170_PWR_REG_CLOCK_SEL, (uint32_t) ((on ? 0x70 : 0x600) | clock_));
+
+	switch (clock_) {
+	case AHB_20_22MHZ:
+		fw.ticks_per_usec >>= 1;
+	case AHB_40MHZ_OSC:
+	case AHB_40_44MHZ:
+		fw.ticks_per_usec >>= 1;
+	case AHB_80_88MHZ:
+		break;
+	}
+
+	timer_init(1, (fw.ticks_per_usec * 25) >> 1);
+
+	INFO("SET CLOCK c:%d t:%d tt:%d f:%d\n", clock_, fw.ticks_per_usec, (fw.ticks_per_usec * 25) >> 1, fw.phy.frequency);
 }
 
 static void init(void)
@@ -119,6 +138,10 @@ static void timer0_isr(void)
 #endif /* CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT */
 }
 
+static void timer1_isr(void)
+{
+}
+
 static void handle_timer(void)
 {
 	uint32_t intr;
@@ -137,6 +160,8 @@ static void handle_timer(void)
 	} while (0)
 
 	HANDLER(intr, BIT(0), timer0_isr);
+
+	HANDLER(intr, BIT(1), timer1_isr);
 
 	if (intr)
 		DBG("Unhandled Timer Event %x", (unsigned int) intr);
