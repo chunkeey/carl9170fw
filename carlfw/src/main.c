@@ -76,8 +76,6 @@ void clock_set(enum cpu_clock_t clock_, bool on)
 	case AHB_80_88MHZ:
 		break;
 	}
-
-	timer_init(1, (fw.ticks_per_usec * 25) >> 1);
 }
 
 static void init(void)
@@ -145,10 +143,6 @@ static void timer0_isr(void)
 #endif /* CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT */
 }
 
-static void timer1_isr(void)
-{
-}
-
 static void handle_timer(void)
 {
 	uint32_t intr;
@@ -167,8 +161,6 @@ static void handle_timer(void)
 	} while (0)
 
 	HANDLER(intr, BIT(0), timer0_isr);
-
-	HANDLER(intr, BIT(1), timer1_isr);
 
 	if (intr)
 		DBG("Unhandled Timer Event %x", (unsigned int) intr);
