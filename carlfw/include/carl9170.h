@@ -204,6 +204,7 @@ struct firmware_context_struct {
 
 	unsigned int tally_clock;
 	struct carl9170_tally_rsp tally;
+	unsigned int tx_time;
 
 #ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
 	struct carl9170_gpio cached_gpio_state;

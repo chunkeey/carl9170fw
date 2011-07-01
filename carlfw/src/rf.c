@@ -29,32 +29,6 @@
 #include "rf.h"
 #include "shared/phy.h"
 
-void tally_update(void)
-{
-	unsigned int time;
-
-#ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
-	unsigned int main_not_free, ext_not_free;
-
-	main_not_free = get(AR9170_MAC_REG_CHANNEL_BUSY);
-	ext_not_free = get(AR9170_MAC_REG_EXT_BUSY);
-	time = get_clock_counter();
-
-	if (fw.phy.state == CARL9170_PHY_ON) {
-		unsigned int us_delta = (time - fw.tally_clock) / max(fw.ticks_per_usec, 40u);
-
-		fw.tally.active += us_delta;
-		fw.tally.main_free += main_not_free;
-		fw.tally.ext_free += ext_not_free;
-	}
-#else
-	time = get_clock_counter();
-
-#endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
-
-	fw.tally_clock = time;
-}
-
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 static void set_channel_end(void)
 {
@@ -64,16 +38,11 @@ static void set_channel_end(void)
 	andl(AR9170_MAC_REG_QOS_PRIORITY_VIRTUAL_CCA,
 	     ~AR9170_MAC_VIRTUAL_CCA_ALL);
 
-	/* clear statistics */
-	tally_update();
-
 	fw.phy.state = CARL9170_PHY_ON;
 }
 
 void rf_notify_set_channel(void)
 {
-	tally_update();
-
 	/* Manipulate CCA threshold to stop transmission */
 	set(AR9170_PHY_REG_CCA_THRESHOLD, 0x300);
 	/* Enable Virtual CCA */
@@ -82,8 +51,8 @@ void rf_notify_set_channel(void)
 
 	/* reset CCA stats */
 	fw.tally.active = 0;
-	fw.tally.main_free = 0;
-	fw.tally.ext_free = 0;
+	fw.tally.cca = 0;
+	fw.tally.tx_time = 0;
 	fw.phy.state = CARL9170_PHY_OFF;
 }
 
@@ -276,7 +245,6 @@ void rf_psm(void)
 		/* Synthesizer off + RX off */
 		bank3 = 0x00400018;
 
-		tally_update();
 		fw.phy.state = CARL9170_PHY_OFF;
 	} else {
 		/* advance to the next PSM step */
@@ -294,7 +262,6 @@ void rf_psm(void)
 			/* Synthesizer on + RX on */
 			bank3 = 0x01420098;
 
-			tally_update();
 			fw.phy.state = CARL9170_PHY_ON;
 		} else {
 			return ;

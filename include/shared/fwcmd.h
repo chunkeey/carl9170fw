@@ -289,10 +289,11 @@ struct carl9170_tsf_rsp {
 
 struct carl9170_tally_rsp {
 	__le32 active;
-	__le32 main_free;
-	__le32 ext_free;
+	__le32 cca;
+	__le32 tx_time;
 	__le32 rx_total;
 	__le32 rx_overrun;
+	__le32 tick;
 } __packed;
 
 struct carl9170_rsp {

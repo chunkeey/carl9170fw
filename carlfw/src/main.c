@@ -134,10 +134,6 @@ static void timer0_isr(void)
 	gpio_timer();
 #endif /* CONFIG_CARL9170FW_GPIO_INTERRUPT */
 
-#ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
-	tally_update();
-#endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
-
 #ifdef CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT
 	set(AR9170_GPIO_REG_PORT_DATA, get(AR9170_GPIO_REG_PORT_DATA) ^ 1);
 #endif /* CONFIG_CARL9170FW_DEBUG_LED_HEARTBEAT */
@@ -168,6 +164,27 @@ static void handle_timer(void)
 #undef HANDLER
 }
 
+static void tally_update(void)
+{
+	unsigned int boff, time, delta;
+
+	time = get_clock_counter();
+	if (fw.phy.state == CARL9170_PHY_ON) {
+		delta = (time - fw.tally_clock);
+
+		fw.tally.active += delta;
+
+		boff = get(AR9170_MAC_REG_BACKOFF_STATUS);
+		if (boff & AR9170_MAC_BACKOFF_TX_PE)
+			fw.tally.tx_time += delta;
+		if (boff & AR9170_MAC_BACKOFF_CCA)
+			fw.tally.cca += delta;
+	}
+
+	fw.tally_clock = time;
+	fw.counter++;
+}
+
 static void __noreturn main_loop(void)
 {
 	/* main loop */
@@ -186,7 +203,7 @@ static void __noreturn main_loop(void)
 
 		handle_timer();
 
-		fw.counter++;
+		tally_update();
 	}
 }
 

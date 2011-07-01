@@ -28,8 +28,6 @@
 
 #include "config.h"
 
-void tally_update(void);
-
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 void rf_notify_set_channel(void);
 void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp);
