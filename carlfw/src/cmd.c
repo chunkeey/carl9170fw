@@ -111,7 +111,7 @@ void handle_cmd(struct carl9170_rsp *resp)
 			set(AR9170_MAC_REG_BCN_CTRL, AR9170_BCN_CTRL_READY);
 		} else {
 			wlan_cab_flush_queue(cmd->bcn_ctrl.vif_id);
-			fw.wlan.cab_flush_trigger[i] = CARL9170_CAB_TRIGGER_EMPTY;
+			fw.wlan.cab_flush_trigger[cmd->bcn_ctrl.vif_id] = CARL9170_CAB_TRIGGER_EMPTY;
 		}
 		break;
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
