@@ -756,7 +756,7 @@ static void wlan_wol_connection_monitor(void)
 	if (!fw.wlan.fw_desc_available)
 		return;
 
-	memset(nullf, 0, sizeof(nullf));
+	memset(nullf, 0, sizeof(*nullf));
 
 	nullf->s.len = sizeof(struct carl9170_tx_superdesc) +
 		     sizeof(struct ar9170_tx_hwdesc) +
