@@ -54,10 +54,10 @@ void clock_set(enum cpu_clock_t clock_, bool on)
 	 * So watch out, if you need _stable_ timer interrupts.
 	 */
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
-        if (fw.phy.frequency < 3000000)
+	if (fw.phy.frequency < 3000000)
 		set(AR9170_PWR_REG_PLL_ADDAC, 0x5163);
-        else
-                set(AR9170_PWR_REG_PLL_ADDAC, 0x5143);
+	else
+		set(AR9170_PWR_REG_PLL_ADDAC, 0x5143);
 #else
 	set(AR9170_PWR_REG_PLL_ADDAC, 0x5163);
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */

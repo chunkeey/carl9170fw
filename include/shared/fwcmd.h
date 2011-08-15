@@ -187,7 +187,7 @@ struct carl9170_wol_cmd {
 	u8		mac[6];
 	u8		bssid[6];
 	__le32		null_interval;
-	__le32 		free_for_use2;
+	__le32		free_for_use2;
 	__le32		mask;
 	u8		pattern[32];
 } __packed;

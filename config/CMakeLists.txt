@@ -12,7 +12,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../include/generated")
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../extra")
-FIND_PACKAGE(GPERF REQUIRED) 
+FIND_PACKAGE(GPERF REQUIRED)
 
 BISON_TARGET(zconf zconf.y zconf.tab.c COMPILE_FLAGS "-l -b zconf -p zconf")
 FLEX_TARGET(zconfscan zconf.l lex.zconf.c COMPILE_FLAGS "-Pzconf -L")
@@ -22,6 +22,6 @@ SET(zconf_deps ${FLEX_zconfscan_OUTPUTS} ${GPERF_zconfhash_OUTPUTS})
 SET_SOURCE_FILES_PROPERTIES(${BISON_zconf_OUTPUTS}
       PROPERTIES OBJECT_DEPENDS "${zconf_deps}")
 
-set(conf_src conf.c ${BISON_zconf_OUTPUTS}) 
+set(conf_src conf.c ${BISON_zconf_OUTPUTS})
 
 add_executable(conf ${conf_src})

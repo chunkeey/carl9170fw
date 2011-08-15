@@ -54,7 +54,7 @@ add_custom_command(
 	ARGS --strip-unneeded -O binary -j .fwdsc carl9170.elf carl9170.dsc
 	TARGET firmware
 	OUTPUTS carl9170.dsc)
-	
+
 add_custom_command(
 	SOURCE firmware
 	TARGET firmware

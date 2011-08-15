@@ -134,9 +134,8 @@ static void handle_download_exception(void)
 	}
 
 	__for_each_desc_continue(desc, &fw.pta.down_queue) {
-		if ((desc->status & AR9170_OWN_BITS) == AR9170_OWN_BITS_SW) {
+		if ((desc->status & AR9170_OWN_BITS) == AR9170_OWN_BITS_SW)
 			dma_fix_downqueue(desc);
-		}
 	}
 
 

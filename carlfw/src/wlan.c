@@ -213,7 +213,7 @@ static bool wlan_tx_consume_retry(struct carl9170_tx_superframe *super)
 
 static inline u16 get_tid(struct ieee80211_hdr *hdr)
 {
-        return (ieee80211_get_qos_ctl(hdr))[0] & IEEE80211_QOS_CTL_TID_MASK;
+	return (ieee80211_get_qos_ctl(hdr))[0] & IEEE80211_QOS_CTL_TID_MASK;
 }
 
 /* This function will only work on uint32_t-aligned pointers! */
@@ -330,9 +330,8 @@ static void _wlan_tx(struct dma_desc *desc)
 {
 	struct carl9170_tx_superframe *super = get_super(desc);
 
-	if (unlikely(super->s.assign_seq)) {
+	if (unlikely(super->s.assign_seq))
 		wlan_assign_seq(&super->f.data.i3e, super->s.vif_id);
-	}
 
 	if (unlikely(super->s.ampdu_commit_density)) {
 		set(AR9170_MAC_REG_AMPDU_DENSITY,
@@ -730,9 +729,8 @@ static bool wlan_rx_wol_magic_packet(struct ieee80211_hdr *hdr, unsigned int len
 				found = 0;
 		}
 
-		if (found == (6 + 16 * 6)) {
+		if (found == (6 + 16 * 6))
 			return true;
-		}
 
 		data++;
 	}
@@ -780,9 +778,9 @@ static void wlan_wol_connection_monitor(void)
 	null->frame_control = cpu_to_le16(IEEE80211_FTYPE_DATA |
 		IEEE80211_STYPE_NULLFUNC | IEEE80211_FCTL_TODS);
 
-        memcpy(null->addr1, fw.wlan.wol.cmd.bssid, 6);
-        memcpy(null->addr2, fw.wlan.wol.cmd.mac, 6);
-        memcpy(null->addr3, fw.wlan.wol.cmd.bssid, 6);
+	memcpy(null->addr1, fw.wlan.wol.cmd.bssid, 6);
+	memcpy(null->addr2, fw.wlan.wol.cmd.mac, 6);
+	memcpy(null->addr3, fw.wlan.wol.cmd.bssid, 6);
 
 	wlan_tx_fw(&nullf->s, wlan_wol_connect_callback);
 }

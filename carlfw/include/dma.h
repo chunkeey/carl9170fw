@@ -283,7 +283,7 @@ static inline __inline struct dma_desc *dma_dequeue_not_bits(struct dma_queue *q
 	     desc = (queue)->head)
 
 #define __for_each_desc_continue(desc, queue)				\
-	for (;desc != (queue)->terminator;				\
+	for (; desc != (queue)->terminator;				\
 	     desc = (desc)->lastAddr->nextAddr)
 
 #define __for_each_desc(desc, queue)					\

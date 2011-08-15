@@ -575,7 +575,7 @@ static int usb_get_interface(const struct usb_ctrlrequest *ctrl)
 static int usb_manipulate_feature(const struct usb_ctrlrequest *ctrl, bool __unused clear)
 {
 	unsigned int feature;
-        if (USB_CHECK_REQTYPE(ctrl, USB_RECIP_DEVICE, USB_DIR_OUT))
+	if (USB_CHECK_REQTYPE(ctrl, USB_RECIP_DEVICE, USB_DIR_OUT))
 		return -1;
 
 	if (usb_configured() == false)

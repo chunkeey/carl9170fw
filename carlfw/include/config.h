@@ -31,9 +31,9 @@
 # error "See: http://gcc.gnu.org/gcc-4.4/changes.html / Caveats No. 4"
 #endif
 
-#if ((defined CONFIG_CARL9170FW_PRINTF) &&		\
-     (!defined CONFIG_CARL9170FW_DEBUG_USB) &&		\
-    (!defined CONFIG_CARL9170FW_DEBUG_UART))
+#if ((defined CONFIG_CARL9170FW_PRINTF) &&			\
+	(!defined CONFIG_CARL9170FW_DEBUG_USB) &&		\
+	(!defined CONFIG_CARL9170FW_DEBUG_UART))
 # warning "You have disabled all debug message transports."
 # warning "However CONFIG_CARL9170FW_PRINTF is still set..."
 # warning "Which is a waste of firmware space, if you ask me."
@@ -55,7 +55,7 @@
 #define CONFIG_CARL9170FW_BACK_REQS_NUM	4
 
 #if ((defined CONFIG_CARL9170FW_DEBUG) ||	\
-     (defined CONFIG_CARL9170FW_LOOPBACK))
+	(defined CONFIG_CARL9170FW_LOOPBACK))
 #define CARL9170FW_UNUSABLE	y
 #endif
 

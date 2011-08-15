@@ -263,9 +263,7 @@ void wlan_modify_beacon(const unsigned int vif,
 			const unsigned int bcn_addr,
 			const unsigned int bcn_len);
 
-void wlan_tx_complete(struct carl9170_tx_superframe *super,
-                      bool txs);
-
+void wlan_tx_complete(struct carl9170_tx_superframe *super, bool txs);
 void wlan_prepare_wol(void);
 
 static inline void __check_wlantx(void)
