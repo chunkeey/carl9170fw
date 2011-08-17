@@ -14,8 +14,8 @@ file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../include/generated")
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../extra")
 FIND_PACKAGE(GPERF REQUIRED)
 
-BISON_TARGET(zconf zconf.y zconf.tab.c COMPILE_FLAGS "-l -b zconf -p zconf")
-FLEX_TARGET(zconfscan zconf.l lex.zconf.c COMPILE_FLAGS "-Pzconf -L")
+BISON_TARGET(zconf zconf.y zconf.tab.c COMPILE_FLAGS "-l -b zconf -p zconf -t")
+FLEX_TARGET(zconfscan zconf.l zconf.lex.c COMPILE_FLAGS "-Pzconf -L")
 GPERF_TARGET(zconfhash zconf.gperf zconf.hash.c)
 
 SET(zconf_deps ${FLEX_zconfscan_OUTPUTS} ${GPERF_zconfhash_OUTPUTS})
