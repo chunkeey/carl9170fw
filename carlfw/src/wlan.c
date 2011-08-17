@@ -845,7 +845,7 @@ static bool wlan_rx_wol_probe_ssid(struct ieee80211_hdr *hdr, unsigned int len)
 		 */
 		data = (u8 *)((struct ieee80211_mgmt *)hdr)->u.probe_req.variable;
 		for (i = 0; i < (unsigned int)(probe_req.ssid_len + 1); i++) {
-			if (scan[i] != data[i])
+			if (data > end || scan[i] != data[i])
 				return false;
 		}
 
