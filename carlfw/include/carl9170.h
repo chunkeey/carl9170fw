@@ -142,16 +142,6 @@ struct firmware_context_struct {
 		struct carl9170_bar_ctx ba_cache[CONFIG_CARL9170FW_BACK_REQS_NUM];
 		unsigned int ba_tail_idx,
 			     ba_head_idx;
-
-#ifdef CONFIG_CARL9170FW_WOL
-		struct {
-			struct carl9170_wol_cmd cmd;
-			unsigned int last_beacon;
-			unsigned int lost_null;
-			unsigned int last_null;
-			bool wake_up;
-		} wol;
-#endif /* CONFIG_CARL9170FW_WOL */
 	} wlan;
 
 	struct {
@@ -205,6 +195,16 @@ struct firmware_context_struct {
 	unsigned int tally_clock;
 	struct carl9170_tally_rsp tally;
 	unsigned int tx_time;
+
+#ifdef CONFIG_CARL9170FW_WOL
+	struct {
+		struct carl9170_wol_cmd cmd;
+		unsigned int last_beacon;
+		unsigned int lost_null;
+		unsigned int last_null;
+		bool wake_up;
+	} wol;
+#endif /* CONFIG_CARL9170FW_WOL */
 
 #ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
 	struct carl9170_gpio cached_gpio_state;

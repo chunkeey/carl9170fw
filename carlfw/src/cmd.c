@@ -30,6 +30,7 @@
 #include "printf.h"
 #include "timer.h"
 #include "wl.h"
+#include "wol.h"
 
 void handle_cmd(struct carl9170_rsp *resp)
 {
@@ -86,11 +87,9 @@ void handle_cmd(struct carl9170_rsp *resp)
 		fw.wlan.rx_filter = cmd->rx_filter.rx_filter;
 		break;
 
-#ifdef CONFIG_CARL9170FW_WOL
 	case CARL9170_CMD_WOL:
-		memcpy(&fw.wlan.wol.cmd, &cmd->wol, sizeof(cmd->wol));
+		wol_cmd(&cmd->wol);
 		break;
-#endif /* CONFIG_CARL9170FW_WOL */
 
 	case CARL9170_CMD_TALLY:
 		resp->hdr.len = sizeof(struct carl9170_tally_rsp);

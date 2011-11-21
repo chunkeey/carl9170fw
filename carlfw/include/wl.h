@@ -254,7 +254,18 @@ static inline __inline __hot void read_tsf(uint32_t *tsf)
 	tsf[1] = get(AR9170_MAC_REG_TSF_H);
 }
 
+/* This function will only work on uint32_t-aligned pointers! */
+static inline bool compare_ether_address(const void *_d0, const void *_d1)
+{
+	const uint32_t *d0 = _d0;
+	const uint32_t *d1 = _d1;
+
+	/* BUG_ON((unsigned long)d0 & 3 || (unsigned long)d1 & 3)) */
+	return !((d0[0] ^ d1[0]) | (unsigned short)(d0[1] ^ d1[1]));
+}
+
 void wlan_tx(struct dma_desc *desc);
+void wlan_tx_fw(struct carl9170_tx_superdesc *super, fw_desc_callback_t cb);
 void wlan_timer(void);
 void handle_wlan(void);
 

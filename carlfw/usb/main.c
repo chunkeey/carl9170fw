@@ -23,12 +23,13 @@
 
 #include "carl9170.h"
 
+#include "shared/phy.h"
 #include "hostif.h"
 #include "printf.h"
 #include "timer.h"
 #include "rom.h"
 #include "wl.h"
-#include "shared/phy.h"
+#include "wol.h"
 
 #ifdef CONFIG_CARL9170FW_DEBUG_USB
 void usb_putc(const char c)
@@ -386,13 +387,13 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 
 #ifdef CONFIG_CARL9170FW_WOL
 			if (!(fw.usb.device_feature & USB_DEVICE_REMOTE_WAKEUP) ||
-			    !fw.wlan.wol.cmd.flags) {
+			    !fw.wol.cmd.flags) {
 				disable_watchdog();
 
 				/* GO_TO_SUSPEND stops the CPU clock too. */
 				orb(AR9170_USB_REG_MAIN_CTRL, AR9170_USB_MAIN_CTRL_GO_TO_SUSPEND);
 			} else {
-				wlan_prepare_wol();
+				wol_prepare();
 			}
 #else /* CONFIG_CARL9170FW_WOL */
 			disable_watchdog();
