@@ -235,13 +235,19 @@ static inline bool same_aggr(struct ieee80211_hdr *a, struct ieee80211_hdr *b)
 	return (get_tid(a) == get_tid(b)) || same_hdr(a, b);
 }
 
+static void wlan_tx_ampdu_reset(unsigned int qidx)
+{
+	fw.wlan.ampdu_prev[qidx] = NULL;
+}
+
 static void wlan_tx_ampdu_end(unsigned int qidx)
 {
 	struct carl9170_tx_superframe *ht_prev = fw.wlan.ampdu_prev[qidx];
 
-	fw.wlan.ampdu_prev[qidx] = NULL;
 	if (ht_prev)
 		ht_prev->f.hdr.mac.ba_end = 1;
+
+	wlan_tx_ampdu_reset(qidx);
 }
 
 static void wlan_tx_ampdu(struct carl9170_tx_superframe *super)
@@ -249,16 +255,16 @@ static void wlan_tx_ampdu(struct carl9170_tx_superframe *super)
 	unsigned int qidx = super->s.queue;
 	struct carl9170_tx_superframe *ht_prev = fw.wlan.ampdu_prev[qidx];
 
-	if (!super->f.hdr.mac.ampdu) {
-		wlan_tx_ampdu_end(qidx);
-	} else {
-		fw.wlan.ampdu_prev[qidx] = super;
-
+	if (super->f.hdr.mac.ampdu) {
 		if (ht_prev &&
 		    !same_aggr(&super->f.data.i3e, &ht_prev->f.data.i3e))
 			ht_prev->f.hdr.mac.ba_end = 1;
 		else
 			super->f.hdr.mac.ba_end = 0;
+
+		fw.wlan.ampdu_prev[qidx] = super;
+	} else {
+		wlan_tx_ampdu_end(qidx);
 	}
 }
 
@@ -462,6 +468,9 @@ static void handle_tx_completion(void)
 				break;
 			}
 		}
+
+
+		wlan_tx_ampdu_reset(i);
 
 		for_each_desc(desc, &fw.wlan.tx_retry)
 			__wlan_tx(desc);
