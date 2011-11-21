@@ -707,12 +707,10 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 		rx_filter |= CARL9170_RX_FILTER_MGMT;
 	}
 
-#ifdef CONFIG_CARL9170FW_WOL
 	if (unlikely(fw.suspend_mode == CARL9170_HOST_SUSPENDED)) {
 		wol_rx(rx_filter, hdr, min(data_len,
 			(unsigned int)AR9170_BLOCK_SIZE));
 	}
-#endif /* CONFIG_CARL9170FW_WOL */
 
 #undef AR9170_RX_ERROR_BAD
 
