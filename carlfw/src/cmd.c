@@ -125,7 +125,7 @@ void handle_cmd(struct carl9170_rsp *resp)
 		resp->hdr.len = 0;
 		disable_key(&cmd->disablekey);
 		break;
-#endif /* CONFIG_CARL9170FW_SECURIT_ENGINE */
+#endif /* CONFIG_CARL9170FW_SECURITY_ENGINE */
 
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 	case CARL9170_CMD_FREQUENCY:
@@ -145,7 +145,7 @@ void handle_cmd(struct carl9170_rsp *resp)
 		fw.phy.psm.state = le32_to_cpu(cmd->psm.state);
 		rf_psm();
 		break;
-#endif /* CONFIG_CARL9170FW_RADIO_FUNCTIOS */
+#endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 
 	default:
 		BUG("Unknown command %x\n", cmd->hdr.cmd);

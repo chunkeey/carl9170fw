@@ -38,24 +38,28 @@ struct ieee80211_hdr;
 
 void wol_prepare(void);
 void wol_janitor(void);
-void wol_rx(const unsigned int rx_filter __unused, const struct ieee80211_hdr *hdr __unused, const unsigned int len __unused);
+void wol_rx(const unsigned int rx_filter __unused,
+	    const struct ieee80211_hdr *hdr __unused,
+	    const unsigned int len __unused);
 void wol_cmd(const struct carl9170_wol_cmd *cmd);
 
 #else
 
-inline static void wol_cmd(const struct carl9170_wol_cmd *cmd __unused)
+static inline void wol_cmd(const struct carl9170_wol_cmd *cmd __unused)
 {
 }
 
-inline static void wol_prepare(void)
+static inline void wol_prepare(void)
 {
 }
 
-inline static void wol_janitor(void)
+static inline void wol_janitor(void)
 {
 }
 
-inline static void wol_rx(const unsigned int rx_filter __unused, const struct ieee80211_hdr *hdr __unused, const unsigned int len __unused)
+static inline void wol_rx(const unsigned int rx_filter __unused,
+			  const struct ieee80211_hdr *hdr __unused,
+			  const unsigned int len __unused)
 {
 }
 #endif /* CONFIG_CARL9170FW_WOL */
