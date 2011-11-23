@@ -54,4 +54,8 @@ typedef int64_t		__s64;
 #define cpu_to_le64(x) ((__le64)(uint64_t)(x))
 #define le64_to_cpu(x) ((uint64_t)(__le64)(x))
 
+typedef uint16_t	__be16;
+typedef uint32_t	__be32;
+typedef uint64_t	__be64;
+
 #endif /* __LINUX_TYPES_H */
