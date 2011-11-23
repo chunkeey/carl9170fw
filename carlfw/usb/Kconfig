@@ -9,14 +9,6 @@ config CARL9170FW_USB_STANDARD_CMDS
 
 	 Say Y, unless you don't care if lsusb -v fails.
 
-config CARL9170FW_USB_INIT_FIRMWARE
-	def_bool y
-	prompt "USB Interface Setup"
-	---help---
-	 Firmware should initialize the USB chip.
-
-	 Just say Y.
-
 config CARL9170FW_USB_UP_STREAM
 	def_bool y
 	prompt "USB Upload Stream"
