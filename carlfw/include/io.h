@@ -81,13 +81,11 @@ static inline __inline uint32_t readl_async(const volatile void *addr)
 	uint32_t i = 0, read, tmp;
 
 	read = readl(addr);
-	while (i++ < 10) {
+	do {
+		tmp = read;
 		tmp = readl(addr);
-		if (tmp == read)
-			break;
-		else
-			read = tmp;
-	}
+		i++;
+	} while (tmp != read && i <= 10);
 
 	return read;
 }
