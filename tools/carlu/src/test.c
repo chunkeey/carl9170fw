@@ -197,8 +197,8 @@ int carlu_gpio_test(struct carlu *ar)
 
 #define CHK(cmd)				\
 	do {					\
-		int __err;			\
-		if ((__err = cmd))		\
+		int __err = cmd;		\
+		if ((__err))			\
 			return __err;		\
 	} while (0)
 

@@ -33,7 +33,7 @@ int carlu_cmd_mem_dump(struct carlu *ar, const uint32_t start,
 int carlu_cmd_write_mem(struct carlu *ar, const uint32_t addr,
 			const uint32_t val);
 int carlu_cmd_mem_watch(struct carlu *ar, const uint32_t mem,
-                        const unsigned int len, void *_buf);
+			const unsigned int len, void *_buf);
 
 struct carl9170_cmd *carlu_cmd_buf(struct carlu *ar,
 	const enum carl9170_cmd_oids cmd, const unsigned int len);

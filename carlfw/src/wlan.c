@@ -469,7 +469,6 @@ static void handle_tx_completion(void)
 			}
 		}
 
-
 		wlan_tx_ampdu_reset(i);
 
 		for_each_desc(desc, &fw.wlan.tx_retry)

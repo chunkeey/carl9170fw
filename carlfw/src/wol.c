@@ -75,8 +75,8 @@ static bool wlan_rx_wol_magic_packet(const struct ieee80211_hdr *hdr, const unsi
 	 *
 	 * "A physical WakeOnLAN (Magic Packet) will look like this:
 	 * ---------------------------------------------------------------
-	 * | Synchronization Stream |  Target MAC |  Password (optional) |
-	 * |  	6 octets	    |   96 octets |   0, 4 or 6		 |
+	 * | Synchronization Stream | Target MAC |  Password (optional)	 |
+	 * |	6 octets	    | 96 octets  |   0, 4 or 6		 |
 	 * ---------------------------------------------------------------
 	 *
 	 * The Synchronization Stream is defined as 6 bytes of FFh.
