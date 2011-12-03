@@ -24,6 +24,7 @@ case "$1" in
 		fi
 
 		. ./.config
+		make
 
 		echo -n "Installing firmware..."
 		if [ "$CONFIG_CARL9170FW_BUILD_TOOLS" = "y" ] &&
