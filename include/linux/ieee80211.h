@@ -557,6 +557,15 @@ static inline unsigned int ieee80211_hdrlen(__le16 fc)
         return hdrlen;
 }
 
+/**
+ * ieee80211_is_first_frag - check if IEEE80211_SCTL_FRAG is not set
+ * @seq_ctrl: frame sequence control bytes in little-endian byteorder
+ */
+static inline int ieee80211_is_first_frag(__le16 seq_ctrl)
+{
+	return (seq_ctrl & cpu_to_le16(IEEE80211_SCTL_FRAG)) == 0;
+}
+
 struct ieee80211s_hdr {
 	u8 flags;
 	u8 ttl;
