@@ -96,13 +96,8 @@ static void handle_upload(void)
 			fw.usb.int_desc = desc;
 			fw.usb.int_desc_available = 1;
 		} else {
-#ifdef CONFIG_CARL9170FW_LOOPBACK
-			dma_reclaim(&fw.pta.down_queue, desc);
-			down_trigger();
-#else
 			dma_reclaim(&fw.wlan.rx_queue, desc);
 			wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
-#endif /* CONFIG_CARL9170FW_LOOPBACK */
 		}
 	}
 

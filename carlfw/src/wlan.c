@@ -292,25 +292,12 @@ static void __wlan_tx(struct dma_desc *desc)
 
 	wlan_tx_ampdu(super);
 
-#if (defined CONFIG_CARL9170FW_LOOPBACK) || (defined CONFIG_CARL9170FW_DISCARD)
-	wlan_tx_complete(super, true);
-	unhide_super(desc);
-# ifdef CONFIG_CARL9170FW_LOOPBACK
-	dma_put(&fw.pta.up_queue, desc);
-	up_trigger();
-# elif CONFIG_CARL9170FW_DISCARD
-	dma_reclaim(&fw.pta.down_queue, desc);
-	down_trigger();
-# endif
-#else /* CONFIG_CARL9170FW_LOOPBACK */
-
-# ifdef CONFIG_CARL9170FW_DEBUG
+#ifdef CONFIG_CARL9170FW_DEBUG
 	BUG_ON(fw.phy.psm.state != CARL9170_PSM_WAKE);
-# endif /* CONFIG_CARL9170FW_DEBUG */
+#endif /* CONFIG_CARL9170FW_DEBUG */
 
 	/* insert desc into the right queue */
 	dma_put(&fw.wlan.tx_queue[super->s.queue], desc);
-#endif /* CONFIG_CARL9170FW_LOOPBACK */
 }
 
 static void wlan_assign_seq(struct ieee80211_hdr *hdr, unsigned int vif)

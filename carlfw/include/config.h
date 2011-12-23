@@ -54,11 +54,6 @@
 
 #define CONFIG_CARL9170FW_BACK_REQS_NUM	4
 
-#if ((defined CONFIG_CARL9170FW_DEBUG) ||	\
-	(defined CONFIG_CARL9170FW_LOOPBACK))
-#define CARL9170FW_UNUSABLE	y
-#endif
-
 static inline void __config_check(void)
 {
 	BUILD_BUG_ON(!CARL9170_TX_STATUS_NUM);
