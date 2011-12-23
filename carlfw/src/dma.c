@@ -93,7 +93,7 @@ void dma_init_descriptors(void)
 		init_queue(&fw.wlan.cab_queue[j], &dma_mem.terminator[i++]);
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
-	BUILD_BUG_ON(AR9170_TERMINATOR_NUMBER != j);
+	BUG_ON(AR9170_TERMINATOR_NUMBER != i);
 
 	DBG("Blocks:%d [tx:%d, rx:%d] Terminators:%d/%d\n",
 	    AR9170_BLOCK_NUMBER, AR9170_TX_BLOCK_NUMBER,
