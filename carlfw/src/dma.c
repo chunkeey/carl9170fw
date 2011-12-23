@@ -57,6 +57,11 @@ static void fill_descriptor(struct dma_desc *d, uint16_t size, uint8_t *data)
 	d->nextAddr = NULL;
 }
 
+static void init_queue(struct dma_queue *q, struct dma_desc *d)
+{
+	q->head = q->terminator = d;
+}
+
 /*
  *  - Init up_queue, down_queue, tx_queue[5], rx_queue.
  *  - Setup descriptors and data buffer address.
@@ -74,18 +79,18 @@ void dma_init_descriptors(void)
 
 	/* Assign terminators to DMA queues */
 	i = 0;
-	fw.pta.up_queue.head = fw.pta.up_queue.terminator = &dma_mem.terminator[i++];
-	fw.pta.down_queue.head = fw.pta.down_queue.terminator = &dma_mem.terminator[i++];
+	init_queue(&fw.pta.up_queue, &dma_mem.terminator[i++]);
+	init_queue(&fw.pta.down_queue, &dma_mem.terminator[i++]);
 	for (j = 0; j < __AR9170_NUM_TX_QUEUES; j++)
-		fw.wlan.tx_queue[j].head = fw.wlan.tx_queue[j].terminator = &dma_mem.terminator[i++];
-	fw.wlan.tx_retry.head = fw.wlan.tx_retry.terminator = &dma_mem.terminator[i++];
-	fw.wlan.rx_queue.head = fw.wlan.rx_queue.terminator = &dma_mem.terminator[i++];
+		init_queue(&fw.wlan.tx_queue[j], &dma_mem.terminator[i++]);
+	init_queue(&fw.wlan.tx_retry, &dma_mem.terminator[i++]);
+	init_queue(&fw.wlan.rx_queue, &dma_mem.terminator[i++]);
 	fw.usb.int_desc = &dma_mem.terminator[i++];
 	fw.wlan.fw_desc = &dma_mem.terminator[i++];
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	for (j = 0; j < CARL9170_INTF_NUM; j++)
-		fw.wlan.cab_queue[j].head = fw.wlan.cab_queue[j].terminator = &dma_mem.terminator[i++];
+		init_queue(&fw.wlan.cab_queue[j], &dma_mem.terminator[i++]);
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	BUILD_BUG_ON(AR9170_TERMINATOR_NUMBER != j);
