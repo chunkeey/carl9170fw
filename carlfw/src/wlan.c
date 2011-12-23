@@ -408,7 +408,11 @@ static bool wlan_tx_status(struct dma_queue *queue,
 				 * be aware of this so the frames don't get lost.
 				 */
 
+#ifndef CONFIG_CARL9170FW_DEBUG
 				dma_unlink_head(queue);
+#else /* CONFIG_CARL9170FW_DEBUG */
+				BUG_ON(dma_unlink_head(queue) != desc);
+#endif /* CONFIG_CARL9170FW_DEBUG */
 				dma_put(&fw.wlan.tx_retry, desc);
 				return true;
 			}
@@ -418,7 +422,11 @@ static bool wlan_tx_status(struct dma_queue *queue,
 		}
 	}
 
+#ifndef CONFIG_CARL9170FW_DEBUG
 	dma_unlink_head(queue);
+#else /* CONFIG_CARL9170FW_DEBUG */
+	BUG_ON(dma_unlink_head(queue) != desc);
+#endif /* CONFIG_CARL9170FW_DEBUG */
 	if (txfail) {
 		/*
 		 * Issue the queue bump,
