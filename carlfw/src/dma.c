@@ -84,14 +84,8 @@ void dma_init_descriptors(void)
 	fw.wlan.fw_desc = &dma_mem.terminator[i++];
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE
-	/* GCC bug ? */
-# if (CARL9170_INTF_NUM != 2)
 	for (j = 0; j < CARL9170_INTF_NUM; j++)
 		fw.wlan.cab_queue[j].head = fw.wlan.cab_queue[j].terminator = &dma_mem.terminator[i++];
-#else
-	fw.wlan.cab_queue[0].head = fw.wlan.cab_queue[0].terminator = &dma_mem.terminator[i++];
-	fw.wlan.cab_queue[1].head = fw.wlan.cab_queue[1].terminator = &dma_mem.terminator[i++];
-#endif
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	BUILD_BUG_ON(AR9170_TERMINATOR_NUMBER != j);
