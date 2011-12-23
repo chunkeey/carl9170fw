@@ -343,8 +343,6 @@ static void _wlan_tx(struct dma_desc *desc)
 			    get(AR9170_MAC_REG_AMPDU_FACTOR),
 			    8 << super->s.ampdu_factor));
 	}
-
-	__wlan_tx(desc);
 }
 
 /* propagate transmission status back to the driver */
@@ -498,6 +496,7 @@ void __hot wlan_tx(struct dma_desc *desc)
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	_wlan_tx(desc);
+	__wlan_tx(desc);
 	wlan_trigger(BIT(super->s.queue));
 }
 
@@ -759,6 +758,7 @@ void wlan_cab_flush_queue(const unsigned int vif)
 
 		/* ready to roll! */
 		_wlan_tx(desc);
+		__wlan_tx(desc);
 		wlan_trigger(BIT(super->s.queue));
 	}
 }
