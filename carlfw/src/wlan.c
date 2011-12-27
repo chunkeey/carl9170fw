@@ -305,7 +305,7 @@ static void wlan_assign_seq(struct ieee80211_hdr *hdr, unsigned int vif)
 	hdr->seq_ctrl &= cpu_to_le16(~IEEE80211_SCTL_SEQ);
 	hdr->seq_ctrl |= cpu_to_le16(fw.wlan.sequence[vif]);
 
-	if (!(hdr->seq_ctrl & cpu_to_le16(IEEE80211_SCTL_FRAG)))
+	if (ieee80211_is_first_frag(hdr->seq_ctrl))
 		fw.wlan.sequence[vif] += 0x10;
 }
 
@@ -351,6 +351,12 @@ static bool wlan_tx_status(struct dma_queue *queue,
 		/* reset retry indicator flags */
 		desc->ctrl &= ~(AR9170_CTRL_TXFAIL | AR9170_CTRL_BAFAIL);
 
+		/*
+		 * Note: wlan_tx_consume_retry will override the old
+		 * phy [CCK,OFDM, HT, BW20/40, MCS...] and mac vectors
+		 * [AMPDU,RTS/CTS,...] therefore be careful when they
+		 * are used.
+		 */
 		if (wlan_tx_consume_retry(super)) {
 			/*
 			 * retry for simple and aggregated 802.11 frames.
