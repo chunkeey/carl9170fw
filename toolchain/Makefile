@@ -2,7 +2,7 @@ BINUTILS_VER=2.22
 BINUTILS_URL=http://mirrors.kernel.org/gnu/binutils/binutils-$(BINUTILS_VER).tar.bz2
 BINUTILS_TAR=binutils-$(BINUTILS_VER).tar.bz2
 
-NEWLIB_VER=1.19.0
+NEWLIB_VER=1.20.0
 NEWLIB_URL=ftp://sources.redhat.com/pub/newlib/newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
 
