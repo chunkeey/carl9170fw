@@ -39,7 +39,6 @@ struct carl9170_bar_ctx {
 	uint8_t ra[6];
 	__le16 start_seq_num;
 	__le16 control;
-	__le32 phy;
 };
 
 #ifdef CONFIG_CARL9170FW_CAB_QUEUE

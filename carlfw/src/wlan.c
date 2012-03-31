@@ -546,13 +546,12 @@ static void wlan_send_buffered_ba(void)
 	baf->s.queue = AR9170_TXQ_VO;
 	baf->f.hdr.length = sizeof(struct ieee80211_ba) + FCS_LEN;
 
-	/* HW Duration / Backoff */
-	baf->f.hdr.mac.backoff = 1;
-	baf->f.hdr.mac.hw_duration = 1;
+	baf->f.hdr.mac.no_ack = 1;
 
-	/* take the TX rate from the RX'd BAR */
-	baf->f.hdr.phy.set = ctx->phy;
-	baf->f.hdr.phy.tx_power = 29; /* 14.5 dBm */
+	baf->f.hdr.phy.modulation = 1; /* OFDM */
+	baf->f.hdr.phy.tx_power = 34; /* 17 dBm */
+	baf->f.hdr.phy.chains = 1;
+	baf->f.hdr.phy.mcs = AR9170_TXRX_PHY_RATE_OFDM_6M;
 
 	/* format outgoing BA */
 	ba->frame_control = cpu_to_le16(IEEE80211_FTYPE_CTL | IEEE80211_STYPE_NULLFUNC);
@@ -589,7 +588,7 @@ static struct carl9170_bar_ctx *wlan_get_bar_cache_buffer(void)
 	return tmp;
 }
 
-static void handle_bar(struct dma_desc *desc, struct ieee80211_hdr *hdr,
+static void handle_bar(struct dma_desc *desc __unused, struct ieee80211_hdr *hdr,
 		       unsigned int len, unsigned int mac_err)
 {
 	struct ieee80211_bar *bar;
@@ -634,11 +633,6 @@ static void handle_bar(struct dma_desc *desc, struct ieee80211_hdr *hdr,
 	 */
 	ctx->control = bar->control | cpu_to_le16(1);
 	ctx->start_seq_num = bar->start_seq_num;
-	ctx->phy = ar9170_rx_to_phy(desc);
-	if (unlikely(!ctx->phy)) {
-		/* provide a backup, in case ar9170_rx_to_phy fails */
-		ctx->phy = cpu_to_le32(0x2cc301);
-	}
 }
 
 static void wlan_check_rx_overrun(void)
