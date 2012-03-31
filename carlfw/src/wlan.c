@@ -526,7 +526,7 @@ static void wlan_send_buffered_ba(void)
 	struct ieee80211_ba *ba = (struct ieee80211_ba *) &baf->f.ba;
 	struct carl9170_bar_ctx *ctx;
 
-	if (likely(fw.wlan.ba_head_idx == fw.wlan.ba_tail_idx))
+	if (likely(!fw.wlan.queued_ba))
 		return;
 
 	/* there's no point to continue when the ba_desc is not available. */
@@ -536,6 +536,7 @@ static void wlan_send_buffered_ba(void)
 	ctx = &fw.wlan.ba_cache[fw.wlan.ba_head_idx];
 	fw.wlan.ba_head_idx++;
 	fw.wlan.ba_head_idx %= CONFIG_CARL9170FW_BACK_REQS_NUM;
+	fw.wlan.queued_ba--;
 
 	baf->s.len = sizeof(struct carl9170_tx_superdesc) +
 		     sizeof(struct ar9170_tx_hwdesc) +
@@ -582,6 +583,8 @@ static struct carl9170_bar_ctx *wlan_get_bar_cache_buffer(void)
 	tmp = &fw.wlan.ba_cache[fw.wlan.ba_tail_idx];
 	fw.wlan.ba_tail_idx++;
 	fw.wlan.ba_tail_idx %= CONFIG_CARL9170FW_BACK_REQS_NUM;
+	if (fw.wlan.queued_ba < CONFIG_CARL9170FW_BACK_REQS_NUM)
+		fw.wlan.queued_ba++;
 
 	return tmp;
 }

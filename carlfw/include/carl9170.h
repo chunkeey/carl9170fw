@@ -141,7 +141,8 @@ struct firmware_context_struct {
 		/* BA(R) Request Handler */
 		struct carl9170_bar_ctx ba_cache[CONFIG_CARL9170FW_BACK_REQS_NUM];
 		unsigned int ba_tail_idx,
-			     ba_head_idx;
+			     ba_head_idx,
+			     queued_ba;
 	} wlan;
 
 	struct {
