@@ -20,6 +20,7 @@
  */
 #include "carl9170.h"
 #include "fwdsc.h"
+#include "pattern_generator.h"
 
 #define FILL(small, big, more...)					\
 	.small = {							\
@@ -64,6 +65,9 @@ const struct carl9170_firmware_descriptor __in_section(fwdsc) __visible carl9170
 #ifdef CONFIG_CARL9170FW_WOL
 					BIT(CARL9170FW_WOL) |
 #endif /* CONFIG_CARL9170FW_WOL */
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
+					BIT(CARL9170FW_PATTERN_GENERATOR) |
+#endif /* CONFIG_CARL9170FW_PATTERN_GENERATOR */
 					(0)),
 
 	     .miniboot_size = cpu_to_le16(0),
@@ -89,7 +93,6 @@ const struct carl9170_firmware_descriptor __in_section(fwdsc) __visible carl9170
 	),
 #endif /* CONFIG_CARL9170FW_WOL */
 
-
 	FILL(motd, MOTD,
 	     .fw_year_month_day = cpu_to_le32(
 			CARL9170FW_SET_DAY(CARL9170FW_VERSION_DAY) +
@@ -97,6 +100,14 @@ const struct carl9170_firmware_descriptor __in_section(fwdsc) __visible carl9170
 			CARL9170FW_SET_YEAR(CARL9170FW_VERSION_YEAR)),
 	     .desc = "Community AR9170 Linux",
 	     .release = CARL9170FW_VERSION_GIT),
+
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
+	FILL(pattern, PATTERN,
+	     .soft_pattern = cpu_to_le32(&fw.wlan.soft_pattern),
+	     .num_patterns = __CARL9170FW_NUM_PATTERNS,
+	     .patterns = { /* filled by the fwprepare tool */ },
+	),
+#endif /* CONFIG_CARL9170FW_RADAR */
 
 	FILL(dbg, DBG,
 	     .bogoclock_addr = cpu_to_le32(0),

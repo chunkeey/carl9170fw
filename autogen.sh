@@ -29,6 +29,9 @@ case "$1" in
 
 		echo -n "Installing firmware..."
 		if [ "$CONFIG_CARL9170FW_BUILD_TOOLS" = "y" ]; then
+			echo -n "Prepare firmware image..."
+			tools/src/fwprepare carlfw/carl9170.fw
+
 			if [ "$CONFIG_CARL9170FW_BUILD_MINIBOOT" = "y" ]; then
 				echo -n "Apply miniboot..."
 				# also adds checksum

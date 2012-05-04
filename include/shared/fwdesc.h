@@ -98,6 +98,7 @@ enum carl9170fw_feature_list {
 #define CHK_MAGIC	"CHK\0"
 #define TXSQ_MAGIC	"TXSQ"
 #define WOL_MAGIC	"WOL\0"
+#define PATTERN_MAGIC	"RDR\0"
 #define LAST_MAGIC	"LAST"
 
 #define CARL9170FW_SET_DAY(d) (((d) - 1) % 31)
@@ -181,6 +182,24 @@ struct carl9170fw_dbg_desc {
 } __packed;
 #define CARL9170FW_DBG_DESC_SIZE			\
 	(sizeof(struct carl9170fw_dbg_desc))
+
+#define CARL9170FW_PATTERN_MAP_NAME_LEN			15
+struct carl9170fw_pattern_map_entry {
+	u8 index;
+	char name[CARL9170FW_PATTERN_MAP_NAME_LEN];
+} __packed;
+
+#define CARL9170FW_PATTERN_DESC_MIN_VER			1
+#define CARL9170FW_PATTERN_DESC_CUR_VER			1
+struct carl9170fw_pattern_desc {
+	struct carl9170fw_desc_head head;
+
+	__le32 soft_pattern;
+	__le32 num_patterns;
+	struct carl9170fw_pattern_map_entry patterns[0];
+} __packed;
+#define CARL9170FW_PATTERN_DESC_SIZE			\
+	(sizeof(struct carl9170fw_pattern_desc))
 
 #define CARL9170FW_CHK_DESC_MIN_VER			1
 #define CARL9170FW_CHK_DESC_CUR_VER			2

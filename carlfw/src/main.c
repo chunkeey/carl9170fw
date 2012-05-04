@@ -30,6 +30,7 @@
 #include "wl.h"
 #include "rf.h"
 #include "usb.h"
+#include "pattern_generator.h"
 
 #define AR9170_WATCH_DOG_TIMER		   0x100
 
@@ -124,6 +125,8 @@ static void __noreturn main_loop(void)
 		handle_timer();
 
 		tally_update();
+
+		pattern_generator();
 	}
 }
 

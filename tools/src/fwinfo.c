@@ -209,6 +209,25 @@ static void show_chk_desc(const struct carl9170fw_desc_head *head,
 		le32_to_cpu(chk->fw_crc32));
 }
 
+static void show_pattern_desc(const struct carl9170fw_desc_head *head,
+			  struct carlfw *fw __unused)
+{
+	const struct carl9170fw_pattern_desc *pattern = (const void *) head;
+	const struct carl9170fw_pattern_map_entry *map = pattern->patterns;
+	int map_entries = (head->length - sizeof(*pattern)) / sizeof(*map);
+	int i;
+
+	fprintf(stdout, "\tPattern index register: %08x\n",
+		le32_to_cpu(pattern->soft_pattern));
+	fprintf(stdout, "\tNumber of supported patterns: %08x\n",
+		le32_to_cpu(pattern->num_patterns));
+
+	for (i = 0; i < map_entries; i++) {
+		fprintf(stdout, "\t\tindex:0x%x, description:%s\n",
+			map[i].index, map[i].name);
+	}
+}
+
 static void show_last_desc(const struct carl9170fw_desc_head *head,
 			   struct carlfw *fw __unused)
 
@@ -239,6 +258,7 @@ static const struct {
 	ADD_HANDLER(FIX, show_fix_desc),
 	ADD_HANDLER(CHK, show_chk_desc),
 	ADD_HANDLER(WOL, show_wol_desc),
+	ADD_HANDLER(PATTERN, show_pattern_desc),
 	ADD_HANDLER(LAST, show_last_desc),
 };
 

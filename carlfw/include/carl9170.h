@@ -139,6 +139,12 @@ struct firmware_context_struct {
 			     queued_ba;
 
 		unsigned int queued_bar;
+
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
+		unsigned int soft_pattern,
+			     pattern_last,
+			     pattern_index;
+#endif /* CONFIG_CARL9170FW_PATTERN_GENERATOR */
 	} wlan;
 
 	struct {

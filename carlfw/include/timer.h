@@ -49,6 +49,11 @@ static inline __inline bool is_after_msecs(const uint32_t t0, const uint32_t mse
 	return ((get_clock_counter() - t0) / 1000) > (msecs * fw.ticks_per_usec);
 }
 
+static inline __inline bool is_after_usecs(const uint32_t t0, const uint32_t usecs)
+{
+	return ((get_clock_counter() - t0)) > (usecs * fw.ticks_per_usec);
+}
+
 /*
  * Note: Be careful with [u]delay. They won't service the
  * hardware watchdog timer. It might trigger if you
