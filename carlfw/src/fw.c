@@ -65,6 +65,9 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 #ifdef CONFIG_CARL9170FW_WOL
 					BIT(CARL9170FW_WOL) |
 #endif /* CONFIG_CARL9170FW_WOL */
+#ifdef CONFIG_CARL9170FW_RADAR
+					BIT(CARL9170FW_RADAR_PATTERN_GENERATOR) |
+#endif /* CONFIG_CARL9170FW_RADAR */
 					(0)),
 
 	     .miniboot_size = cpu_to_le16(0),
@@ -90,7 +93,6 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 	),
 #endif /* CONFIG_CARL9170FW_WOL */
 
-
 	FILL(motd, MOTD,
 	     .fw_year_month_day = cpu_to_le32(
 			CARL9170FW_SET_DAY(CARL9170FW_VERSION_DAY) +
@@ -98,6 +100,15 @@ const struct carl9170_firmware_descriptor __section(fwdsc) carl9170fw_desc = {
 			CARL9170FW_SET_YEAR(CARL9170FW_VERSION_YEAR)),
 	     .desc = "Community AR9170 Linux",
 	     .release = CARL9170FW_VERSION_GIT),
+
+
+#ifdef CONFIG_CARL9170FW_RADAR
+	FILL(radar, RADAR,
+	     .soft_radar = cpu_to_le32(&fw.wlan.soft_radar),
+	     .num_radars = __CARL9170FW_NUM_RADARS,
+	     .radars = { /* filled by the fwprepare tool */ },
+	),
+#endif /* CONFIG_CARL9170FW_RADAR */
 
 	FILL(dbg, DBG,
 	     .bogoclock_addr = cpu_to_le32(0),

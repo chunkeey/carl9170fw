@@ -68,6 +68,7 @@ static const struct feature_list known_otus_features_v1[] = {
 	CHECK_FOR_FEATURE(CARL9170FW_WOL),
 	CHECK_FOR_FEATURE(CARL9170FW_FIXED_5GHZ_PSM),
 	CHECK_FOR_FEATURE(CARL9170FW_HW_COUNTERS),
+	CHECK_FOR_FEATURE(CARL9170FW_RADAR_PATTERN_GENERATOR),
 };
 
 static void check_feature_list(const struct carl9170fw_desc_head *head,
@@ -206,6 +207,25 @@ static void show_chk_desc(const struct carl9170fw_desc_head *head,
 		le32_to_cpu(chk->fw_crc32));
 }
 
+static void show_radar_desc(const struct carl9170fw_desc_head *head,
+			  struct carlfw *fw __unused)
+{
+	const struct carl9170fw_radar_desc *radar = (const void *) head;
+	const struct carl9170fw_radar_map_entry *map = radar->radars;
+	int map_entries = (head->length - sizeof(*radar)) / sizeof(*map);
+	int i;
+
+	fprintf(stdout, "\tRadar index register: %08x\n",
+		le32_to_cpu(radar->soft_radar));
+	fprintf(stdout, "\tNumber of supported radar patterns: %08x\n",
+		le32_to_cpu(radar->num_radars));
+
+	for (i = 0; i < map_entries; i++) {
+		fprintf(stdout, "\t\tindex:0x%x, description:%s\n",
+			map[i].index, map[i].name);
+	}
+}
+
 static void show_last_desc(const struct carl9170fw_desc_head *head,
 			   struct carlfw *fw __unused)
 
@@ -236,6 +256,7 @@ static const struct {
 	ADD_HANDLER(FIX, show_fix_desc),
 	ADD_HANDLER(CHK, show_chk_desc),
 	ADD_HANDLER(WOL, show_wol_desc),
+	ADD_HANDLER(RADAR, show_radar_desc),
 	ADD_HANDLER(LAST, show_last_desc),
 };
 

@@ -100,6 +100,16 @@ config CARL9170FW_EXPERIMENTAL
 	def_bool y
 	prompt "Experimental Features"
 
+config CARL9170FW_RADAR
+	def_bool n
+	prompt "Radar pattern generator"
+	depends on CARL9170FW_EXPERIMENTAL
+	---help---
+	 With this option enabled, the firmware can generate random
+	 transmission pattern that might fool a reciever to believe
+	 that there is an active radar on the channel.
+	 Note: sadly, no SDR here.
+
 config CARL9170FW_WOL_OPTION
 	def_bool n
 	prompt "Wakeup on WLAN"

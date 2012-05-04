@@ -33,6 +33,12 @@ case "$1" in
 			tools/src/miniboot a carlfw/carl9170.fw minifw/miniboot.fw
 		fi
 
+
+		if [ "$CONFIG_CARL9170FW_BUILD_TOOLS" = "y" ]; then
+			echo -n "Prepare firmware image..."
+			tools/src/fwprepare carlfw/carl9170.fw
+		fi
+
 		sudo install -m 644 carlfw/carl9170.fw \
 			/lib/firmware/carl9170-$CONFIG_CARL9170FW_RELEASE_VERSION.fw
 		echo "done."

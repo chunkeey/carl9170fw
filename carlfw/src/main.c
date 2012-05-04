@@ -31,6 +31,7 @@
 #include "wl.h"
 #include "rf.h"
 #include "usb.h"
+#include "radar.h"
 
 #define AR9170_WATCH_DOG_TIMER		   0x100
 
@@ -185,6 +186,32 @@ static void tally_update(void)
 	fw.counter++;
 }
 
+static void radar_pattern_generator(void)
+{
+	if (fw.phy.state == CARL9170_PHY_ON) {
+		if (fw.wlan.soft_radar == NO_RADAR ||
+		    fw.wlan.soft_radar >= __CARL9170FW_NUM_RADARS)
+			return;
+
+		const struct radar_info *radar = &radars[fw.wlan.soft_radar];
+		if (radar->pulses >= fw.wlan.pattern_index) {
+			fw.wlan.pattern_index = 0;
+		}
+
+		if (radar->pulses > fw.wlan.pattern_index) {
+			const struct radar_info_pattern *pattern = &radar->pattern[fw.wlan.pattern_index];
+			if (is_after_usecs(fw.wlan.radar_last, pattern->pulse_interval)) {
+				fw.wlan.radar_last = get_clock_counter();
+				//set(PATTERN, pattern->pulse_pattern);
+				//set(MODE, pattern->pulse_mode);
+				udelay(pattern->pulse_width);
+				//set(MODE, ~pattern->pulse_mode);
+				fw.wlan.pattern_index++;
+			}
+		}
+	}
+}
+
 static void __noreturn main_loop(void)
 {
 	/* main loop */
@@ -204,6 +231,8 @@ static void __noreturn main_loop(void)
 		handle_timer();
 
 		tally_update();
+
+		radar_pattern_generator();
 	}
 }
 

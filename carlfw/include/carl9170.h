@@ -33,6 +33,7 @@
 #include "dma.h"
 #include "usb.h"
 #include "cmd.h"
+#include "radar.h"
 
 struct carl9170_bar_ctx {
 	uint8_t ta[6];
@@ -142,6 +143,10 @@ struct firmware_context_struct {
 		unsigned int ba_tail_idx,
 			     ba_head_idx,
 			     queued_ba;
+
+		unsigned int soft_radar,
+			     radar_last,
+			     pattern_index;
 	} wlan;
 
 	struct {
