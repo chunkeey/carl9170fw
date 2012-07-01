@@ -345,6 +345,16 @@ static bool wlan_tx_status(struct dma_queue *queue,
 	/* update hangcheck */
 	fw.wlan.last_super_num[qidx] = 0;
 
+	/*
+	 * Note:
+	 * There could be a corner case when the TXFAIL is set
+	 * even though the frame was properly ACKed by the peer:
+	 *   a BlockAckReq with the immediate policy will cause
+	 *   the receiving peer to produce a BlockACK unfortunately
+	 *   the MAC in this chip seems to be expecting a legacy
+	 *   ACK and marks the BAR as failed!
+	 */
+
 	if (!!(desc->ctrl & AR9170_CTRL_FAIL)) {
 		txfail = !!(desc->ctrl & AR9170_CTRL_TXFAIL);
 
