@@ -345,6 +345,16 @@ static bool wlan_tx_status(struct dma_queue *queue,
 	/* update hangcheck */
 	fw.wlan.last_super_num[qidx] = 0;
 
+	/*
+	 * Note:
+	 * There could be a corner case when the TXFAIL is set
+	 * even though the frame was properly ACKed by the peer:
+	 *   a BlockAckReq with the immediate policy will cause
+	 *   the receiving peer to produce a BlockACK unfortunately
+	 *   the MAC in this chip seems to be expecting a legacy
+	 *   ACK and marks the BAR as failed!
+	 */
+
 	if (!!(desc->ctrl & AR9170_CTRL_FAIL)) {
 		txfail = !!(desc->ctrl & AR9170_CTRL_TXFAIL);
 
@@ -554,7 +564,7 @@ static void wlan_send_buffered_ba(void)
 	baf->f.hdr.phy.mcs = AR9170_TXRX_PHY_RATE_OFDM_6M;
 
 	/* format outgoing BA */
-	ba->frame_control = cpu_to_le16(IEEE80211_FTYPE_CTL | IEEE80211_STYPE_NULLFUNC);
+	ba->frame_control = cpu_to_le16(IEEE80211_FTYPE_CTL | IEEE80211_STYPE_BACK);
 	ba->duration = cpu_to_le16(0);
 	memcpy(ba->ta, ctx->ta, 6);
 	memcpy(ba->ra, ctx->ra, 6);
@@ -566,11 +576,7 @@ static void wlan_send_buffered_ba(void)
 	 */
 	memset(ba->bitmap, 0x0, sizeof(ba->bitmap));
 
-	/*
-	 * NB:
-	 * not entirely sure if this is 100% correct?!
-	 */
-	ba->control = ctx->control | cpu_to_le16(1);
+	ba->control = ctx->control;
 	ba->start_seq_num = ctx->start_seq_num;
 	wlan_tx_fw(&baf->s, NULL);
 }
@@ -625,13 +631,7 @@ static void handle_bar(struct dma_desc *desc __unused, struct ieee80211_hdr *hdr
 	/* Brilliant! The BAR provides all necessary MACs! */
 	memcpy(ctx->ra, bar->ta, 6);
 	memcpy(ctx->ta, bar->ra, 6);
-
-	/*
-	 * NB:
-	 * not entirely sure if this is 100% correct to force the
-	 * imm ack bit or not...
-	 */
-	ctx->control = bar->control | cpu_to_le16(1);
+	ctx->control = bar->control;
 	ctx->start_seq_num = bar->start_seq_num;
 }
 
