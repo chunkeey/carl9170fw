@@ -142,6 +142,8 @@ struct firmware_context_struct {
 		unsigned int ba_tail_idx,
 			     ba_head_idx,
 			     queued_ba;
+
+		unsigned int queued_bar;
 	} wlan;
 
 	struct {

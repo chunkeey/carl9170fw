@@ -459,6 +459,10 @@ static bool wlan_tx_status(struct dma_queue *queue,
 
 	wlan_tx_complete(super, success);
 
+	if (ieee80211_is_back_req(super->f.data.i3e.frame_control)) {
+		fw.wlan.queued_bar--;
+	}
+
 	/* recycle freed descriptors */
 	dma_reclaim(&fw.pta.down_queue, desc);
 	down_trigger();
@@ -492,6 +496,10 @@ static void handle_tx_completion(void)
 void __hot wlan_tx(struct dma_desc *desc)
 {
 	struct carl9170_tx_superframe *super = DESC_PAYLOAD(desc);
+
+	if (ieee80211_is_back_req(super->f.data.i3e.frame_control)) {
+		fw.wlan.queued_bar++;
+	}
 
 	/* initialize rate control struct */
 	super->s.rix = 0;
@@ -693,12 +701,22 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 		switch (le16_to_cpu(hdr->frame_control) & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BACK_REQ:
 			handle_bar(desc, hdr, data_len, mac_err);
-			/* fallthrough */
 			rx_filter |= CARL9170_RX_FILTER_CTL_BACKR;
 			break;
 		case IEEE80211_STYPE_PSPOLL:
 			rx_filter |= CARL9170_RX_FILTER_CTL_PSPOLL;
 			break;
+		case IEEE80211_STYPE_BACK:
+			if (fw.wlan.queued_bar) {
+				/*
+				 * Don't filter block acks when the application
+				 * has queued BARs. This is because the firmware
+				 * can't do the accouting and the application
+				 * has to sort out if the BA belongs to any BARs.
+				 */
+				break;
+			}
+			/* otherwise fall through */
 		default:
 			rx_filter |= CARL9170_RX_FILTER_CTL_OTHER;
 			break;
