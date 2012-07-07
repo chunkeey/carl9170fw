@@ -144,6 +144,8 @@ struct firmware_context_struct {
 			     ba_head_idx,
 			     queued_ba;
 
+		unsigned int queued_bar;
+
 		unsigned int soft_radar,
 			     radar_last,
 			     pattern_index;

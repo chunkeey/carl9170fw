@@ -81,6 +81,9 @@ enum carl9170fw_feature_list {
 	/* Radar pattern generator */
 	CARL9170FW_RADAR_PATTERN_GENERATOR,
 
+	/* Firmware will pass BA when BARs are queued */
+	CARL9170FW_RX_BA_FILTER,
+
 	/* KEEP LAST */
 	__CARL9170FW_FEATURE_NUM
 };
