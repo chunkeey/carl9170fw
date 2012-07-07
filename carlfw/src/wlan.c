@@ -566,8 +566,10 @@ static void wlan_send_buffered_ba(void)
 	/* format outgoing BA */
 	ba->frame_control = cpu_to_le16(IEEE80211_FTYPE_CTL | IEEE80211_STYPE_BACK);
 	ba->duration = cpu_to_le16(0);
-	memcpy(ba->ta, ctx->ta, 6);
-	memcpy(ba->ra, ctx->ra, 6);
+
+	/* the BAR contains all necessary MACs. All we need is to swap them */
+	memcpy(ba->ra, ctx->ta, 6);
+	memcpy(ba->ta, ctx->ra, 6);
 
 	/*
 	 * Unfortunately, we cannot look into the hardware's scoreboard.
@@ -576,7 +578,11 @@ static void wlan_send_buffered_ba(void)
 	 */
 	memset(ba->bitmap, 0x0, sizeof(ba->bitmap));
 
-	ba->control = ctx->control;
+	/*
+	 * Both, the original firmare and ath9k set the NO ACK flag in
+	 * the BA Ack Policy subfield.
+	 */
+	ba->control = ctx->control | cpu_to_le16(1);
 	ba->start_seq_num = ctx->start_seq_num;
 	wlan_tx_fw(&baf->s, NULL);
 }
@@ -628,9 +634,8 @@ static void handle_bar(struct dma_desc *desc __unused, struct ieee80211_hdr *hdr
 
 	ctx = wlan_get_bar_cache_buffer();
 
-	/* Brilliant! The BAR provides all necessary MACs! */
-	memcpy(ctx->ra, bar->ta, 6);
-	memcpy(ctx->ta, bar->ra, 6);
+	memcpy(ctx->ra, bar->ra, 6);
+	memcpy(ctx->ta, bar->ta, 6);
 	ctx->control = bar->control;
 	ctx->start_seq_num = bar->start_seq_num;
 }
