@@ -457,19 +457,11 @@ static bool wlan_tx_status(struct dma_queue *queue,
 		fw.wlan.cab_queue_len[super->s.vif_id]--;
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
-	if (unlikely(ieee80211_is_back_req(super->f.data.i3e.frame_control))) {
-		/*
-		 * As explained above, the hardware seems to be
-		 * incapable of matching BA to BARs. This is a
-		 * problem especially with mac80211, because it
-		 * does resent failed BARs which of course cause
-		 * some mayhem in the receiver buffer at the HT
-		 * peer on the other end.
-		 */
-		success = true;
-	}
-
 	wlan_tx_complete(super, success);
+
+	if (ieee80211_is_back_req(super->f.data.i3e.frame_control)) {
+		fw.wlan.queued_bar--;
+	}
 
 	/* recycle freed descriptors */
 	dma_reclaim(&fw.pta.down_queue, desc);
@@ -504,6 +496,10 @@ static void handle_tx_completion(void)
 void __hot wlan_tx(struct dma_desc *desc)
 {
 	struct carl9170_tx_superframe *super = DESC_PAYLOAD(desc);
+
+	if (ieee80211_is_back_req(super->f.data.i3e.frame_control)) {
+		fw.wlan.queued_bar++;
+	}
 
 	/* initialize rate control struct */
 	super->s.rix = 0;
@@ -578,8 +574,10 @@ static void wlan_send_buffered_ba(void)
 	/* format outgoing BA */
 	ba->frame_control = cpu_to_le16(IEEE80211_FTYPE_CTL | IEEE80211_STYPE_BACK);
 	ba->duration = cpu_to_le16(0);
-	memcpy(ba->ta, ctx->ta, 6);
-	memcpy(ba->ra, ctx->ra, 6);
+
+	/* the BAR contains all necessary MACs. All we need is to swap them */
+	memcpy(ba->ra, ctx->ta, 6);
+	memcpy(ba->ta, ctx->ra, 6);
 
 	/*
 	 * Unfortunately, we cannot look into the hardware's scoreboard.
@@ -588,7 +586,11 @@ static void wlan_send_buffered_ba(void)
 	 */
 	memset(ba->bitmap, 0x0, sizeof(ba->bitmap));
 
-	ba->control = ctx->control;
+	/*
+	 * Both, the original firmare and ath9k set the NO ACK flag in
+	 * the BA Ack Policy subfield.
+	 */
+	ba->control = ctx->control | cpu_to_le16(1);
 	ba->start_seq_num = ctx->start_seq_num;
 	wlan_tx_fw(&baf->s, NULL);
 }
@@ -640,9 +642,8 @@ static void handle_bar(struct dma_desc *desc __unused, struct ieee80211_hdr *hdr
 
 	ctx = wlan_get_bar_cache_buffer();
 
-	/* Brilliant! The BAR provides all necessary MACs! */
-	memcpy(ctx->ra, bar->ta, 6);
-	memcpy(ctx->ta, bar->ra, 6);
+	memcpy(ctx->ra, bar->ra, 6);
+	memcpy(ctx->ta, bar->ta, 6);
 	ctx->control = bar->control;
 	ctx->start_seq_num = bar->start_seq_num;
 }
@@ -700,12 +701,22 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 		switch (le16_to_cpu(hdr->frame_control) & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BACK_REQ:
 			handle_bar(desc, hdr, data_len, mac_err);
-			/* fallthrough */
 			rx_filter |= CARL9170_RX_FILTER_CTL_BACKR;
 			break;
 		case IEEE80211_STYPE_PSPOLL:
 			rx_filter |= CARL9170_RX_FILTER_CTL_PSPOLL;
 			break;
+		case IEEE80211_STYPE_BACK:
+			if (fw.wlan.queued_bar) {
+				/*
+				 * Don't filter block acks when the application
+				 * has queued BARs. This is because the firmware
+				 * can't do the accouting and the application
+				 * has to sort out if the BA belongs to any BARs.
+				 */
+				break;
+			}
+			/* otherwise fall through */
 		default:
 			rx_filter |= CARL9170_RX_FILTER_CTL_OTHER;
 			break;
