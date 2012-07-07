@@ -457,18 +457,6 @@ static bool wlan_tx_status(struct dma_queue *queue,
 		fw.wlan.cab_queue_len[super->s.vif_id]--;
 #endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
-	if (unlikely(ieee80211_is_back_req(super->f.data.i3e.frame_control))) {
-		/*
-		 * As explained above, the hardware seems to be
-		 * incapable of matching BA to BARs. This is a
-		 * problem especially with mac80211, because it
-		 * does resent failed BARs which of course cause
-		 * some mayhem in the receiver buffer at the HT
-		 * peer on the other end.
-		 */
-		success = true;
-	}
-
 	wlan_tx_complete(super, success);
 
 	/* recycle freed descriptors */
