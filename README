@@ -9,7 +9,7 @@ You can build your own toolchain:
 make -C toolchain
 
 but be aware that this will take some time and requires
-about 1.2 GiB disk space.
+about 2.4 GiB disk space.
 
 The resulting firmware, carl9170.fw, can be used only
 with the carl9170 Linux driver.
