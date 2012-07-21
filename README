@@ -17,15 +17,11 @@ with the carl9170 Linux driver.
 After getting a toolchain, you will need to get more
 tools & libs:
 
- * gcc 4.4+
+ * gcc 4.7+
 
  * gperf, bison/flex
 
- * cmake 2.8.0+
-
- * libusb 1.0+
-
- * SDL SDK 1.2.13+
+ * cmake 2.8.4+
 
 afterwards, simply execute:
 
