@@ -9,7 +9,7 @@ You can build your own toolchain:
 make -C toolchain
 
 but be aware that this will take some time and requires
-about 1.2 GiB disk space.
+about 2.4 GiB disk space.
 
 The resulting firmware, carl9170.fw, can be used only
 with the carl9170 Linux driver.
@@ -17,15 +17,11 @@ with the carl9170 Linux driver.
 After getting a toolchain, you will need to get more
 tools & libs:
 
- * gcc 4.4+
+ * gcc 4.7+
 
  * gperf, bison/flex
 
- * cmake 2.8.0+
-
- * libusb 1.0+
-
- * SDL SDK 1.2.13+
+ * cmake 2.8.4+
 
 afterwards, simply execute:
 
