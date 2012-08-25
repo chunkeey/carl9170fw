@@ -4,7 +4,7 @@ project(tools)
 
 add_custom_target(wol ALL COMMAND gcc wol.c -o wol)
 
-set(tools fwinfo miniboot checksum eeprom_fix)
+set(tools fwinfo miniboot checksum)
 
 foreach(tool ${tools})
 	add_executable( ${tool} ${tool}.c )
