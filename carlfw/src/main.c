@@ -203,10 +203,10 @@ static void radar_pattern_generator(void)
 			const struct radar_info_pattern *pattern = &radar->pattern[fw.wlan.pattern_index];
 			if (is_after_usecs(fw.wlan.radar_last, pattern->pulse_interval)) {
 				fw.wlan.radar_last = get_clock_counter();
-				//set(PATTERN, pattern->pulse_pattern);
-				//set(MODE, pattern->pulse_mode);
+				set(0x1C3BC0, pattern->pulse_pattern);
+				set(0x1C3BBC, pattern->pulse_mode);
 				udelay(pattern->pulse_width);
-				//set(MODE, ~pattern->pulse_mode);
+				set(0x1C3BBC, ~pattern->pulse_mode);
 				fw.wlan.pattern_index++;
 			}
 		}
