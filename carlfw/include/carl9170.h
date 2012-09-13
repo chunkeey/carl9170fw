@@ -146,9 +146,11 @@ struct firmware_context_struct {
 
 		unsigned int queued_bar;
 
+#ifdef CONFIG_CARL9170FW_RADAR
 		unsigned int soft_radar,
 			     radar_last,
 			     pattern_index;
+#endif /* CONFIG_CARL9170FW_RADAR */
 	} wlan;
 
 	struct {

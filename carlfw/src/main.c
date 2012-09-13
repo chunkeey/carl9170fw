@@ -186,6 +186,7 @@ static void tally_update(void)
 	fw.counter++;
 }
 
+#ifdef CONFIG_CARL9170FW_RADAR
 static void radar_pattern_generator(void)
 {
 	if (fw.phy.state == CARL9170_PHY_ON) {
@@ -211,6 +212,11 @@ static void radar_pattern_generator(void)
 		}
 	}
 }
+#else
+static void radar_pattern_generator(void)
+{
+}
+#endif /* CONFIG_CARL9170FW_RADAR */
 
 static void __noreturn main_loop(void)
 {
