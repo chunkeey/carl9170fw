@@ -42,8 +42,6 @@ Boston, MA 02110-1301, USA.  */
 	.global	___udivsi3_i4i
 	.global	___udivsi3_i4
 	.set	___udivsi3_i4, ___udivsi3_i4i
-	.type	___udivsi3_i4i, @function
-	.type	___sdivsi3_i4i, @function
 ___udivsi3_i4i:
 	sts pr,r1
 	mov.l r4,@-r15

@@ -246,7 +246,7 @@ static void __noreturn main_loop(void)
  * we put _start() there with the linker script carl9170.lds.
  */
 
-void __section(boot) start(void)
+void __section(boot) __noreturn __visible start(void)
 {
 	clock_set(AHB_40MHZ_OSC, true);
 
