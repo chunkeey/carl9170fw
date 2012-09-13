@@ -1,7 +1,7 @@
 /*
  * carl9170 firmware - used by the ar9170 wireless device
  *
- * WLAN
+ * shared WLAN functions, interfaces and definitions
  *
  * Copyright (c) 2000-2005 ZyDAS Technology Corporation
  * Copyright (c) 2007-2009 Atheros Communications, Inc.
@@ -268,6 +268,14 @@ void wlan_tx(struct dma_desc *desc);
 void wlan_tx_fw(struct carl9170_tx_superdesc *super, fw_desc_callback_t cb);
 void wlan_timer(void);
 void handle_wlan(void);
+
+void handle_wlan_rx(void);
+
+void wlan_send_buffered_tx_status(void);
+void wlan_send_buffered_cab(void);
+void wlan_send_buffered_ba(void);
+void handle_wlan_tx_completion(void);
+void wlan_dma_bump(unsigned int qidx);
 
 void wlan_cab_flush_queue(const unsigned int vif);
 void wlan_modify_beacon(const unsigned int vif,

@@ -88,10 +88,8 @@ void dma_init_descriptors(void)
 	fw.usb.int_desc = &dma_mem.terminator[i++];
 	fw.wlan.fw_desc = &dma_mem.terminator[i++];
 
-#ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	for (j = 0; j < CARL9170_INTF_NUM; j++)
 		init_queue(&fw.wlan.cab_queue[j], &dma_mem.terminator[i++]);
-#endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	BUG_ON(AR9170_TERMINATOR_NUMBER != i);
 
