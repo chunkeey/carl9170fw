@@ -452,10 +452,8 @@ static bool wlan_tx_status(struct dma_queue *queue,
 		return true;
 	}
 
-#ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	if (unlikely(super->s.cab))
 		fw.wlan.cab_queue_len[super->s.vif_id]--;
-#endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	wlan_tx_complete(super, success);
 
@@ -506,13 +504,11 @@ void __hot wlan_tx(struct dma_desc *desc)
 	super->s.cnt = 1;
 	hide_super(desc);
 
-#ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	if (unlikely(super->s.cab)) {
 		fw.wlan.cab_queue_len[super->s.vif_id]++;
 		dma_put(&fw.wlan.cab_queue[super->s.vif_id], desc);
 		return;
 	}
-#endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	_wlan_tx(desc);
 	__wlan_tx(desc);
@@ -751,7 +747,6 @@ static void handle_rx(void)
 	}
 }
 
-#ifdef CONFIG_CARL9170FW_CAB_QUEUE
 void wlan_cab_flush_queue(const unsigned int vif)
 {
 	struct dma_queue *cab_queue = &fw.wlan.cab_queue[vif];
@@ -872,7 +867,6 @@ static void wlan_send_buffered_cab(void)
 
 	}
 }
-#endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 static void handle_beacon_config(void)
 {
@@ -885,9 +879,7 @@ static void handle_beacon_config(void)
 
 static void handle_pretbtt(void)
 {
-#ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	fw.wlan.cab_flush_time = get_clock_counter();
-#endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 	rf_psm();
@@ -920,9 +912,7 @@ static void handle_radar(void)
 
 static void wlan_janitor(void)
 {
-#ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	wlan_send_buffered_cab();
-#endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 	wlan_send_buffered_tx_status();
 

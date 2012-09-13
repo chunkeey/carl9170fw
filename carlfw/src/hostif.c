@@ -235,7 +235,6 @@ void handle_cmd(struct carl9170_rsp *resp)
 		memset(&fw.tally, 0, sizeof(struct carl9170_tally_rsp));
 		break;
 
-#ifdef CONFIG_CARL9170FW_CAB_QUEUE
 	case CARL9170_CMD_BCN_CTRL:
 		resp->hdr.len = 0;
 
@@ -250,7 +249,6 @@ void handle_cmd(struct carl9170_rsp *resp)
 			fw.wlan.cab_flush_trigger[cmd->bcn_ctrl.vif_id] = CARL9170_CAB_TRIGGER_EMPTY;
 		}
 		break;
-#endif /* CONFIG_CARL9170FW_CAB_QUEUE */
 
 #ifdef CONFIG_CARL9170FW_SECURITY_ENGINE
 	case CARL9170_CMD_EKEY:
