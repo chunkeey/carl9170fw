@@ -1,6 +1,6 @@
 src/checksum
 src/fwinfo
+src/fwprepare
 src/miniboot
-src/eeprom_fix
 src/wol
 carlu/carlu

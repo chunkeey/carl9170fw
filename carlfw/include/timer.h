@@ -85,4 +85,7 @@ static inline __inline void udelay(const uint32_t usec)
 }
 
 void clock_set(enum cpu_clock_t _clock, bool on);
+void handle_timer(void);
+void timer_init(const unsigned int timer, const unsigned int interval);
+
 #endif /* __CARL9170FW_TIMER_H */
