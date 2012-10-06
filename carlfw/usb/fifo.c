@@ -28,29 +28,29 @@
 
 /* TODO / TOTEST */
 #ifdef CONFIG_CARL9170FW_USB_MODESWITCH
-static inline void usb_ep_map(const uint8_t ep, const uint8_t map)
+static void usb_ep_map(const uint8_t ep, const uint8_t map)
 {
 	setb(AR9170_USB_REG_EP_MAP + (ep - 1), map);
 }
 
-static inline void usb_fifo_map(const uint8_t fifo, const uint8_t map)
+static void usb_fifo_map(const uint8_t fifo, const uint8_t map)
 {
 	setb(AR9170_USB_REG_FIFO_MAP + (fifo - 1), map);
 }
 
-static inline void usb_fifo_config(const uint8_t fifo, const uint8_t cfg)
+static void usb_fifo_config(const uint8_t fifo, const uint8_t cfg)
 {
 	setb(AR9170_USB_REG_FIFO_CONFIG + (fifo - 1), cfg);
 }
 
-static inline void usb_ep_packet_size_hi(const uint8_t ep, const uint8_t dir,
+static void usb_ep_packet_size_hi(const uint8_t ep, const uint8_t dir,
 			     const uint16_t size)
 {
 	setb(AR9170_USB_REG_EP_IN_MAX_SIZE_HIGH + (((dir * 0x20) + ep) << 1),
 	     (size >> 8) & 0xf);
 }
 
-static inline void usb_ep_packet_size_lo(const uint8_t ep, const uint8_t dir,
+static void usb_ep_packet_size_lo(const uint8_t ep, const uint8_t dir,
 			    const uint16_t size)
 {
 	setb(AR9170_USB_REG_EP_IN_MAX_SIZE_LOW + (((dir * 0x20) + ep) << 1),
