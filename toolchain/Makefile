@@ -1,14 +1,14 @@
 BINUTILS_VER=2.22
-BINUTILS_URL=http://mirrors.kernel.org/gnu/binutils/binutils-$(BINUTILS_VER).tar.bz2
 BINUTILS_TAR=binutils-$(BINUTILS_VER).tar.bz2
+BINUTILS_URL="http://mirrors.kernel.org/gnu/binutils/$(BINUTILS_TAR)"
 
 NEWLIB_VER=1.20.0
-NEWLIB_URL=ftp://sources.redhat.com/pub/newlib/newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
+NEWLIB_URL="ftp://sources.redhat.com/pub/newlib/$(NEWLIB_TAR)"
 
 GCC_VER=4.7.2
-GCC_URL=http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/gcc-$(GCC_VER).tar.bz2
 GCC_TAR=gcc-$(GCC_VER).tar.bz2
+GCC_URL="http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/$(GCC_TAR)"
 
 BASEDIR=$(shell pwd)
 
@@ -24,13 +24,13 @@ src/$(GCC_TAR):
 	wget -P src $(GCC_URL)
 
 src/binutils-$(BINUTILS_VER): src/$(BINUTILS_TAR)
-	tar -C src -xjf $<
+	tar -C src -xf $<
 
 src/newlib-$(NEWLIB_VER): src/$(NEWLIB_TAR)
-	tar -C src -xzf $<
+	tar -C src -xf $<
 
 src/gcc-$(GCC_VER): src/$(GCC_TAR) src/newlib-$(NEWLIB_VER)
-	tar -C src -xjf $<
+	tar -C src -xf $<
 	ln -s $(BASEDIR)/src/newlib-$(NEWLIB_VER)/newlib $@
 	ln -s $(BASEDIR)/src/newlib-$(NEWLIB_VER)/libgloss $@
 
