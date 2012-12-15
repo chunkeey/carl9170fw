@@ -1137,20 +1137,6 @@ struct ieee80211_ht_operation {
 #define WLAN_HT_SMPS_CONTROL_STATIC	1
 #define WLAN_HT_SMPS_CONTROL_DYNAMIC	3
 
-#define VHT_MCS_SUPPORTED_SET_SIZE      8
-
-struct ieee80211_vht_capabilities {
-	__le32 vht_capabilities_info;
-	u8 vht_supported_mcs_set[VHT_MCS_SUPPORTED_SET_SIZE];
-} __packed;
-
-struct ieee80211_vht_operation {
-	u8 vht_op_info_chwidth;
-	u8 vht_op_info_chan_center_freq_seg1_idx;
-	u8 vht_op_info_chan_center_freq_seg2_idx;
-	__le16 vht_basic_mcs_set;
-} __packed;
-
 /**
  * struct ieee80211_vht_mcs_info - VHT MCS information
  * @rx_mcs_map: RX MCS map 2 bits for each stream, total 8 streams
@@ -1170,6 +1156,37 @@ struct ieee80211_vht_mcs_info {
 	__le16 tx_mcs_map;
 	__le16 tx_highest;
 } __packed;
+
+/**
+ * struct ieee80211_vht_cap - VHT capabilities
+ *
+ * This structure is the "VHT capabilities element" as
+ * described in 802.11ac D3.0 8.4.2.160
+ * @vht_cap_info: VHT capability info
+ * @supp_mcs: VHT MCS supported rates
+ */
+struct ieee80211_vht_cap {
+	__le32 vht_cap_info;
+	struct ieee80211_vht_mcs_info supp_mcs;
+} __packed;
+
+/**
+ * struct ieee80211_vht_operation - VHT operation IE
+ *
+ * This structure is the "VHT operation element" as
+ * described in 802.11ac D3.0 8.4.2.161
+ * @chan_width: Operating channel width
+ * @center_freq_seg1_idx: center freq segment 1 index
+ * @center_freq_seg2_idx: center freq segment 2 index
+ * @basic_mcs_set: VHT Basic MCS rate set
+ */
+struct ieee80211_vht_operation {
+	u8 chan_width;
+	u8 center_freq_seg1_idx;
+	u8 center_freq_seg2_idx;
+	__le16 basic_mcs_set;
+} __packed;
+
 
 #define IEEE80211_VHT_MCS_ZERO_TO_SEVEN_SUPPORT 0
 #define IEEE80211_VHT_MCS_ZERO_TO_EIGHT_SUPPORT 1
@@ -1470,8 +1487,6 @@ enum ieee80211_eid {
 
 	WLAN_EID_RSN = 48,
 	WLAN_EID_MMIE = 76,
-	WLAN_EID_WPA = 221,
-	WLAN_EID_GENERIC = 221,
 	WLAN_EID_VENDOR_SPECIFIC = 221,
 	WLAN_EID_QOS_PARAMETER = 222,
 
@@ -1965,36 +1980,6 @@ static inline bool ieee80211_is_public_action(struct ieee80211_hdr *hdr,
 }
 
 /**
- * ieee80211_fhss_chan_to_freq - get channel frequency
- * @channel: the FHSS channel
- *
- * Convert IEEE802.11 FHSS channel to frequency (MHz)
- * Ref IEEE 802.11-2007 section 14.6
- */
-static inline int ieee80211_fhss_chan_to_freq(int channel)
-{
-	if ((channel > 1) && (channel < 96))
-		return channel + 2400;
-	else
-		return -1;
-}
-
-/**
- * ieee80211_freq_to_fhss_chan - get channel
- * @freq: the channels frequency
- *
- * Convert frequency (MHz) to IEEE802.11 FHSS channel
- * Ref IEEE 802.11-2007 section 14.6
- */
-static inline int ieee80211_freq_to_fhss_chan(int freq)
-{
-	if ((freq > 2401) && (freq < 2496))
-		return freq - 2400;
-	else
-		return -1;
-}
-
-/**
  * ieee80211_dsss_chan_to_freq - get channel center frequency
  * @channel: the DSSS channel
  *
@@ -2026,56 +2011,6 @@ static inline int ieee80211_freq_to_dsss_chan(int freq)
 		return (freq - 2405) / 5;
 	else if ((freq >= 2482) && (freq < 2487))
 		return 14;
-	else
-		return -1;
-}
-
-/* Convert IEEE802.11 HR DSSS channel to frequency (MHz) and back
- * Ref IEEE 802.11-2007 section 18.4.6.2
- *
- * The channels and frequencies are the same as those defined for DSSS
- */
-#define ieee80211_hr_chan_to_freq(chan) ieee80211_dsss_chan_to_freq(chan)
-#define ieee80211_freq_to_hr_chan(freq) ieee80211_freq_to_dsss_chan(freq)
-
-/* Convert IEEE802.11 ERP channel to frequency (MHz) and back
- * Ref IEEE 802.11-2007 section 19.4.2
- */
-#define ieee80211_erp_chan_to_freq(chan) ieee80211_hr_chan_to_freq(chan)
-#define ieee80211_freq_to_erp_chan(freq) ieee80211_freq_to_hr_chan(freq)
-
-/**
- * ieee80211_ofdm_chan_to_freq - get channel center frequency
- * @s_freq: starting frequency == (dotChannelStartingFactor/2) MHz
- * @channel: the OFDM channel
- *
- * Convert IEEE802.11 OFDM channel to center frequency (MHz)
- * Ref IEEE 802.11-2007 section 17.3.8.3.2
- */
-static inline int ieee80211_ofdm_chan_to_freq(int s_freq, int channel)
-{
-	if ((channel > 0) && (channel <= 200) &&
-	    (s_freq >= 4000))
-		return s_freq + (channel * 5);
-	else
-		return -1;
-}
-
-/**
- * ieee80211_freq_to_ofdm_channel - get channel
- * @s_freq: starting frequency == (dotChannelStartingFactor/2) MHz
- * @freq: the frequency
- *
- * Convert frequency (MHz) to IEEE802.11 OFDM channel
- * Ref IEEE 802.11-2007 section 17.3.8.3.2
- *
- * This routine selects the channel with the closest center frequency.
- */
-static inline int ieee80211_freq_to_ofdm_chan(int s_freq, int freq)
-{
-	if ((freq > (s_freq + 2)) && (freq <= (s_freq + 1202)) &&
-	    (s_freq >= 4000))
-		return (freq + 2 - s_freq) / 5;
 	else
 		return -1;
 }
