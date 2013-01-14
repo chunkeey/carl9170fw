@@ -27,10 +27,15 @@ case "$1" in
 		make
 
 		echo -n "Installing firmware..."
-		if [ "$CONFIG_CARL9170FW_BUILD_TOOLS" = "y" ] &&
-		   [ "$CONFIG_CARL9170FW_BUILD_MINIBOOT" = "y" ]; then
+		if [ "$CONFIG_CARL9170FW_BUILD_TOOLS" = "y" ]; then
+
+		if [ "$CONFIG_CARL9170FW_BUILD_MINIBOOT" = "y" ]; then
 			echo -n "Apply miniboot..."
+			# also adds checksum
 			tools/src/miniboot a carlfw/carl9170.fw minifw/miniboot.fw
+		else
+			echo -n "Add checksum..."
+			tools/src/checksum carlfw/carl9170.fw
 		fi
 
 		sudo install -m 644 carlfw/carl9170.fw \
