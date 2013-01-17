@@ -9,7 +9,8 @@ case "$1" in
 		cmake .
 		make
 		popd
-		config/conf Kconfig
+		shift 1
+		config/conf Kconfig "$@"
 		cmake .
 	;;
 
@@ -44,7 +45,7 @@ case "$1" in
 	;;
 
 	*)
-		$0 config
+		$0 config "$@"
 		$0 compile
 	;;
 
