@@ -258,9 +258,9 @@ static void __wlan_tx(struct dma_desc *desc)
 
 	wlan_tx_ampdu(super);
 
-#ifdef CONFIG_CARL9170FW_DEBUG
+#if (defined CONFIG_CARL9170FW_DEBUG) && (defined CONFIG_CARL9170FW_RADIO_FUNCTIONS)
 	BUG_ON(fw.phy.psm.state != CARL9170_PSM_WAKE);
-#endif /* CONFIG_CARL9170FW_DEBUG */
+#endif /* CONFIG_CARL9170FW_DEBUG && CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 
 	/* insert desc into the right queue */
 	dma_put(&fw.wlan.tx_queue[super->s.queue], desc);
