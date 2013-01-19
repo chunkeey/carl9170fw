@@ -33,7 +33,7 @@ void uart_putc(const char c)
 	set(AR9170_UART_REG_TX_HOLDING, c);
 
 	while (get(AR9170_UART_REG_LINE_STATUS) &
-	       AR9170_UART_LINE_STS_TX_FIFO_ALMOST_EMPTY) {
+	       AR9170_UART_LINE_STS_TX_FIFO_NEAR_EMPTY) {
 		/*
 		 * wait until the byte has made it
 		 */

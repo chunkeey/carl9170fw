@@ -186,10 +186,15 @@ static void *__carlfw_find_desc(struct carlfw_file *file,
 				unsigned int len,
 				uint8_t compatible_revision)
 {
-	int scan = file->len, found = 0;
+	int scan, found = 0;
 	struct carl9170fw_desc_head *tmp = NULL;
 
-	while (scan >= 0) {
+	/*
+	 * Note: the last desc also has atleast a full desc_head.
+	 * There's no reason for looking beyond that point.
+	 */
+	scan = (file->len - 1) - (sizeof(*tmp) - CARL9170FW_MAGIC_SIZE);
+	while (scan > 0) {
 		if (file->data[scan] == descid[CARL9170FW_MAGIC_SIZE - found - 1])
 			found++;
 		else
@@ -202,10 +207,13 @@ static void *__carlfw_find_desc(struct carlfw_file *file,
 	}
 
 	if (found == CARL9170FW_MAGIC_SIZE) {
+		u16 tmp_desc_len;
+
 		tmp = (void *) &file->data[scan];
+		tmp_desc_len = le16_to_cpu(tmp->length);
 
 		if (!CHECK_HDR_VERSION(tmp, compatible_revision) &&
-		    (le16_to_cpu(tmp->length) >= len))
+		    (scan + tmp_desc_len <= file->len) && (tmp_desc_len >= len))
 			return tmp;
 	}
 

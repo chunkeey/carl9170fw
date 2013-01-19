@@ -56,7 +56,7 @@ static void wlan_dump_queue(unsigned int qidx)
 		entries++;
 	}
 
-	desc = get_wlan_txq_addr(qidx);
+	desc = (struct dma_desc *)get_wlan_txq_addr(qidx);
 
 	DBG("Queue: %d: te:%d td:%d h:%p c:%p t:%p",
 	    qidx, entries, queue_len(&fw.wlan.tx_queue[qidx]),
