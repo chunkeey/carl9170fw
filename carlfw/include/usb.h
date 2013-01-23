@@ -141,6 +141,12 @@ static inline __inline void usb_clear_input_ep_toggle(unsigned int ep)
 	     ~AR9170_USB_EP_IN_TOGGLE);
 }
 
+static inline __inline void usb_clear_input_ep_stall(unsigned int ep)
+{
+	andl(AR9170_USB_REG_EP_IN_MAX_SIZE_HIGH + (ep << 1),
+	     ~AR9170_USB_EP_IN_STALL);
+}
+
 static inline __inline void usb_set_input_ep_toggle(unsigned int ep)
 {
 	orl(AR9170_USB_REG_EP_IN_MAX_SIZE_HIGH + (ep << 1),
@@ -157,6 +163,12 @@ static inline __inline void usb_set_output_ep_toggle(unsigned int ep)
 {
 	orl(AR9170_USB_REG_EP_OUT_MAX_SIZE_HIGH + (ep << 1),
 	    AR9170_USB_EP_OUT_TOGGLE);
+}
+
+static inline __inline void usb_clear_output_ep_stall(unsigned int ep)
+{
+	andl(AR9170_USB_REG_EP_OUT_MAX_SIZE_HIGH + (ep << 1),
+	     ~AR9170_USB_EP_OUT_STALL);
 }
 
 static inline void usb_structure_check(void)
