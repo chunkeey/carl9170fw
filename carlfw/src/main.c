@@ -85,10 +85,13 @@ static void handle_fw(void)
 
 static void tally_update(void)
 {
-	unsigned int boff, time, delta;
+	unsigned int time;
 
 	time = get_clock_counter();
+#ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 	if (fw.phy.state == CARL9170_PHY_ON) {
+		unsigned int boff, delta;
+
 		delta = (time - fw.tally_clock);
 
 		fw.tally.active += delta;
@@ -99,7 +102,7 @@ static void tally_update(void)
 		if (boff & AR9170_MAC_BACKOFF_CCA)
 			fw.tally.cca += delta;
 	}
-
+#endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 	fw.tally_clock = time;
 	fw.counter++;
 }

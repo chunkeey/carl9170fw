@@ -200,7 +200,7 @@ config CARL9170FW_UNUSABLE
 config CARL9170FW_USB_MODESWITCH
 	def_bool n
 	prompt "USB 1.1 / 2.0 switching support"
-	depends on CARL9170FW_BROKEN_FEATURES
+	depends on CARL9170FW_BROKEN_FEATURES && CARL9170FW_USB_STANDARD_CMDS
 	---help---
 	 Mostly implemented, but untested and some serious
 	 doubts remain.
