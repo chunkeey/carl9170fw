@@ -33,15 +33,35 @@
 #include "linux/ieee80211.h"
 #include "wol.h"
 
-static void wlan_txunstuck(unsigned int queue)
+static void wlan_txunstuck(unsigned int qidx)
 {
-	set_wlan_txq_dma_addr(queue, ((uint32_t) fw.wlan.tx_queue[queue].head) | 1);
+	struct dma_queue *queue = &fw.wlan.tx_queue[qidx];
+	struct dma_desc *iter;
+
+	/*
+	 * walk up to the last descriptor which hasn't been
+	 * processed by the hardware before it bailed out
+	 * due to a TX error.
+	 * Note: if there was no more "pending" frame
+	 * in the queue, it iter will be on the
+	 *    queue->terminator (which is fine)
+	 */
+	__for_each_desc_bits(iter, queue, AR9170_OWN_BITS_SW);
+
+	set_wlan_txq_dma_addr(qidx, ((uint32_t) iter) | 1);
+	wlan_trigger(BIT(qidx));
 }
 
 #ifdef CONFIG_CARL9170FW_DMA_QUEUE_BUMP
-static void wlan_txupdate(unsigned int queue)
+static void wlan_txupdate(unsigned int qidx)
 {
-	set_wlan_txq_dma_addr(queue, ((uint32_t) fw.wlan.tx_queue[queue].head));
+	struct dma_queue *queue = &fw.wlan.tx_queue[qidx];
+	struct dma_desc *iter;
+	/* comment in wlan_txunstuck applies here too. */
+	__for_each_desc_bits(iter, queue, AR9170_OWN_BITS_SW);
+
+	set_wlan_txq_dma_addr(qidx, ((uint32_t) iter));
+	wlan_trigger(BIT(qidx));
 }
 
 void wlan_dma_bump(unsigned int qidx)
@@ -367,7 +387,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 				wlan_txunstuck(qidx);
 
 				/* abort cycle - this is necessary due to HW design */
-				return false;
+				goto out;
 			} else {
 				/* (HT-) BlockACK failure */
 
@@ -383,7 +403,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 				BUG_ON(dma_unlink_head(queue) != desc);
 #endif /* CONFIG_CARL9170FW_DEBUG */
 				dma_put(&fw.wlan.tx_retry, desc);
-				return true;
+				goto out;
 			}
 		} else {
 			/* out of frame attempts - discard frame */
@@ -415,7 +435,7 @@ static bool wlan_tx_status(struct dma_queue *queue,
 		if (fw.wlan.fw_desc_callback)
 			fw.wlan.fw_desc_callback(super, success);
 
-		return true;
+		goto out;
 	}
 
 	if (unlikely(super->s.cab))
@@ -430,7 +450,12 @@ static bool wlan_tx_status(struct dma_queue *queue,
 	/* recycle freed descriptors */
 	dma_reclaim(&fw.pta.down_queue, desc);
 	down_trigger();
-	return true;
+out:
+	/*
+	 * if we encounter a frame which run out of (normal)
+	 * tx retries we have to stop too.
+	 */
+	return !txfail;
 }
 
 void handle_wlan_tx_completion(void)
