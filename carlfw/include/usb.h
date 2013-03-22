@@ -184,6 +184,7 @@ void __noreturn jump_to_bootcode(void);
 void send_cmd_to_host(const uint8_t len, const uint8_t type,
 		      const uint8_t ext, const uint8_t *body);
 
+void usb_reset_eps(void);
 void usb_init(void);
 void usb_ep0rx(void);
 void usb_ep0tx(void);

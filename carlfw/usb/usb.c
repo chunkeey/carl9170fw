@@ -166,8 +166,7 @@ static struct ar9170_usb_config usb_config_fullspeed = {
 	},
 };
 
-#ifdef CONFIG_CARL9170FW_USB_MODESWITCH
-static void usb_reset_eps(void)
+void usb_reset_eps(void)
 {
 	unsigned int i;
 
@@ -188,8 +187,6 @@ static void usb_reset_eps(void)
 		usb_clear_output_ep_stall(i);
 	}
 }
-#endif /* CONFIG_CARL9170FW_USB_MODESWITCH */
-
 
 static void usb_pta_init(void)
 {
@@ -503,7 +500,7 @@ static int usb_get_configuration(const struct usb_ctrlrequest *ctrl)
 	if (USB_CHECK_REQTYPE(ctrl, USB_RECIP_DEVICE, USB_DIR_IN))
 		return -1;
 
-	return usb_ep0tx_data(&fw.usb.config, 1);
+	return usb_ep0tx_data(&fw.usb.config, fw.usb.config);
 }
 
 static int usb_set_configuration(const struct usb_ctrlrequest *ctrl)
@@ -519,10 +516,10 @@ static int usb_set_configuration(const struct usb_ctrlrequest *ctrl)
 		/* Disable Device */
 		andb(AR9170_USB_REG_DEVICE_ADDRESS,
 		      (uint8_t) ~(AR9170_USB_DEVICE_ADDRESS_CONFIGURE));
-#ifdef CONFIG_CARL9170FW_USB_MODESWITCH
 	case 1:
 		fw.usb.config = config;
 
+#ifdef CONFIG_CARL9170FW_USB_MODESWITCH
 		if (usb_detect_highspeed()) {
 			/* High Speed Configuration */
 			usb_init_highspeed_fifo_cfg();
@@ -530,25 +527,21 @@ static int usb_set_configuration(const struct usb_ctrlrequest *ctrl)
 			/* Full Speed Configuration */
 			usb_init_fullspeed_fifo_cfg();
 		}
+		/* usb_pta_init() ? */
 		break;
-
-	default:
-		return -1;
-	}
-	/* usb_pta_init() ? */
-
-	usb_reset_eps();
-	orb(AR9170_USB_REG_DEVICE_ADDRESS,
-	    (AR9170_USB_DEVICE_ADDRESS_CONFIGURE));
-
-	usb_enable_global_int();
-	usb_trigger_out();
-	return 1;
-#else
-	default:
-		return -1;
-	}
 #endif /* CONFIG_CARL9170FW_USB_MODESWITCH */
+
+		usb_reset_eps();
+		orb(AR9170_USB_REG_DEVICE_ADDRESS,
+		    (AR9170_USB_DEVICE_ADDRESS_CONFIGURE));
+
+		usb_enable_global_int();
+		usb_trigger_out();
+		return 1;
+
+	default:
+		return -1;
+	}
 }
 
 static int usb_set_address(const struct usb_ctrlrequest *ctrl)
