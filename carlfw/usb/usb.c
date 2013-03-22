@@ -166,8 +166,7 @@ static struct ar9170_usb_config usb_config_fullspeed = {
 	},
 };
 
-#ifdef CONFIG_CARL9170FW_USB_MODESWITCH
-static void usb_reset_eps(void)
+void usb_reset_eps(void)
 {
 	unsigned int i;
 
@@ -175,6 +174,7 @@ static void usb_reset_eps(void)
 	for (i = 1; i < __AR9170_USB_NUM_MAX_EP; i++) {
 		usb_set_input_ep_toggle(i);
 		usb_clear_input_ep_toggle(i);
+		usb_clear_input_ep_stall(i);
 	}
 
 	/*
@@ -184,10 +184,9 @@ static void usb_reset_eps(void)
 	for (i = 1; i < __AR9170_USB_NUM_MAX_EP; i++) {
 		usb_set_output_ep_toggle(i);
 		usb_clear_output_ep_toggle(i);
+		usb_clear_output_ep_stall(i);
 	}
 }
-#endif /* CONFIG_CARL9170FW_USB_MODESWITCH */
-
 
 static void usb_pta_init(void)
 {
@@ -337,7 +336,30 @@ static int usb_get_status(const struct usb_ctrlrequest *ctrl)
 		status = cpu_to_le16(0);
 		break;
 
-	case USB_RECIP_ENDPOINT:
+	case USB_RECIP_ENDPOINT: {
+		unsigned int ep = le16_to_cpu(ctrl->wIndex) & 0xf;
+		unsigned int dir = le16_to_cpu(ctrl->wIndex) & USB_DIR_MASK;
+
+		if (ep == 0) {
+			status = !!(getb(AR9170_USB_REG_CX_CONFIG_STATUS) & BIT(2));
+		} else {
+			unsigned int addr;
+
+			if (dir == USB_DIR_IN)
+				addr = AR9170_USB_REG_EP_IN_MAX_SIZE_HIGH;
+			else
+				addr = AR9170_USB_REG_EP_OUT_MAX_SIZE_HIGH;
+
+			addr += (ep << 1);
+
+			/*
+			 * AR9170_USB_EP_OUT_STALL == AR9170_USB_EP_IN_STALL
+			 * so it doesn't matter which one we use
+			 */
+			status = !!(getb(addr) & AR9170_USB_EP_OUT_STALL);
+		}
+		break;
+		}
 	case USB_RECIP_OTHER:
 	default:
 		break;
@@ -478,7 +500,7 @@ static int usb_get_configuration(const struct usb_ctrlrequest *ctrl)
 	if (USB_CHECK_REQTYPE(ctrl, USB_RECIP_DEVICE, USB_DIR_IN))
 		return -1;
 
-	return usb_ep0tx_data(&fw.usb.config, 1);
+	return usb_ep0tx_data(&fw.usb.config, fw.usb.config);
 }
 
 static int usb_set_configuration(const struct usb_ctrlrequest *ctrl)
@@ -494,10 +516,10 @@ static int usb_set_configuration(const struct usb_ctrlrequest *ctrl)
 		/* Disable Device */
 		andb(AR9170_USB_REG_DEVICE_ADDRESS,
 		      (uint8_t) ~(AR9170_USB_DEVICE_ADDRESS_CONFIGURE));
-#ifdef CONFIG_CARL9170FW_USB_MODESWITCH
 	case 1:
 		fw.usb.config = config;
 
+#ifdef CONFIG_CARL9170FW_USB_MODESWITCH
 		if (usb_detect_highspeed()) {
 			/* High Speed Configuration */
 			usb_init_highspeed_fifo_cfg();
@@ -505,25 +527,21 @@ static int usb_set_configuration(const struct usb_ctrlrequest *ctrl)
 			/* Full Speed Configuration */
 			usb_init_fullspeed_fifo_cfg();
 		}
+		/* usb_pta_init() ? */
 		break;
-
-	default:
-		return -1;
-	}
-	/* usb_pta_init() ? */
-
-	usb_reset_eps();
-	orb(AR9170_USB_REG_DEVICE_ADDRESS,
-	    (AR9170_USB_DEVICE_ADDRESS_CONFIGURE));
-
-	usb_enable_global_int();
-	usb_trigger_out();
-	return 1;
-#else
-	default:
-		return -1;
-	}
 #endif /* CONFIG_CARL9170FW_USB_MODESWITCH */
+
+		usb_reset_eps();
+		orb(AR9170_USB_REG_DEVICE_ADDRESS,
+		    (AR9170_USB_DEVICE_ADDRESS_CONFIGURE));
+
+		usb_enable_global_int();
+		usb_trigger_out();
+		return 1;
+
+	default:
+		return -1;
+	}
 }
 
 static int usb_set_address(const struct usb_ctrlrequest *ctrl)
@@ -571,7 +589,8 @@ static int usb_get_interface(const struct usb_ctrlrequest *ctrl)
 static int usb_manipulate_feature(const struct usb_ctrlrequest *ctrl, bool __unused clear)
 {
 	unsigned int feature;
-	if (USB_CHECK_REQTYPE(ctrl, USB_RECIP_DEVICE, USB_DIR_OUT))
+
+	if ((ctrl->bRequestType & USB_DIR_MASK) != USB_DIR_OUT)
 		return -1;
 
 	if (usb_configured() == false)
@@ -579,19 +598,61 @@ static int usb_manipulate_feature(const struct usb_ctrlrequest *ctrl, bool __unu
 
 	feature = le16_to_cpu(ctrl->wValue);
 
+	switch (ctrl->bRequestType & USB_RECIP_MASK) {
+	case USB_RECIP_DEVICE: {
 #ifdef CONFIG_CARL9170FW_WOL
-	if (feature & USB_DEVICE_REMOTE_WAKEUP) {
-		if (clear)
-			usb_disable_remote_wakeup();
-		else
-			usb_enable_remote_wakeup();
-	}
+		if (feature & USB_DEVICE_REMOTE_WAKEUP) {
+			if (clear)
+				usb_disable_remote_wakeup();
+			else
+				usb_enable_remote_wakeup();
+		}
 #endif /* CONFIG_CARL9170FW_WOL */
 
-	if (clear)
-		fw.usb.device_feature &= ~feature;
-	else
-		fw.usb.device_feature |= feature;
+		if (clear)
+			fw.usb.device_feature &= ~feature;
+		else
+			fw.usb.device_feature |= feature;
+
+
+		break;
+		}
+
+	case USB_RECIP_ENDPOINT: {
+		unsigned int ep, dir;
+
+		ep = le16_to_cpu(ctrl->wIndex) & 0xf;
+		dir = le16_to_cpu(ctrl->wIndex) & USB_DIR_MASK;
+		if (ep == 0) {
+			/* According to the spec, EP cannot be stopped this way. */
+			return -1;
+		} else {
+			unsigned int addr;
+
+			if (dir == USB_DIR_IN)
+				addr = AR9170_USB_REG_EP_IN_MAX_SIZE_HIGH;
+			else
+				addr = AR9170_USB_REG_EP_OUT_MAX_SIZE_HIGH;
+
+			addr += (ep << 1);
+
+			if (clear)
+				andb(addr, ~AR9170_USB_EP_OUT_STALL);
+			else
+				orb(addr, AR9170_USB_EP_OUT_STALL);
+		}
+		break;
+		}
+
+	case USB_RECIP_INTERFACE:
+		/*
+		 * the current USB Specification Revision 2
+		 * specifies no interface features.
+		 */
+
+	default:
+		return -1;
+	}
 
 	return 1;
 }
@@ -645,7 +706,7 @@ static int usb_standard_command(const struct usb_ctrlrequest *ctrl __unused)
 
 	case USB_REQ_CLEAR_FEATURE:
 	case USB_REQ_SET_FEATURE:
-		usb_manipulate_feature(ctrl, ctrl->bRequest == USB_REQ_CLEAR_FEATURE);
+		status = usb_manipulate_feature(ctrl, ctrl->bRequest == USB_REQ_CLEAR_FEATURE);
 		break;
 
 	case USB_REQ_SET_ADDRESS:
