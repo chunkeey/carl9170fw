@@ -6,7 +6,7 @@ NEWLIB_VER=2.0.0
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_URL="ftp://sourceware.org/pub/newlib/$(NEWLIB_TAR)"
 
-GCC_VER=4.7.2
+GCC_VER=4.8.0
 GCC_TAR=gcc-$(GCC_VER).tar.bz2
 GCC_URL="http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/$(GCC_TAR)"
 

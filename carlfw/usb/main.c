@@ -377,6 +377,7 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_RESET) {
 			usb_reset_ack();
+			usb_reset_eps();
 			reboot();
 		}
 
