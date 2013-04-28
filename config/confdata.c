@@ -1103,7 +1103,7 @@ void conf_set_changed_callback(void (*fn)(void))
 	conf_changed_callback = fn;
 }
 
-static void randomize_choice_values(struct symbol *csym)
+static bool randomize_choice_values(struct symbol *csym)
 {
 	struct property *prop;
 	struct symbol *sym;
@@ -1116,7 +1116,7 @@ static void randomize_choice_values(struct symbol *csym)
 	 * In both cases stop.
 	 */
 	if (csym->curr.tri != yes)
-		return;
+		return false;
 
 	prop = sym_get_choice_prop(csym);
 
@@ -1147,6 +1147,8 @@ static void randomize_choice_values(struct symbol *csym)
 	csym->flags |= SYMBOL_DEF_USER;
 	/* clear VALID to get value calculated */
 	csym->flags &= ~(SYMBOL_VALID);
+
+	return true;
 }
 
 void set_all_choice_values(struct symbol *csym)
@@ -1169,7 +1171,7 @@ void set_all_choice_values(struct symbol *csym)
 	csym->flags &= ~(SYMBOL_VALID | SYMBOL_NEED_SET_CHOICE_VALUES);
 }
 
-void conf_set_all_new_symbols(enum conf_def_mode mode)
+bool conf_set_all_new_symbols(enum conf_def_mode mode)
 {
 	struct symbol *sym, *csym;
 	int i, cnt, pby, pty, ptm;	/* pby: probability of boolean  = y
@@ -1217,6 +1219,7 @@ void conf_set_all_new_symbols(enum conf_def_mode mode)
 			exit( 1 );
 		}
 	}
+	bool has_changed = false;
 
 	for_all_symbols(i, sym) {
 		if (sym_has_value(sym) || (sym->flags & SYMBOL_VALID))
@@ -1224,6 +1227,7 @@ void conf_set_all_new_symbols(enum conf_def_mode mode)
 		switch (sym_get_type(sym)) {
 		case S_BOOLEAN:
 		case S_TRISTATE:
+			has_changed = true;
 			switch (mode) {
 			case def_yes:
 				sym->def[S_DEF_USER].tri = yes;
@@ -1282,6 +1286,12 @@ void conf_set_all_new_symbols(enum conf_def_mode mode)
 
 		sym_calc_value(csym);
 		if (mode == def_random)
-			randomize_choice_values(csym);
+			has_changed = randomize_choice_values(csym);
+		else {
+			set_all_choice_values(csym);
+			has_changed = true;
+		}
 	}
+
+	return has_changed;
 }
