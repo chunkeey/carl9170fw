@@ -81,6 +81,9 @@ enum carl9170fw_feature_list {
 	/* Firmware will pass BA when BARs are queued */
 	CARL9170FW_RX_BA_FILTER,
 
+	/* Supports 10MHz / 5 MHz channels */
+	CARL9170FW_HALF_QUARTER_CHANNEL,
+
 	/* KEEP LAST */
 	__CARL9170FW_FEATURE_NUM
 };

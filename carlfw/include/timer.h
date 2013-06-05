@@ -84,7 +84,7 @@ static inline __inline void udelay(const uint32_t usec)
 	}
 }
 
-void clock_set(enum cpu_clock_t _clock, bool on);
+void clock_set(const enum cpu_clock_t _clock, const bool on, const unsigned int div);
 void handle_timer(void);
 void timer_init(const unsigned int timer, const unsigned int interval);
 

@@ -69,6 +69,7 @@ static const struct feature_list known_otus_features_v1[] = {
 	CHECK_FOR_FEATURE(CARL9170FW_FIXED_5GHZ_PSM),
 	CHECK_FOR_FEATURE(CARL9170FW_HW_COUNTERS),
 	CHECK_FOR_FEATURE(CARL9170FW_RX_BA_FILTER),
+	CHECK_FOR_FEATURE(CARL9170FW_HALF_QUARTER_CHANNEL),
 };
 
 static void check_feature_list(const struct carl9170fw_desc_head *head,

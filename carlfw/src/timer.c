@@ -41,7 +41,7 @@ void timer_init(const unsigned int timer, const unsigned int interval)
 	orl(AR9170_TIMER_REG_INTERRUPT, BIT(timer));
 }
 
-void clock_set(enum cpu_clock_t clock_, bool on)
+void clock_set(const enum cpu_clock_t clock_, const bool on, const unsigned int div)
 {
 	/*
 	 * Word of Warning!
@@ -60,7 +60,8 @@ void clock_set(enum cpu_clock_t clock_, bool on)
 	fw.ticks_per_usec = GET_VAL(AR9170_PWR_PLL_ADDAC_DIV,
 		get(AR9170_PWR_REG_PLL_ADDAC));
 
-	set(AR9170_PWR_REG_CLOCK_SEL, (uint32_t) ((on ? 0x70 : 0x600) | clock_));
+	set(AR9170_PWR_REG_CLOCK_SEL, (uint32_t) ((on ? 0x70 : 0x600) | clock_ |
+	    SET_CONSTVAL(AR9170_PWR_CLK_ADDAC_CLK160, div))));
 
 	switch (clock_) {
 	case AHB_20_22MHZ:

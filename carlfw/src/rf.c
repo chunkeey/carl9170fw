@@ -197,18 +197,19 @@ static uint32_t rf_init(const uint32_t delta_slope_coeff_exp,
 
 void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp)
 {
-	uint32_t ret;
+	uint32_t ret, div;
 
-	fw.phy.ht_settings = cmd->rf_init.ht_settings;
+	fw.phy.settings = cmd->rf_init.settings;
 	fw.phy.frequency = cmd->rf_init.freq;
+	div = GET_VAL(CARL9170FW_PHY_RF_DIV, fw.phy.settings);
 
 	/*
 	 * Is the clock controlled by the PHY?
 	 */
-	if ((fw.phy.ht_settings & EIGHTY_FLAG) == EIGHTY_FLAG)
-		clock_set(AHB_80_88MHZ, true);
+	if ((fw.phy.settings & EIGHTY_FLAG) == EIGHTY_FLAG)
+		clock_set(AHB_80_88MHZ, true, div);
 	else
-		clock_set(AHB_40_44MHZ, true);
+		clock_set(AHB_40_44MHZ, true, div);
 
 	ret = rf_init(le32_to_cpu(cmd->rf_init.delta_slope_coeff_exp),
 		      le32_to_cpu(cmd->rf_init.delta_slope_coeff_man),

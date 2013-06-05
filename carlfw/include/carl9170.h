@@ -183,7 +183,7 @@ struct firmware_context_struct {
 
 		/* PHY/RF state */
 		unsigned int frequency;
-		unsigned int ht_settings;
+		unsigned int settings;
 
 		enum carl9170_phy_state state;
 		struct carl9170_psm psm;

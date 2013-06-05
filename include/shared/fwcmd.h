@@ -127,10 +127,15 @@ struct carl9170_write_reg {
 #define	CARL9170FW_PHY_HT_DYN2040		0x8
 #define	CARL9170FW_PHY_HT_EXT_CHAN_OFF		0x3
 #define	CARL9170FW_PHY_HT_EXT_CHAN_OFF_S	2
+#define CARL9170FW_PHY_RF_DIV			(BIT(4) | BIT(5))
+#define CARL9170FW_PHY_RF_BW_10MHZ		BIT(4)
+#define CARL9170FW_PHY_RF_BW_5MHZ		BIT(5)
+#define CARL9170FW_PHY_RF_DIV_S			4
+
 
 struct carl9170_rf_init {
 	__le32		freq;
-	u8		ht_settings;
+	u8		settings;
 	u8		padding2[3];
 	__le32		delta_slope_coeff_exp;
 	__le32		delta_slope_coeff_man;
