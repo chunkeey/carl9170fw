@@ -143,6 +143,7 @@ static inline u16 ieee80211_sn_sub(u16 sn1, u16 sn2)
 #define IEEE80211_MAX_RTS_THRESHOLD	2353
 #define IEEE80211_MAX_AID		2007
 #define IEEE80211_MAX_TIM_LEN		251
+#define IEEE80211_MAX_MESH_PEERINGS	63
 /* Maximum size for the MA-UNITDATA primitive, 802.11 standard section
    6.2.1.1.2.
 
@@ -1410,8 +1411,8 @@ struct ieee80211_vht_operation {
 #define IEEE80211_VHT_CAP_RXSTBC_MASK				0x00000700
 #define IEEE80211_VHT_CAP_SU_BEAMFORMER_CAPABLE			0x00000800
 #define IEEE80211_VHT_CAP_SU_BEAMFORMEE_CAPABLE			0x00001000
-#define IEEE80211_VHT_CAP_BEAMFORMER_ANTENNAS_MAX		0x00006000
-#define IEEE80211_VHT_CAP_SOUNDING_DIMENSIONS_MAX		0x00030000
+#define IEEE80211_VHT_CAP_BEAMFORMEE_STS_MAX			0x0000e000
+#define IEEE80211_VHT_CAP_SOUNDING_DIMENSIONS_MAX		0x00070000
 #define IEEE80211_VHT_CAP_MU_BEAMFORMER_CAPABLE			0x00080000
 #define IEEE80211_VHT_CAP_MU_BEAMFORMEE_CAPABLE			0x00100000
 #define IEEE80211_VHT_CAP_VHT_TXOP_PS				0x00200000
@@ -1729,6 +1730,10 @@ enum ieee80211_eid {
 	WLAN_EID_OPMODE_NOTIF = 199,
 	WLAN_EID_WIDE_BW_CHANNEL_SWITCH = 194,
 	WLAN_EID_CHANNEL_SWITCH_WRAPPER = 196,
+	WLAN_EID_EXTENDED_BSS_LOAD = 193,
+	WLAN_EID_VHT_TX_POWER_ENVELOPE = 195,
+	WLAN_EID_AID = 197,
+	WLAN_EID_QUIET_CHANNEL = 198,
 
 	/* 802.11ad */
 	WLAN_EID_NON_TX_BSSID_CAP =  83,
@@ -1879,6 +1884,11 @@ enum ieee80211_tdls_actioncode {
 	WLAN_TDLS_PEER_TRAFFIC_RESPONSE = 9,
 	WLAN_TDLS_DISCOVERY_REQUEST = 10,
 };
+
+/* Interworking capabilities are set in 7th bit of 4th byte of the
+ * @WLAN_EID_EXT_CAPABILITY information element
+ */
+#define WLAN_EXT_CAPA4_INTERWORKING_ENABLED	BIT(7)
 
 /*
  * TDLS capabililites to be enabled in the 5th byte of the
@@ -2295,5 +2305,9 @@ static inline bool ieee80211_check_tim(const struct ieee80211_tim_ie *tim,
 
 	return !!(tim->virtual_map[indexn0] & mask);
 }
+
+/* convert time units */
+#define TU_TO_JIFFIES(x)       (usecs_to_jiffies((x) * 1024))
+#define TU_TO_EXP_TIME(x)      (jiffies + TU_TO_JIFFIES(x))
 
 #endif /* __LINUX_IEEE80211_H */
