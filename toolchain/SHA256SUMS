@@ -6,4 +6,5 @@ c644b2847244278c57bec2ddda69d8fab5a7c767f3b9af69aa7aa3da823ff692  src/newlib-1.2
 49c29e9129325e7c3b221aa829743ddcd796d024440e47c80fc0d6769af72d8a  src/newlib-2.0.0.tar.gz
 b037fe5132b71ecad2ea7141ec92292b5d32427bf90fd90cde432b1d5abacc2c  src/gcc-4.8.0.tar.bz2
 545b44be3ad9f2c4e90e6880f5c9d4f0a8f0e5f67e1ffb0d45da9fa01bb05813  src/gcc-4.8.1.tar.bz2
+09dc2276c73424bbbfda1dbddc62bbbf900c9f185acf7f3e1d773ce2d7e3cdc8  src/gcc-4.8.2.tar.bz2
 
