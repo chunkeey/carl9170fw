@@ -24,7 +24,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "../../carlfw/include/radar.h"
+#include "pattern.h"
 #include "carlfw.h"
 
 #include "compiler.h"
@@ -67,6 +67,7 @@ static int add_radars(struct carlfw *fw) {
 	if (!radar_desc) {
 		fprintf(stderr, "Firmware has radar pattern feature set, but "
 			"can't find a valid radar descriptor\n");
+		return 0;
 	}
 
 	radars_to_add = radar_desc->num_radars -
