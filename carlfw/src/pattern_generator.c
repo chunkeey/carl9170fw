@@ -22,33 +22,35 @@
 
 #include "carl9170.h"
 #include "pattern_generator.h"
+#include "fwdsc.h"
+#include "timer.h"
 
-#if defined(CARL9170FW_PATTERN_GENERATOR)
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
 
-void radar_pattern_generator(void)
+void pattern_generator(void)
 {
 	if (fw.phy.state == CARL9170_PHY_ON) {
-		if (likely(fw.wlan.soft_radar == NO_RADAR ||
-		    fw.wlan.soft_radar >= __CARL9170FW_NUM_RADARS))
+		if (likely(fw.wlan.soft_pattern == NO_PATTERN ||
+		    fw.wlan.soft_pattern >= __CARL9170FW_NUM_PATTERNS))
 			return;
 
-		const struct radar_info *radar = &radars[fw.wlan.soft_radar];
-		if (radar->pulses >= fw.wlan.pattern_index) {
+		const struct pattern_info *pattern = &patterns[fw.wlan.soft_pattern];
+		if (pattern->pulses >= fw.wlan.pattern_index) {
 			fw.wlan.pattern_index = 0;
 		}
 
-		if (radar->pulses > fw.wlan.pattern_index) {
-			const struct radar_info_pattern *pattern = &radar->pattern[fw.wlan.pattern_index];
-			if (is_after_usecs(fw.wlan.radar_last, pattern->pulse_interval)) {
-				fw.wlan.radar_last = get_clock_counter();
-				set(0x1C3BC0, pattern->pulse_pattern);
-				set(0x1C3BBC, pattern->pulse_mode);
-				udelay(pattern->pulse_width);
-				set(0x1C3BBC, ~pattern->pulse_mode);
+		if (pattern->pulses > fw.wlan.pattern_index) {
+			const struct pattern_pulse_info *ppi = &pattern->pattern[fw.wlan.pattern_index];
+			if (is_after_usecs(fw.wlan.pattern_last, ppi->pulse_interval)) {
+				fw.wlan.pattern_last = get_clock_counter();
+				set(0x1C3BC0, ppi->pulse_pattern);
+				set(0x1C3BBC, ppi->pulse_mode);
+				udelay(ppi->pulse_width);
+				set(0x1C3BBC, ~ppi->pulse_mode);
 				fw.wlan.pattern_index++;
 			}
 		}
 	}
 }
 
-#endif /* CONFIG_CARL9170FW_RADAR */
+#endif /* CONFIG_CONFIG_CARL9170FW_RADAR */

@@ -43,10 +43,10 @@ static void checksum_help(void)
 	fprintf(stderr, "\n");
 }
 
-static int add_radars(struct carlfw *fw) {
+static int add_patterns(struct carlfw *fw) {
 	const struct carl9170fw_otus_desc *otus_desc = NULL;
-	struct carl9170fw_radar_desc *radar_desc = NULL;
-	int radars_to_add;
+	struct carl9170fw_pattern_desc *pattern_desc = NULL;
+	int to_add;
 
 	otus_desc = carlfw_find_desc(fw, (uint8_t *) OTUS_MAGIC,
 				     sizeof(*otus_desc),
@@ -56,46 +56,46 @@ static int add_radars(struct carlfw *fw) {
 		return -1;
 	}
 
-	if (!carl9170fw_supports(otus_desc->feature_set, CARL9170FW_RADAR_PATTERN_GENERATOR)) {
+	if (!carl9170fw_supports(otus_desc->feature_set, CARL9170FW_PATTERN_GENERATOR)) {
 		return 0;
 	}
 
-	radar_desc = carlfw_find_desc(fw, (uint8_t *) RADAR_MAGIC,
-				      sizeof(*radar_desc),
-				      CARL9170FW_RADAR_DESC_CUR_VER);
+	pattern_desc = carlfw_find_desc(fw, (uint8_t *) PATTERN_MAGIC,
+				      sizeof(*pattern_desc),
+				      CARL9170FW_PATTERN_DESC_CUR_VER);
 
-	if (!radar_desc) {
-		fprintf(stderr, "Firmware has radar pattern feature set, but "
-			"can't find a valid radar descriptor\n");
+	if (!pattern_desc) {
+		fprintf(stderr, "Firmware has the pattern generator feature set, but "
+			"can't find a valid pattern descriptor\n");
 		return 0;
 	}
 
-	radars_to_add = radar_desc->num_radars -
-		 ((radar_desc->head.length - sizeof(*radar_desc)) /
-		 sizeof(struct carl9170fw_radar_map_entry));
-	if (radars_to_add == 0) {
+	to_add = pattern_desc->num_patterns -
+		 ((pattern_desc->head.length - sizeof(*pattern_desc)) /
+		 sizeof(struct carl9170fw_pattern_map_entry));
+	if (to_add == 0) {
 		/* been there, done that */
 		return 0;
 	}
 
-	if (radars_to_add == __CARL9170FW_NUM_RADARS) {
-		struct carl9170fw_radar_desc *tmp;
+	if (to_add == __CARL9170FW_NUM_PATTERNS) {
+		struct carl9170fw_pattern_desc *tmp;
 		unsigned int len, map_len;
 
-		map_len = sizeof(struct carl9170fw_radar_map_entry) * radars_to_add;
+		map_len = sizeof(struct carl9170fw_pattern_map_entry) * to_add;
 		len = sizeof(*tmp) + map_len;
 		tmp = malloc(len);
 		if (!tmp)
 			return -ENOMEM;
 
-		radar_desc = carlfw_desc_mod_len(fw, &radar_desc->head, map_len);
-		if (IS_ERR_OR_NULL(radar_desc))
-			return (int) PTR_ERR(radar_desc);
+		pattern_desc = carlfw_desc_mod_len(fw, &pattern_desc->head, map_len);
+		if (IS_ERR_OR_NULL(pattern_desc))
+			return (int) PTR_ERR(pattern_desc);
 
-		memcpy(&radar_desc->radars, radar_names, map_len);
+		memcpy(&pattern_desc->patterns, pattern_names, map_len);
 		return 0;
 	} else {
-		fprintf(stderr, "don't know what you did, but congrats you broke it!");
+		fprintf(stderr, "No idea, what you just did. But congrats: you broke it!");
 		return -EINVAL;
 	}
 }
@@ -127,7 +127,7 @@ int main(int argc, char *args[])
 		goto out;
 	}
 
-	err = add_radars(fw);
+	err = add_patterns(fw);
 	if (err)
 		goto out;
 

@@ -35,9 +35,9 @@ struct carl9170_firmware_descriptor {
 	struct carl9170fw_wol_desc  wol;
 #endif /* CONFIG_CARL9170FW_WOL */
 	struct carl9170fw_motd_desc motd;
-#ifdef CONFIG_CARL9170FW_RADAR
-	struct carl9170fw_radar_desc radar;
-#endif /* CONFIG_CARL9170FW_RADAR */
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
+	struct carl9170fw_pattern_desc pattern;
+#endif /* CONFIG_CARL9170FW_PATTERN_GENERATOR */
 	struct carl9170fw_dbg_desc  dbg;
 	struct carl9170fw_last_desc last;
 } __packed;

@@ -20,8 +20,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __CARL9170FW_RADAR_H
-#define __CARL9170FW_RADAR_H
+#ifndef __CARL9170FW_PATTERN_GENERATOR_H
+#define __CARL9170FW_PATTERN_GENERATOR_H
 
 #include "generated/autoconf.h"
 #include "types.h"
@@ -29,14 +29,14 @@
 #include "fwdesc.h"
 #include "pattern.h"
 
-#if defined(CARL9170FW_PATTERN_GENERATOR)
-void radar_pattern_generator(void);
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
+void pattern_generator(void);
 
 #else
-static inline void radar_pattern_generator(void)
+static inline void pattern_generator(void)
 {
 }
 
-#endif
+#endif /* CONFIG_CARL9170FW_PATTERN_GENERATOR */
 
-#endif /* __CARL9170FW_RADAR_H */
+#endif /* __CARL9170FW_PATTERN_GENERATOR_H */

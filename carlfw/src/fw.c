@@ -65,9 +65,9 @@ const struct carl9170_firmware_descriptor __section(fwdsc) __visible carl9170fw_
 #ifdef CONFIG_CARL9170FW_WOL
 					BIT(CARL9170FW_WOL) |
 #endif /* CONFIG_CARL9170FW_WOL */
-#ifdef CONFIG_CARL9170FW_RADAR
-					BIT(CARL9170FW_RADAR_PATTERN_GENERATOR) |
-#endif /* CONFIG_CARL9170FW_RADAR */
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
+					BIT(CARL9170FW_PATTERN_GENERATOR) |
+#endif /* CONFIG_CARL9170FW_PATTERN_GENERATOR */
 					(0)),
 
 	     .miniboot_size = cpu_to_le16(0),
@@ -101,12 +101,11 @@ const struct carl9170_firmware_descriptor __section(fwdsc) __visible carl9170fw_
 	     .desc = "Community AR9170 Linux",
 	     .release = CARL9170FW_VERSION_GIT),
 
-
-#if defined(CARL9170FW_PATTERN_GENERATOR)
-	FILL(radar, RADAR,
-	     .soft_radar = cpu_to_le32(&fw.wlan.soft_radar),
-	     .num_radars = __CARL9170FW_NUM_RADARS,
-	     .radars = { /* filled by the fwprepare tool */ },
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
+	FILL(pattern, PATTERN,
+	     .soft_pattern = cpu_to_le32(&fw.wlan.soft_pattern),
+	     .num_patterns = __CARL9170FW_NUM_PATTERNS,
+	     .patterns = { /* filled by the fwprepare tool */ },
 	),
 #endif /* CONFIG_CARL9170FW_RADAR */
 

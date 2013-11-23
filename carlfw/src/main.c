@@ -127,7 +127,7 @@ static void __noreturn main_loop(void)
 
 		tally_update();
 
-		radar_pattern_generator();
+		pattern_generator();
 	}
 }
 

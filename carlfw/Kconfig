@@ -87,7 +87,7 @@ config CARL9170FW_EXPERIMENTAL
 
 config CARL9170FW_PATTERN_GENERATOR
 	def_bool n
-	prompt "Radar pattern generator"
+	prompt "Pattern generator"
 	depends on CARL9170FW_EXPERIMENTAL
 	---help---
 	 With this option enabled, the firmware can generate random

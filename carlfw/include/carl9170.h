@@ -141,11 +141,11 @@ struct firmware_context_struct {
 
 		unsigned int queued_bar;
 
-#ifdef CONFIG_CARL9170FW_RADAR
-		unsigned int soft_radar,
-			     radar_last,
+#if defined(CONFIG_CARL9170FW_PATTERN_GENERATOR)
+		unsigned int soft_pattern,
+			     pattern_last,
 			     pattern_index;
-#endif /* CONFIG_CARL9170FW_RADAR */
+#endif /* CONFIG_CARL9170FW_PATTERN_GENERATOR */
 	} wlan;
 
 	struct {
