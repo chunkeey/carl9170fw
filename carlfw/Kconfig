@@ -85,7 +85,7 @@ config CARL9170FW_EXPERIMENTAL
 	def_bool y
 	prompt "Experimental Features"
 
-config CARL9170FW_RADAR
+config CARL9170FW_PATTERN_GENERATOR
 	def_bool n
 	prompt "Radar pattern generator"
 	depends on CARL9170FW_EXPERIMENTAL

@@ -17,7 +17,7 @@ set(CARLFW_CFLAGS "${CARLFW_CFLAGS_DEF} ${CARLFW_CFLAGS_EXTRA} ${CARLFW_CFLAGS_A
 include_directories (../include/linux ../include/shared ../include include)
 
 set(carl9170_main_src src/main.c src/wlan.c src/wlanrx.c src/wlantx.c
-		      src/fw.c src/gpio.c src/timer.c
+		      src/fw.c src/gpio.c src/timer.c src/pattern_generator.c
 		      src/uart.c src/dma.c src/hostif.c src/reboot.S
 		      src/printf.c src/rf.c src/cam.c src/wol.c)
 

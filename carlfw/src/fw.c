@@ -21,6 +21,7 @@
  */
 #include "carl9170.h"
 #include "fwdsc.h"
+#include "pattern_generator.h"
 
 #define FILL(small, big, more...)					\
 	.small = {							\
@@ -101,7 +102,7 @@ const struct carl9170_firmware_descriptor __section(fwdsc) __visible carl9170fw_
 	     .release = CARL9170FW_VERSION_GIT),
 
 
-#ifdef CONFIG_CARL9170FW_RADAR
+#if defined(CARL9170FW_PATTERN_GENERATOR)
 	FILL(radar, RADAR,
 	     .soft_radar = cpu_to_le32(&fw.wlan.soft_radar),
 	     .num_radars = __CARL9170FW_NUM_RADARS,

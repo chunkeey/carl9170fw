@@ -33,7 +33,6 @@
 #include "dma.h"
 #include "usb.h"
 #include "cmd.h"
-#include "radar.h"
 
 struct carl9170_bar_ctx {
 	uint8_t ta[6];
