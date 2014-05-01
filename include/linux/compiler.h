@@ -24,7 +24,7 @@
 #define __cold		__attribute__((cold))
 #define __unused	__attribute__((unused))
 #define __force		__attribute__((force))
-#define __section(s)	__attribute__((section("." # s)))
+#define __in_section(s)	__attribute__((section("." # s)))
 #define __aligned(a)	__attribute__((aligned(a)))
 #define __packed	__attribute__((packed))
 #define __visible	__attribute__((externally_visible))

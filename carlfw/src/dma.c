@@ -27,7 +27,7 @@
 #include "wl.h"
 #include "printf.h"
 
-struct ar9170_dma_memory dma_mem __section(sram);
+struct ar9170_dma_memory dma_mem __in_section(sram);
 
 static void copy_dma_desc(struct dma_desc *dst,
 			  struct dma_desc *src)

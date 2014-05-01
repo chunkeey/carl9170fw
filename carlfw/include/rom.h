@@ -77,6 +77,6 @@ struct ar9170_rom {
 	struct ar9170_eeprom sys;
 } __packed;
 
-static const struct ar9170_rom rom __section(eeprom);
+static const struct ar9170_rom rom __in_section(eeprom);
 
 #endif /* __CARL9170FW_ROM_H */

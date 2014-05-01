@@ -31,7 +31,7 @@
 		more							\
 	}
 
-const struct carl9170_firmware_descriptor __section(fwdsc) __visible carl9170fw_desc = {
+const struct carl9170_firmware_descriptor __in_section(fwdsc) __visible carl9170fw_desc = {
 	FILL(otus, OTUS,
 	     .feature_set = cpu_to_le32(BIT(CARL9170FW_DUMMY_FEATURE) |
 					BIT(CARL9170FW_USB_RESP_EP2) |
