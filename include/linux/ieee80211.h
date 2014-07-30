@@ -842,6 +842,16 @@ enum ieee80211_vht_opmode_bits {
 
 #define WLAN_SA_QUERY_TR_ID_LEN 2
 
+/**
+ * struct ieee80211_tpc_report_ie
+ *
+ * This structure refers to "TPC Report element"
+ */
+struct ieee80211_tpc_report_ie {
+	u8 tx_power;
+	u8 link_margin;
+} __packed;
+
 struct ieee80211_mgmt {
 	__le16 frame_control;
 	__le16 duration;
@@ -977,6 +987,13 @@ struct ieee80211_mgmt {
 					u8 action_code;
 					u8 operating_mode;
 				} __packed vht_opmode_notif;
+				struct {
+					u8 action_code;
+					u8 dialog_token;
+					u8 tpc_elem_id;
+					u8 tpc_elem_length;
+					struct ieee80211_tpc_report_ie tpc;
+				} __packed tpc_report;
 			} u;
 		} __packed action;
 	} u;
@@ -1885,6 +1902,7 @@ enum ieee80211_category {
 	WLAN_CATEGORY_DLS = 2,
 	WLAN_CATEGORY_BACK = 3,
 	WLAN_CATEGORY_PUBLIC = 4,
+	WLAN_CATEGORY_RADIO_MEASUREMENT = 5,
 	WLAN_CATEGORY_HT = 7,
 	WLAN_CATEGORY_SA_QUERY = 8,
 	WLAN_CATEGORY_PROTECTED_DUAL_OF_ACTION = 9,
