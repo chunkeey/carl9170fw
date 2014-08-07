@@ -159,7 +159,7 @@ static struct ar9170_usb_config usb_config_fullspeed = {
 			.bLength = USB_DT_ENDPOINT_SIZE,
 			.bDescriptorType = USB_DT_ENDPOINT,
 			.bEndpointAddress = USB_DIR_OUT | AR9170_USB_EP_CMD,
-			.bmAttributes = USB_ENDPOINT_XFER_INT,
+			.bmAttributes = USB_ENDPOINT_XFER_BULK,
 			.wMaxPacketSize = cpu_to_le16(64),
 			.bInterval = 1,
 		},
