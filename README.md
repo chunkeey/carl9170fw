@@ -24,7 +24,7 @@ about 3-4 GiB disk space.
 The firmware configuration and build process requires the following
 tools and libraries:
 
- * gcc 4.7+
+ * gcc 4.8
 
  * gperf, bison/flex
 
@@ -52,4 +52,5 @@ into /lib/firmware/[the default path on most Distributions].
 ## Contact
 
 If you have any questions, reports or patches, you should write
-to <linux-wireless@vger.kernel.org>.
+to <linux-wireless@vger.kernel.org> and include "carl9170" in
+the subject line.
