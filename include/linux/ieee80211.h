@@ -2038,6 +2038,11 @@ enum ieee80211_tdls_actioncode {
  */
 #define WLAN_EXT_CAPA1_EXT_CHANNEL_SWITCHING	BIT(2)
 
+/* TDLS capabilities in the the 4th byte of @WLAN_EID_EXT_CAPABILITY */
+#define WLAN_EXT_CAPA4_TDLS_BUFFER_STA		BIT(4)
+#define WLAN_EXT_CAPA4_TDLS_PEER_PSM		BIT(5)
+#define WLAN_EXT_CAPA4_TDLS_CHAN_SWITCH		BIT(6)
+
 /* Interworking capabilities are set in 7th bit of 4th byte of the
  * @WLAN_EID_EXT_CAPABILITY information element
  */
@@ -2049,6 +2054,7 @@ enum ieee80211_tdls_actioncode {
  */
 #define WLAN_EXT_CAPA5_TDLS_ENABLED	BIT(5)
 #define WLAN_EXT_CAPA5_TDLS_PROHIBITED	BIT(6)
+#define WLAN_EXT_CAPA5_TDLS_CH_SW_PROHIBITED	BIT(7)
 
 #define WLAN_EXT_CAPA8_OPMODE_NOTIF	BIT(6)
 #define WLAN_EXT_CAPA8_TDLS_WIDE_BW_ENABLED	BIT(7)
