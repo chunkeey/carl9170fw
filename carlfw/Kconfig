@@ -150,7 +150,7 @@ config CARL9170FW_80MHZ_CLOCK
 
 config CARL9170FW_BROKEN_FEATURES
 	def_bool n
-	prompt "Broken Featurs"
+	prompt "Broken Features"
 
 config CARL9170FW_DEBUG
 	def_bool n
