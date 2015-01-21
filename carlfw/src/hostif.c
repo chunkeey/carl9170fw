@@ -234,6 +234,12 @@ void handle_cmd(struct carl9170_rsp *resp)
 		memset(&fw.tally, 0, sizeof(struct carl9170_tally_rsp));
 		break;
 
+	case CARL9170_CMD_WREGB:
+		resp->hdr.len = 0;
+		for (i = 0; i < MIN(cmd->wregb.count, cmd->hdr.len - 8); i++)
+			setb(cmd->wregb.addr + i, cmd->wregb.val[i]);
+		break;
+
 	case CARL9170_CMD_BCN_CTRL:
 		resp->hdr.len = 0;
 
