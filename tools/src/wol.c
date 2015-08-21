@@ -25,10 +25,12 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#include <arpa/inet.h>
+#include <net/if.h>
+
 #include <linux/types.h>
 #include <linux/if_ether.h>	/* ETH_P_ALL */
 #include <linux/if_packet.h>	/* sockaddr_ll */
-#include <linux/if.h>		/* IFNAMSIZ */
 
 static int monitor_init(const char *ifname)
 {
