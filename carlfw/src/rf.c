@@ -19,8 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * with this program; If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "carl9170.h"
@@ -205,10 +204,14 @@ void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp)
 	/*
 	 * Is the clock controlled by the PHY?
 	 */
+#ifdef CONFIG_CARL9170FW_80MHZ_CLOCK
 	if ((fw.phy.ht_settings & EIGHTY_FLAG) == EIGHTY_FLAG)
 		clock_set(AHB_80_88MHZ, true);
 	else
 		clock_set(AHB_40_44MHZ, true);
+#else
+	clock_set(AHB_40_44MHZ, true);
+#endif
 
 	ret = rf_init(le32_to_cpu(cmd->rf_init.delta_slope_coeff_exp),
 		      le32_to_cpu(cmd->rf_init.delta_slope_coeff_man),

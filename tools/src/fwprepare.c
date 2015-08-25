@@ -23,11 +23,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ctype.h>
 
-#include "pattern.h"
 #include "carlfw.h"
+#include "pattern.h"
 
-#include "compiler.h"
 
 static void checksum_help(void)
 {

@@ -148,9 +148,19 @@ config CARL9170FW_NOISY_MAC_RESET
 	prompt "Notify MAC RESET events"
 	depends on CARL9170FW_FW_MAC_RESET
 
+config CARL9170FW_80MHZ_CLOCK
+	def_bool n
+	prompt "Allow 80/88MHz clock for HT40"
+	depends on CARL9170FW_EXPERIMENTAL
+	---help---
+	 The SoC can run up to 80/88MHz in HT40 mode. This improves
+	 throughput and timing accuracy over the 40/44MHz clock.
+	 However some devices don't have heat shields and they with
+	 this option enabled, they become unstable under load.
+
 config CARL9170FW_BROKEN_FEATURES
 	def_bool n
-	prompt "Broken Featurs"
+	prompt "Broken Features"
 
 config CARL9170FW_DEBUG
 	def_bool n

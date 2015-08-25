@@ -18,6 +18,14 @@
 #ifndef __CARLFW_H
 #define __CARLFW_H
 
+/* These macros are already defined as part of newlib's sys/cdefs.h.
+ * However they are not part of standard libc which is used to compile
+ * the host tools. For now, simply add them here.
+ */
+#define __packed __attribute__((packed))
+#define __unused __attribute__((unused))
+#define __aligned(x) __attribute__((aligned(x)))
+
 #include <linux/types.h>
 #include "compiler.h"
 #include "fwdesc.h"

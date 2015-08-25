@@ -60,8 +60,8 @@ static const struct pattern_pulse_info pattern_ONE_KHZ[] = {
 	{
 		.pulse_width = 1,
 		.pulse_interval = 1000,
-		.pulse_pattern = 0xa7438080,
-		.pulse_mode    = 0x5f01,
+		.pulse_pattern = 0xaa55,
+		.pulse_mode    = 0x17f01,
 	},
 };
 
@@ -69,8 +69,8 @@ static const struct pattern_pulse_info pattern_TEN_KHZ[] = {
 	{
 		.pulse_width = 1,
 		.pulse_interval = 100,
-		.pulse_pattern = 0x436f0001,
-		.pulse_mode    = 0x5f01,
+		.pulse_pattern = 0xaa55,
+		.pulse_mode    = 0x17f01,
 	},
 };
 
@@ -78,15 +78,15 @@ static const struct pattern_pulse_info pattern_ONE_TWO_KHZ[] = {
 	{
 		.pulse_width = 1,
 		.pulse_interval = 1000,
-		.pulse_pattern = 0xa7438080,
-		.pulse_mode    = 0x5f01,
+		.pulse_pattern = 0xaa55,
+		.pulse_mode    = 0x17f01,
 	},
 
 	{
 		.pulse_width = 10,
 		.pulse_interval = 500,
-		.pulse_pattern = 0xa7431001,
-		.pulse_mode    = 0x5f01,
+		.pulse_pattern = 0xaa55,
+		.pulse_mode    = 0x17f01,
 	},
 };
 
@@ -100,8 +100,8 @@ static const struct pattern_pulse_info pattern_FCC1[] = {
 	{
 		.pulse_width = 1,
 		.pulse_interval = 1428,
-		.pulse_pattern = 0xa7438080,
-		.pulse_mode    = 0x5f01,
+		.pulse_pattern = 0xaa55,
+		.pulse_mode    = 0x17f01,
 	},
 };
 
@@ -110,8 +110,8 @@ static const struct pattern_pulse_info pattern_FCC4[] = {
 	{
 		.pulse_width = 11,
 		.pulse_interval = 200,
-		.pulse_pattern = 0xf3128008,
-		.pulse_mode    = 0x5f01,
+		.pulse_pattern = 0xaa55,
+		.pulse_mode    = 0x7f01,
 	},
 };
 
@@ -120,8 +120,8 @@ static const struct pattern_pulse_info pattern_ETSIFIXED[] = {
 	{
 		.pulse_width = 1,
 		.pulse_interval = 750,
-		.pulse_pattern = 0x8a5f8080,
-		.pulse_mode    = 0x5f01,
+		.pulse_pattern = 0xaa55,
+		.pulse_mode    = 0x7f01,
 	},
 };
 

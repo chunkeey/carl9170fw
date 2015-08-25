@@ -42,21 +42,21 @@ set_target_properties(carl9170.elf PROPERTIES LINK_FLAGS "${CARLFW_CFLAGS} -Wl,-
 add_custom_target(firmware ALL)
 
 add_custom_command(
-	SOURCE carl9170.elf
+	DEPENDS carl9170.elf
 	COMMAND ${OBJCOPY}
 	ARGS --strip-unneeded -O binary -R .sram -R .eeprom -R .fwdsc carl9170.elf carl9170.bin
 	TARGET firmware
 	OUTPUTS carl9170.bin)
 
 add_custom_command(
-	SOURCE carl9170.elf
+	DEPENDS carl9170.elf
 	COMMAND ${OBJCOPY}
 	ARGS --strip-unneeded -O binary -j .fwdsc carl9170.elf carl9170.dsc
 	TARGET firmware
 	OUTPUTS carl9170.dsc)
 
 add_custom_command(
-	SOURCE firmware
+	DEPENDS firmware
 	TARGET firmware
 	COMMAND cat
 	ARGS "carl9170.bin" "carl9170.dsc" > "carl9170.fw"

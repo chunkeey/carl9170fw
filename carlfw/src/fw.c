@@ -16,8 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * with this program; If not, see <http://www.gnu.org/licenses/>.
  */
 #include "carl9170.h"
 #include "fwdsc.h"
@@ -32,7 +31,7 @@
 		more							\
 	}
 
-const struct carl9170_firmware_descriptor __section(fwdsc) __visible carl9170fw_desc = {
+const struct carl9170_firmware_descriptor __in_section(fwdsc) __visible carl9170fw_desc = {
 	FILL(otus, OTUS,
 	     .feature_set = cpu_to_le32(BIT(CARL9170FW_DUMMY_FEATURE) |
 					BIT(CARL9170FW_USB_RESP_EP2) |
@@ -41,6 +40,7 @@ const struct carl9170_firmware_descriptor __section(fwdsc) __visible carl9170fw_
 					BIT(CARL9170FW_HW_COUNTERS) |
 					BIT(CARL9170FW_RX_BA_FILTER) |
 					BIT(CARL9170FW_USB_INIT_FIRMWARE) |
+					BIT(CARL9170FW_HAS_WREGB_CMD) |
 #ifdef CONFIG_CARL9170FW_USB_UP_STREAM
 					BIT(CARL9170FW_USB_UP_STREAM) |
 #endif /* CONFIG_CARL9170FW_USB_UP_STREAM */

@@ -17,16 +17,12 @@
 #ifndef __SHARED_COMPILER_H
 #define __SHARED_COMPILER_H
 
-#define __noinline	__attribute__((noinline))
 #define __noreturn	__attribute__((noreturn))
 #define __inline	__attribute__((always_inline))
 #define __hot		__attribute__((hot))
 #define __cold		__attribute__((cold))
-#define __unused	__attribute__((unused))
 #define __force		__attribute__((force))
-#define __section(s)	__attribute__((section("." # s)))
-#define __aligned(a)	__attribute__((aligned(a)))
-#define __packed	__attribute__((packed))
+#define __in_section(s)	__attribute__((section("." # s)))
 #define __visible	__attribute__((externally_visible))
 
 #define BUILD_BUG_ON(condition)	((void)sizeof(char[1 - 2*!!(condition)]))

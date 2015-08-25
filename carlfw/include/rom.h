@@ -19,8 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * with this program; If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __CARL9170FW_ROM_H
@@ -77,6 +76,6 @@ struct ar9170_rom {
 	struct ar9170_eeprom sys;
 } __packed;
 
-static const struct ar9170_rom rom __section(eeprom);
+static const struct ar9170_rom rom __in_section(eeprom);
 
 #endif /* __CARL9170FW_ROM_H */

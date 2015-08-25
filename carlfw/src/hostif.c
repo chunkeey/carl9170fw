@@ -19,8 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * with this program; If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "carl9170.h"
@@ -233,6 +232,12 @@ void handle_cmd(struct carl9170_rsp *resp)
 		memcpy(&resp->tally, &fw.tally, sizeof(struct carl9170_tally_rsp));
 		resp->tally.tick = fw.ticks_per_usec;
 		memset(&fw.tally, 0, sizeof(struct carl9170_tally_rsp));
+		break;
+
+	case CARL9170_CMD_WREGB:
+		resp->hdr.len = 0;
+		for (i = 0; i < MIN(cmd->wregb.count, cmd->hdr.len - 8); i++)
+			setb(cmd->wregb.addr + i, cmd->wregb.val[i]);
 		break;
 
 	case CARL9170_CMD_BCN_CTRL:

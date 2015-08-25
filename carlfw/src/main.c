@@ -19,8 +19,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * with this program; If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "carl9170.h"
@@ -141,7 +140,7 @@ static void __noreturn main_loop(void)
  * we put _start() there with the linker script carl9170.lds.
  */
 
-void __section(boot) __noreturn __visible start(void)
+void __in_section(boot) __noreturn __visible start(void)
 {
 	clock_set(AHB_40MHZ_OSC, true);
 
