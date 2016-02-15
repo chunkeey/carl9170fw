@@ -149,4 +149,9 @@ static inline __inline void orb(const volatile uint32_t addr, const volatile uin
 	setb(addr, getb(addr) | val);
 }
 
+static inline __inline uint16_t getw(const volatile uint32_t addr)
+{
+	return readw((const volatile void *) addr);
+}
+
 #endif /* __CARL9170FW_IO_H */

@@ -527,7 +527,6 @@ static int usb_set_configuration(const struct usb_ctrlrequest *ctrl)
 			usb_init_fullspeed_fifo_cfg();
 		}
 		/* usb_pta_init() ? */
-		break;
 #endif /* CONFIG_CARL9170FW_USB_MODESWITCH */
 
 		usb_reset_eps();

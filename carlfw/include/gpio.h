@@ -36,6 +36,11 @@ static inline __inline void led_set(const unsigned int ledstate)
 	set(AR9170_GPIO_REG_PORT_DATA, ledstate);
 }
 
+static inline __inline u16 get_random_u16(void)
+{
+	return getw(AR9170_RAND_REG_NUM);
+}
+
 #ifdef CONFIG_CARL9170FW_GPIO_INTERRUPT
 
 void gpio_timer(void);
