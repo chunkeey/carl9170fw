@@ -34,14 +34,10 @@ case "$1" in
 
 			if [ "$CONFIG_CARL9170FW_BUILD_MINIBOOT" = "y" ]; then
 				echo -n "Apply miniboot..."
-				# also adds checksum
+				# also update checksum
 				tools/src/miniboot a carlfw/carl9170.fw minifw/miniboot.fw
-			else
-				echo -n "Add checksum..."
-				tools/src/checksum carlfw/carl9170.fw
 			fi
 		fi
-
 		install -m 644 carlfw/carl9170.fw \
 			../carl9170-$CONFIG_CARL9170FW_RELEASE_VERSION.fw
 		echo "done."

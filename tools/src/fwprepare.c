@@ -25,7 +25,6 @@
 #include <unistd.h>
 
 #include "carlfw.h"
-
 #include "compiler.h"
 #include "pattern.h"
 

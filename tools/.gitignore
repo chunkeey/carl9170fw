@@ -1,6 +1,5 @@
 src/checksum
 src/fwinfo
-src/fwprepare
 src/miniboot
 src/fwprepare
 src/wol
