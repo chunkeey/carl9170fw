@@ -2491,12 +2491,17 @@ static inline bool ieee80211_is_public_action(struct ieee80211_hdr *hdr,
 	return mgmt->u.action.category == WLAN_CATEGORY_PUBLIC;
 }
 
+static inline bool is_multicast_ether_addr(const u8 *a)
+{
+        return 0x01 & a[0];
+}
+
 /**
  * _ieee80211_is_group_privacy_action - check if frame is a group addressed
  * privacy action frame
  * @hdr: the frame
  */
-static inline bool _ieee80211_is_group_privacy_action(struct ieee80211_hdr *hdr)
+static inline bool ieee80211_is_group_privacy_action(struct ieee80211_hdr *hdr)
 {
 	struct ieee80211_mgmt *mgmt = (void *)hdr;
 
@@ -2506,18 +2511,6 @@ static inline bool _ieee80211_is_group_privacy_action(struct ieee80211_hdr *hdr)
 
 	return mgmt->u.action.category == WLAN_CATEGORY_MESH_ACTION ||
 	       mgmt->u.action.category == WLAN_CATEGORY_MULTIHOP_ACTION;
-}
-
-/**
- * ieee80211_is_group_privacy_action - check if frame is a group addressed
- * privacy action frame
- * @skb: the skb containing the frame, length will be checked
- */
-static inline bool ieee80211_is_group_privacy_action(struct sk_buff *skb)
-{
-	if (skb->len < IEEE80211_MIN_ACTION_SIZE)
-		return false;
-	return _ieee80211_is_group_privacy_action((void *)skb->data);
 }
 
 /**
