@@ -262,8 +262,6 @@ static const struct {
 	ADD_HANDLER(LAST, show_last_desc),
 };
 
-static const uint8_t otus_magic[4] = { OTUS_MAGIC };
-
 static void show_desc_head(struct carl9170fw_desc_head *head)
 {
 #define P(c) (isprint(c) ? c :  ' ')
