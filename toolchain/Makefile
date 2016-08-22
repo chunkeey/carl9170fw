@@ -1,4 +1,4 @@
-BINUTILS_VER=2.26
+BINUTILS_VER=2.27
 BINUTILS_TAR=binutils-$(BINUTILS_VER).tar.bz2
 BINUTILS_URL="http://mirrors.kernel.org/gnu/binutils/$(BINUTILS_TAR)"
 
@@ -6,7 +6,7 @@ NEWLIB_VER=2.4.0
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_URL="ftp://sourceware.org/pub/newlib/$(NEWLIB_TAR)"
 
-GCC_VER=6.1.0
+GCC_VER=6.2.0
 GCC_TAR=gcc-$(GCC_VER).tar.bz2
 GCC_URL="http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/$(GCC_TAR)"
 
@@ -63,6 +63,6 @@ gcc: src/gcc-$(GCC_VER) binutils
 
 clean:
 	rm -rf "$(BASEDIR)/build" "$(BASEDIR)/inst"
-	
+
 distclean: clean
 	rm -rf "$(BASEDIR)/src"
