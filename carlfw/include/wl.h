@@ -188,8 +188,9 @@ static inline __inline unsigned int ar9170_get_rx_mpdu_len(struct dma_desc *desc
 		break;
 
 	case AR9170_RX_STATUS_MPDU_SINGLE:
+		/* MPDU single has both */
 		mpdu_len -= sizeof(struct ar9170_rx_phystatus);
-
+		/* fall through */
 	case AR9170_RX_STATUS_MPDU_FIRST:
 		mpdu_len -= sizeof(struct ar9170_rx_head);
 		break;

@@ -137,7 +137,7 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 				 */
 				break;
 			}
-			/* otherwise fall through */
+			/* fall through */
 		default:
 			rx_filter |= CARL9170_RX_FILTER_CTL_OTHER;
 			break;

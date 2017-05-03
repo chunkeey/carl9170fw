@@ -515,6 +515,7 @@ static int usb_set_configuration(const struct usb_ctrlrequest *ctrl)
 		/* Disable Device */
 		andb(AR9170_USB_REG_DEVICE_ADDRESS,
 		      (uint8_t) ~(AR9170_USB_DEVICE_ADDRESS_CONFIGURE));
+		/* fall through */
 	case 1:
 		fw.usb.config = config;
 

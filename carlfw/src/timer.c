@@ -64,9 +64,12 @@ void clock_set(enum cpu_clock_t clock_, bool on)
 	switch (clock_) {
 	case AHB_20_22MHZ:
 		fw.ticks_per_usec >>= 1;
+		/* fall through */
 	case AHB_40MHZ_OSC:
+		/* fall through */
 	case AHB_40_44MHZ:
 		fw.ticks_per_usec >>= 1;
+		/* fall through */
 	case AHB_80_88MHZ:
 		break;
 	}
