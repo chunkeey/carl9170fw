@@ -26,7 +26,7 @@ tools and libraries:
 
  * gcc 6.0+ (including library and header dependencies)
 
- * gperf, bison/flex
+ * bison/flex
 
  * cmake 3.8+
 
