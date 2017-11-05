@@ -17,18 +17,18 @@ your own toolchain:
 `# make -C toolchain`
 
 but be aware that this will take some time and requires
-about 3-4 GiB disk space.
+about 3-5 GiB disk space.
 
 ### Build Firmware Image
 
 The firmware configuration and build process requires the following
 tools and libraries:
 
- * gcc 4.8
+ * gcc 6.0+ (including library and header dependencies)
 
  * gperf, bison/flex
 
- * cmake 2.8.4+
+ * cmake 3.8+
 
 to start the configuration, run:
 
@@ -51,6 +51,6 @@ into /lib/firmware/[the default path on most Distributions].
 
 ## Contact
 
-If you have any questions, reports or patches, you should write
-to <linux-wireless@vger.kernel.org> and include "carl9170" in
-the subject line.
+If you have any patches, you should write
+to <linux-wireless@vger.kernel.org> and
+include "carl9170" in the subject line.
