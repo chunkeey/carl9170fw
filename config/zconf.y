@@ -20,10 +20,10 @@
 
 int cdebug = PRINTD;
 
-extern int zconflex(void);
+int yylex(void);
+static void yyerror(const char *err);
 static void zconfprint(const char *err, ...);
 static void zconf_error(const char *err, ...);
-static void zconferror(const char *err);
 static bool zconf_endtoken(const struct kconf_id *id, int starttoken, int endtoken);
 
 struct symbol *symbol_hash[SYMBOL_HASHSIZE];
@@ -532,9 +532,9 @@ void conf_parse(const char *name)
 	rootmenu.prompt = menu_add_prompt(P_MENU, "CARL9170 Firmware Configuration", NULL);
 
 	if (getenv("ZCONF_DEBUG"))
-		zconfdebug = 1;
-	zconfparse();
-	if (zconfnerrs)
+		yydebug = 1;
+	yyparse();
+	if (yynerrs)
 		exit(1);
 	if (!modules_sym)
 		modules_sym = sym_find( "n" );
@@ -547,9 +547,9 @@ void conf_parse(const char *name)
 	menu_finalize(&rootmenu);
 	for_all_symbols(i, sym) {
 		if (sym_check_deps(sym))
-			zconfnerrs++;
+			yynerrs++;
 	}
-	if (zconfnerrs)
+	if (yynerrs)
 		exit(1);
 	sym_set_change_count(1);
 }
@@ -574,7 +574,7 @@ static bool zconf_endtoken(const struct kconf_id *id, int starttoken, int endtok
 	if (id->token != endtoken) {
 		zconf_error("unexpected '%s' within %s block",
 			id->name, zconf_tokenname(starttoken));
-		zconfnerrs++;
+		yynerrs++;
 		return false;
 	}
 	if (current_menu->file != current_file) {
@@ -583,7 +583,7 @@ static bool zconf_endtoken(const struct kconf_id *id, int starttoken, int endtok
 		fprintf(stderr, "%s:%d: location of the '%s'\n",
 			current_menu->file->name, current_menu->lineno,
 			zconf_tokenname(starttoken));
-		zconfnerrs++;
+		yynerrs++;
 		return false;
 	}
 	return true;
@@ -604,7 +604,7 @@ static void zconf_error(const char *err, ...)
 {
 	va_list ap;
 
-	zconfnerrs++;
+	yynerrs++;
 	fprintf(stderr, "%s:%d: ", zconf_curname(), zconf_lineno());
 	va_start(ap, err);
 	vfprintf(stderr, err, ap);
@@ -612,7 +612,7 @@ static void zconf_error(const char *err, ...)
 	fprintf(stderr, "\n");
 }
 
-static void zconferror(const char *err)
+static void yyerror(const char *err)
 {
 	fprintf(stderr, "%s:%d: %s\n", zconf_curname(), zconf_lineno() + 1, err);
 }
