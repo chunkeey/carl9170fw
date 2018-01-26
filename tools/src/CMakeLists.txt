@@ -8,6 +8,6 @@ set(tools fwinfo miniboot checksum)
 
 foreach(tool ${tools})
 	add_executable( ${tool} ${tool}.c )
-	add_definitions("-std=gnu99 -Wall -Wextra -Wshadow")
+	add_definitions("-Wall -Wextra -Wshadow")
 	target_link_libraries( ${tool} carlfw )
 endforeach()
