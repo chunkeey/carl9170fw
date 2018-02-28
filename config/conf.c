@@ -629,7 +629,7 @@ int main(int ac, char **av)
 		do {
 			conf_cnt = 0;
 			check_conf(&rootmenu);
-		} while (conf_cnt && input_mode != listnewconfig);
+		} while (conf_cnt);
 		break;
 	}
 
