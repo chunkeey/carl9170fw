@@ -73,12 +73,12 @@ struct carl9170_tx_ba_superframe {
 struct ar9170_tx_null_frame {
 	struct ar9170_tx_hwdesc hdr;
 	struct ieee80211_hdr null;
-} __packed;
+} __packed __aligned(4);
 
 struct carl9170_tx_null_superframe {
 	struct carl9170_tx_superdesc s;
 	struct ar9170_tx_null_frame f;
-} __packed;
+} __packed __aligned(4);
 
 #define CARL9170_BA_BUFFER_LEN	(__roundup(sizeof(struct carl9170_tx_ba_superframe), 16))
 #define CARL9170_RSP_BUFFER_LEN	AR9170_BLOCK_SIZE
