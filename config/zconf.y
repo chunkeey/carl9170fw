@@ -533,7 +533,7 @@ void conf_parse(const char *name)
 
 	if (!menu_has_prompt(&rootmenu)) {
 		current_entry = &rootmenu;
-		menu_add_prompt(P_MENU, "Linux Kernel Configuration", NULL);
+		menu_add_prompt(P_MENU, "Main menu", NULL);
 	}
 
 	menu_finalize(&rootmenu);
