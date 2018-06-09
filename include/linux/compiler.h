@@ -25,6 +25,9 @@
 #define __in_section(s)	__attribute__((section("." # s)))
 #define __visible	__attribute__((externally_visible))
 
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+
+
 #define BUILD_BUG_ON(condition)	((void)sizeof(char[1 - 2*!!(condition)]))
 #define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
 
@@ -99,6 +102,13 @@ static inline long IS_ERR(const void *ptr)
 static inline long IS_ERR_OR_NULL(const void *ptr)
 {
 	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
+}
+
+static inline unsigned int hweight8(unsigned int w)
+{
+        unsigned int res = w - ((w >> 1) & 0x55);
+        res = (res & 0x33) + ((res >> 2) & 0x33);
+        return (res + (res >> 4)) & 0x0F;
 }
 
 #endif /* __SHARED_COMPILER_H */
