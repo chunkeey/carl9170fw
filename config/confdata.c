@@ -945,6 +945,9 @@ static int conf_write_dep(const char *name)
 
 	fprintf(out, "\n$(deps_config): ;\n");
 	fclose(out);
+
+	if (make_parent_dir(name))
+		return 1;
 	rename("..config.tmp", name);
 	return 0;
 }
@@ -961,6 +964,8 @@ static int conf_split_config(void)
 	conf_read_simple(name, S_DEF_AUTO);
 	sym_calc_value(modules_sym);
 
+	if (make_parent_dir("include/generated/foo.h"))
+		return 1;
 	if (chdir("include/generated"))
 		return 1;
 
@@ -1037,6 +1042,7 @@ static int conf_split_config(void)
 				res = 1;
 				goto out;
 			}
+
 			/* Try it again. */
 			fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 			if (fd == -1) {
@@ -1121,19 +1127,31 @@ int conf_write_autoconf(void)
 	name = getenv("KCONFIG_AUTOHEADER");
 	if (!name)
 		name = "include/generated/autoconf.h";
+	if (make_parent_dir(name))
+		return 1;
 	if (rename(".tmpconfig.h", name))
 		return 1;
+
 	name = getenv("KCONFIG_TRISTATE");
 	if (!name)
 		name = "include/generated/tristate.conf";
+	if (make_parent_dir(name))
+		return 1;
 	if (rename(".tmpconfig_tristate", name))
 		return 1;
+
 	name = getenv("KCONFIG_CMAKE");
 	if (!name)
 		name = "config.cmake";
+	if (make_parent_dir(name))
+		return 1;
 	if (rename(".tmpconfig.cmake", name))
 		return 1;
+
 	name = conf_get_autoconfig_name();
+	if (make_parent_dir(name))
+		return 1;
+
 	/*
 	 * This must be the last step, kbuild has a dependency on auto.conf
 	 * and this marks the successful completion of the previous steps.
