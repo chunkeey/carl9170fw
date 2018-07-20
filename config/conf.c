@@ -483,6 +483,7 @@ int main(int ac, char **av)
 	int opt;
 	const char *name, *defconfig_file = NULL /* gcc uninit */;
 	struct stat tmpstat;
+	int no_conf_write = 0;
 
 	tty_stdio = isatty(0) && isatty(1);
 
@@ -651,7 +652,7 @@ int main(int ac, char **av)
 		/*
 		 * build so we shall update autoconf.
 		 */
-		if (conf_write(NULL)) {
+		if (!no_conf_write && conf_write(NULL)) {
 			fprintf(stderr, "\n*** Error during writing of the configuration.\n\n");
 			exit(1);
 		}
