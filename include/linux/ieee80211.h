@@ -814,6 +814,8 @@ enum mesh_config_capab_flags {
 	IEEE80211_MESHCONF_CAPAB_TBTT_ADJUSTING		= 0x20,
 };
 
+#define IEEE80211_MESHCONF_FORM_CONNECTED_TO_GATE 0x1
+
 /**
  * mesh channel switch parameters element's flag indicator
  *
