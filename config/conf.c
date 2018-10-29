@@ -31,7 +31,6 @@ enum input_mode {
 	defconfig,
 	savedefconfig,
 	listnewconfig,
-	oldnoconfig,
 };
 static enum input_mode input_mode = oldaskconfig;
 
@@ -454,7 +453,6 @@ static struct option long_opts[] = {
 	{"alldefconfig",    no_argument,       NULL, alldefconfig},
 	{"randconfig",      no_argument,       NULL, randconfig},
 	{"listnewconfig",   no_argument,       NULL, listnewconfig},
-	{"noconfig",        no_argument,       NULL, oldnoconfig},
 	{NULL, 0, NULL, 0}
 };
 
@@ -538,7 +536,6 @@ int main(int ac, char **av)
 		case allmodconfig:
 		case alldefconfig:
 		case listnewconfig:
-		case oldnoconfig:
 			break;
 		case '?':
 			conf_usage(progname);
@@ -572,7 +569,6 @@ int main(int ac, char **av)
 	case oldaskconfig:
 	case oldconfig:
 	case listnewconfig:
-	case oldnoconfig:
 		conf_read(NULL);
 		break;
 	case allnoconfig:
@@ -641,7 +637,6 @@ int main(int ac, char **av)
 		/* fall through */
 	case oldconfig:
 	case listnewconfig:
-	case oldnoconfig:
 		/* Update until a loop caused no more changes */
 		do {
 			conf_cnt = 0;
