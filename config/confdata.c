@@ -952,7 +952,7 @@ static int conf_write_dep(const char *name)
 	return 0;
 }
 
-static int conf_split_config(void)
+static int conf_touch_deps(void)
 {
 	const char *name;
 	char path[PATH_MAX+1];
@@ -1070,7 +1070,7 @@ int conf_write_autoconf(void)
 
 	conf_write_dep("include/generated/auto.conf.cmd");
 
-	if (conf_split_config())
+	if (conf_touch_deps())
 		return 1;
 
 	out = fopen(".tmpconfig", "w");
