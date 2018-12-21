@@ -732,8 +732,4 @@ void zconfdump(FILE *out)
 
 #include "zconf.lex.c"
 #include "util.c"
-#include "confdata.c"
-#include "expr.c"
-#include "symbol.c"
 #include "menu.c"
-#include "preprocess.c"
