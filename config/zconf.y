@@ -497,7 +497,6 @@ void conf_parse(const char *name)
 	zconf_initscan(name);
 
 	_menu_init();
-	rootmenu.prompt = menu_add_prompt(P_MENU, "CARL9170 Firmware Configuration", NULL);
 
 	if (getenv("ZCONF_DEBUG"))
 		yydebug = 1;

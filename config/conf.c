@@ -22,6 +22,7 @@ static void check_conf(struct menu *menu);
 
 enum input_mode {
 	oldaskconfig,
+	syncconfig,
 	oldconfig,
 	allnoconfig,
 	allyesconfig,
@@ -31,11 +32,13 @@ enum input_mode {
 	defconfig,
 	savedefconfig,
 	listnewconfig,
+	olddefconfig,
 };
 static enum input_mode input_mode = oldaskconfig;
 
 static int indent = 1;
 static int tty_stdio;
+static int sync_kconfig;
 static int conf_cnt;
 static char line[PATH_MAX];
 static struct menu *rootEntry;
@@ -96,6 +99,7 @@ static int conf_askvalue(struct symbol *sym, const char *def)
 
 	switch (input_mode) {
 	case oldconfig:
+	case syncconfig:
 		if (sym_has_value(sym)) {
 			printf("%s\n", def);
 			return 0;
@@ -288,6 +292,7 @@ static int conf_choice(struct menu *menu)
 		printf("[1-%d?]: ", cnt);
 		switch (input_mode) {
 		case oldconfig:
+		case syncconfig:
 			if (!is_new) {
 				cnt = def;
 				printf("%d\n", cnt);
@@ -443,8 +448,9 @@ static void check_conf(struct menu *menu)
 }
 
 static struct option long_opts[] = {
-	{"askconfig",       no_argument,       NULL, oldaskconfig},
-	{"config",          no_argument,       NULL, oldconfig},
+	{"oldaskconfig",    no_argument,       NULL, oldaskconfig},
+	{"oldconfig",       no_argument,       NULL, oldconfig},
+	{"syncconfig",      no_argument,       NULL, syncconfig},
 	{"defconfig",       optional_argument, NULL, defconfig},
 	{"savedefconfig",   required_argument, NULL, savedefconfig},
 	{"allnoconfig",     no_argument,       NULL, allnoconfig},
@@ -453,6 +459,7 @@ static struct option long_opts[] = {
 	{"alldefconfig",    no_argument,       NULL, alldefconfig},
 	{"randconfig",      no_argument,       NULL, randconfig},
 	{"listnewconfig",   no_argument,       NULL, listnewconfig},
+	{"olddefconfig",    no_argument,       NULL, olddefconfig},
 	{NULL, 0, NULL, 0}
 };
 
@@ -462,10 +469,11 @@ static void conf_usage(const char *progname)
 	printf("Usage: %s [-s] [option] <kconfig-file>\n", progname);
 	printf("[option] is _one_ of the following:\n");
 	printf("  --listnewconfig         List new options\n");
-	printf("  --askconfig             Start a new configuration using a line-oriented program\n");
-	printf("  --config                Update a configuration using a provided .config as base\n");
-	printf("  --silentconfig          Same as config, but quietly, additionally update deps\n");
-	printf("  --noconfig              Same as silentconfig but set new symbols to no\n");
+	printf("  --oldaskconfig          Start a new configuration using a line-oriented program\n");
+	printf("  --oldconfig             Update a configuration using a provided .config as base\n");
+	printf("  --syncconfig            Similar to oldconfig but generates configuration in\n"
+	       "                          include/{generated/,config/}\n");
+	printf("  --olddefconfig          Same as oldconfig but sets new symbols to their default value\n");
 	printf("  --defconfig <file>      New config with default defined in <file>\n");
 	printf("  --savedefconfig <file>  Save the minimal current configuration to <file>\n");
 	printf("  --allnoconfig           New config where all options are answered with no\n");
@@ -498,8 +506,8 @@ int main(int ac, char **av)
 			 * Suppress distracting "configuration written to ..."
 			 */
 			conf_set_message_callback(NULL);
-                        sync_kconfig = 1;
-			break
+			sync_kconfig = 1;
+			break;
 		case defconfig:
 		case savedefconfig:
 			defconfig_file = optarg;
@@ -536,6 +544,7 @@ int main(int ac, char **av)
 		case allmodconfig:
 		case alldefconfig:
 		case listnewconfig:
+		case olddefconfig:
 			break;
 		case '?':
 			conf_usage(progname);
@@ -551,6 +560,18 @@ int main(int ac, char **av)
 	name = av[optind];
 	conf_parse(name);
 	//zconfdump(stdout);
+	if (sync_kconfig) {
+		name = conf_get_configname();
+		if (stat(name, &tmpstat)) {
+			fprintf(stderr, "***\n"
+				"*** Configuration file \"%s\" not found!\n"
+				"***\n"
+				"*** Please run some configurator (e.g. \"make oldconfig\" or\n"
+				"*** \"make menuconfig\" or \"make xconfig\").\n"
+				"***\n", name);
+			exit(1);
+		}
+	}
 
 	switch (input_mode) {
 	case defconfig:
@@ -566,9 +587,11 @@ int main(int ac, char **av)
 		}
 		break;
 	case savedefconfig:
+	case syncconfig:
 	case oldaskconfig:
 	case oldconfig:
 	case listnewconfig:
+	case olddefconfig:
 		conf_read(NULL);
 		break;
 	case allnoconfig:
@@ -608,6 +631,18 @@ int main(int ac, char **av)
 		break;
 	}
 
+	if (sync_kconfig) {
+		name = getenv("KCONFIG_NOSILENTUPDATE");
+		if (name && *name) {
+			if (conf_get_changed()) {
+				fprintf(stderr,
+					"\n*** The configuration requires explicit update.\n\n");
+				return 1;
+			}
+			no_conf_write = 1;
+		}
+	}
+
 	switch (input_mode) {
 	case allnoconfig:
 		conf_set_all_new_symbols(def_no);
@@ -637,11 +672,15 @@ int main(int ac, char **av)
 		/* fall through */
 	case oldconfig:
 	case listnewconfig:
+	case syncconfig:
 		/* Update until a loop caused no more changes */
 		do {
 			conf_cnt = 0;
 			check_conf(&rootmenu);
 		} while (conf_cnt);
+		break;
+	case olddefconfig:
+	default:
 		break;
 	}
 
@@ -652,15 +691,23 @@ int main(int ac, char **av)
 			return 1;
 		}
 	} else if (input_mode != listnewconfig) {
-		/*
-		 * build so we shall update autoconf.
-		 */
 		if (!no_conf_write && conf_write(NULL)) {
 			fprintf(stderr, "\n*** Error during writing of the configuration.\n\n");
 			exit(1);
 		}
-		if (conf_write_autoconf()) {
-			fprintf(stderr, "\n*** Error during update of the configuration.\n\n");
+
+		/*
+		 * Create auto.conf if it does not exist.
+		 * This prevents GNU Make 4.1 or older from emitting
+		 * "include/generated/auto.conf: No such file or directory"
+		 * in the top-level Makefile
+		 *
+		 * syncconfig always creates or updates auto.conf because it is
+		 * used during the build.
+		 */
+		if (conf_write_autoconf(sync_kconfig) && sync_kconfig) {
+			fprintf(stderr,
+				"\n*** Error during sync of the configuration.\n\n");
 			return 1;
 		}
 	}
