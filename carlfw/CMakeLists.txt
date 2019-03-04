@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 2.8)
 project(carl9170.fw)
 
 include("../extra/sh-elf-linux.cmake")
-include("../config.cmake")
 
 set(CARL9170_FW_ELF carl9170.elf)
 set(CARLFW_CFLAGS_WARNING "-W -Wall -Wextra -Wunreachable-code -Winline -Wlogical-op -Wno-packed-bitfield-compat -Winit-self -Wshadow -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wformat=2 -Wcast-align -Wmissing-format-attribute -Wmissing-prototypes -Wtype-limits -Wmissing-declarations -Wmissing-noreturn -Wredundant-decls -Wnested-externs -Wdisabled-optimization -Wpointer-arith -Wvolatile-register-var -Waddress -Wbad-function-cast -Wunsafe-loop-optimizations")

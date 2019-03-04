@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 2.8)
 project(miniboot.fw)
 
 include("../extra/sh-elf-linux.cmake")
-include("../config.cmake")
 
 set(miniboot_src miniboot.S)
 set_source_files_properties(miniboot.S PROPERTIES LANGUAGE C)
