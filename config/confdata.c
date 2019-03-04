@@ -583,6 +583,46 @@ kconfig_print_symbol(FILE *fp, struct symbol *sym, const char *value, void *arg)
 }
 
 static void
+kconfig_print_cmake_symbol(FILE *fp, struct symbol *sym, const char *value, void *arg)
+{
+
+	switch (sym->type) {
+	case S_BOOLEAN:
+	case S_TRISTATE:
+		if (*value == 'n') {
+			bool skip_unset = (arg != NULL);
+
+			if (!skip_unset)
+				fprintf(fp, "set(%s%s false)\n",
+					CONFIG_, sym->name, value);
+			return;
+		} else if (*value == 'm') {
+			abort();
+		} else {
+			fprintf(fp, "set(%s%s true)\n", CONFIG_, sym->name, value);
+		}
+		break;
+	case S_HEX: {
+		const char *prefix = "";
+
+		if (value[0] != '0' || (value[1] != 'x' && value[1] != 'X'))
+			prefix = "0x";
+		fprintf(fp, "set(%s%s %s%s)\n",
+		    CONFIG_, sym->name, prefix, value);
+		break;
+	}
+	case S_STRING:
+	case S_INT:
+		fprintf(fp, "set(%s%s %s)\n",
+		    CONFIG_, sym->name, value);
+		break;
+	default:
+		break;
+	}
+
+}
+
+static void
 kconfig_print_comment(FILE *fp, const char *value, void *arg)
 {
 	const char *p = value;
@@ -605,6 +645,12 @@ kconfig_print_comment(FILE *fp, const char *value, void *arg)
 static struct conf_printer kconfig_printer_cb =
 {
 	.print_symbol = kconfig_print_symbol,
+	.print_comment = kconfig_print_comment,
+};
+
+static struct conf_printer kconfig_printer_cmake_cb =
+{
+	.print_symbol = kconfig_print_cmake_symbol,
 	.print_comment = kconfig_print_comment,
 };
 
@@ -1020,7 +1066,7 @@ int conf_write_autoconf(int overwrite)
 	struct symbol *sym;
 	const char *name;
 	const char *autoconf_name = conf_get_autoconfig_name();
-	FILE *out, *tristate, *out_h;
+	FILE *out, *tristate, *out_h, *out_c;
 	int i;
 
 	if (!overwrite && is_present(autoconf_name))
@@ -1050,11 +1096,20 @@ int conf_write_autoconf(int overwrite)
 		return 1;
 	}
 
+	out_c = fopen(".tmpconfig.cmake", "w");
+	if (!out_c) {
+		fclose(out);
+		fclose(tristate);
+		fclose(out_h);
+	}
+
 	conf_write_heading(out, &kconfig_printer_cb, NULL);
 
 	conf_write_heading(tristate, &tristate_printer_cb, NULL);
 
 	conf_write_heading(out_h, &header_printer_cb, NULL);
+
+	conf_write_heading(out_c, &kconfig_printer_cmake_cb, NULL);
 
 	for_all_symbols(i, sym) {
 		sym_calc_value(sym);
@@ -1067,10 +1122,13 @@ int conf_write_autoconf(int overwrite)
 		conf_write_symbol(tristate, sym, &tristate_printer_cb, (void *)1);
 
 		conf_write_symbol(out_h, sym, &header_printer_cb, NULL);
+
+		conf_write_symbol(out_c, sym, &kconfig_printer_cmake_cb, NULL);
 	}
 	fclose(out);
 	fclose(tristate);
 	fclose(out_h);
+	fclose(out_c);
 
 	name = getenv("KCONFIG_AUTOHEADER");
 	if (!name)
@@ -1090,6 +1148,15 @@ int conf_write_autoconf(int overwrite)
 
 	if (make_parent_dir(autoconf_name))
 		return 1;
+
+	name = getenv("KCONFIG_CMAKE");
+	if (!name)
+		name = "config.cmake";
+	if (make_parent_dir(name))
+		return 1;
+	if (rename(".tmpconfig.cmake", name))
+		return 1;
+
 	/*
 	 * This must be the last step, kbuild has a dependency on auto.conf
 	 * and this marks the successful completion of the previous steps.
