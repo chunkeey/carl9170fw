@@ -273,7 +273,7 @@ struct ar9170_tx_frame {
 		struct ieee80211_hdr i3e;
 		u8 payload[0];
 	} data;
-} __packed;
+} __packed __aligned(4);
 
 struct carl9170_tx_superframe {
 	struct carl9170_tx_superdesc s;

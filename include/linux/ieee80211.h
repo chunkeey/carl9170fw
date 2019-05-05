@@ -897,33 +897,33 @@ struct ieee80211_mgmt {
 			__le16 status_code;
 			/* possibly followed by Challenge text */
 			u8 variable[0];
-		} __packed auth;
+		} __packed __aligned(4) auth;
 		struct {
 			__le16 reason_code;
-		} __packed deauth;
+		} __packed __aligned(4) deauth;
 		struct {
 			__le16 capab_info;
 			__le16 listen_interval;
 			/* followed by SSID and Supported rates */
 			u8 variable[0];
-		} __packed assoc_req;
+		} __packed __aligned(4) assoc_req;
 		struct {
 			__le16 capab_info;
 			__le16 status_code;
 			__le16 aid;
 			/* followed by Supported rates */
 			u8 variable[0];
-		} __packed assoc_resp, reassoc_resp;
+		} __packed __aligned(4) assoc_resp, reassoc_resp;
 		struct {
 			__le16 capab_info;
 			__le16 listen_interval;
 			u8 current_ap[6];
 			/* followed by SSID and Supported rates */
 			u8 variable[0];
-		} __packed reassoc_req;
+		} __packed __aligned(4) reassoc_req;
 		struct {
 			__le16 reason_code;
-		} __packed disassoc;
+		} __packed __aligned(4) disassoc;
 		struct {
 			__le64 timestamp;
 			__le16 beacon_int;
@@ -931,11 +931,11 @@ struct ieee80211_mgmt {
 			/* followed by some of SSID, Supported rates,
 			 * FH Params, DS Params, CF Params, IBSS Params, TIM */
 			u8 variable[0];
-		} __packed beacon;
+		} __packed __aligned(4) beacon;
 		struct {
 			/* only variable items: SSID, Supported rates */
 			u8 variable[0];
-		} __packed probe_req;
+		} __packed __aligned(4) probe_req;
 		struct {
 			__le64 timestamp;
 			__le16 beacon_int;
@@ -943,7 +943,7 @@ struct ieee80211_mgmt {
 			/* followed by some of SSID, Supported rates,
 			 * FH Params, DS Params, CF Params, IBSS Params */
 			u8 variable[0];
-		} __packed probe_resp;
+		} __packed __aligned(4) probe_resp;
 		struct {
 			u8 category;
 			union {
@@ -1041,8 +1041,8 @@ struct ieee80211_mgmt {
 					u8 variable[0];
 				} __packed ftm;
 			} u;
-		} __packed action;
-	} u;
+		} __packed __aligned(4) action;
+	} u __aligned(2);
 } __packed __aligned(2);
 
 /* Supported rates membership selectors */
@@ -1245,7 +1245,7 @@ struct ieee80211_bar {
 	__u8 ta[6];
 	__le16 control;
 	__le16 start_seq_num;
-} __packed __aligned(4);
+} __packed __aligned(2);
 
 /* 802.11 BA(R) control masks */
 #define IEEE80211_BAR_CTRL_ACK_POLICY_NORMAL	0x0000

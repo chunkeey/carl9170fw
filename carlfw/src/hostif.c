@@ -213,10 +213,14 @@ void handle_cmd(struct carl9170_rsp *resp)
 		fw.reboot = 1;
 		break;
 
-	case CARL9170_CMD_READ_TSF:
+	case CARL9170_CMD_READ_TSF: {
+		uint32_t tmptsf[2];
+
+		read_tsf(tmptsf);
 		resp->hdr.len = 8;
-		read_tsf((uint32_t *)resp->tsf.tsf);
+		memcpy(resp->tsf.tsf, tmptsf, sizeof(tmptsf));
 		break;
+		}
 
 	case CARL9170_CMD_RX_FILTER:
 		resp->hdr.len = 0;

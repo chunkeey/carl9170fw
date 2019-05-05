@@ -237,7 +237,7 @@ static inline __inline void unhide_super(struct dma_desc *desc)
 	desc->totalLen += sizeof(struct carl9170_tx_superdesc);
 }
 
-static inline __inline __hot void read_tsf(uint32_t *tsf)
+static inline __inline __hot void read_tsf(uint32_t tsf[static 2])
 {
 	/*
 	 * "According to the [hardware] documentation:

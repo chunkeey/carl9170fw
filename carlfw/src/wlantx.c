@@ -260,7 +260,7 @@ static void __wlan_tx(struct dma_desc *desc)
 
 	if (unlikely(super->s.fill_in_tsf)) {
 		struct ieee80211_mgmt *mgmt = (void *) &super->f.data.i3e;
-		uint32_t *tsf = (uint32_t *) &mgmt->u.probe_resp.timestamp;
+		uint32_t tmptsf[2];
 
 		/*
 		 * Truth be told: this is a hack.
@@ -272,7 +272,8 @@ static void __wlan_tx(struct dma_desc *desc)
 		 * (even, if it's got an accurate atomic clock source).
 		 */
 
-		read_tsf(tsf);
+		read_tsf(tmptsf);
+		memcpy(&mgmt->u.probe_resp.timestamp, tmptsf, sizeof(tmptsf));
 	}
 
 	wlan_tx_ampdu(super);
