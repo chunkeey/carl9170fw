@@ -1010,8 +1010,6 @@ static int conf_write_dep(const char *name)
 	struct file *file;
 	FILE *out;
 
-	if (!name)
-		name = ".kconfig.d";
 	out = fopen("..config.tmp", "w");
 	if (!out)
 		return 1;
