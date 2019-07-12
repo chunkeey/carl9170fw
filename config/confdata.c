@@ -941,7 +941,8 @@ int conf_write(const char *name)
 				     "# %s\n"
 				     "#\n", str);
 			need_newline = false;
-		} else if (!(sym->flags & SYMBOL_CHOICE)) {
+		} else if (!(sym->flags & SYMBOL_CHOICE) &&
+			   !(sym->flags & SYMBOL_WRITTEN)) {
 			sym_calc_value(sym);
 			if (!(sym->flags & SYMBOL_WRITE))
 				goto next;
@@ -949,7 +950,7 @@ int conf_write(const char *name)
 				fprintf(out, "\n");
 				need_newline = false;
 			}
-			sym->flags &= ~SYMBOL_WRITE;
+			sym->flags |= SYMBOL_WRITTEN;
 			conf_write_symbol(out, sym, &kconfig_printer_cb, NULL);
 		}
 
@@ -1108,8 +1109,6 @@ int conf_write_autoconf(int overwrite)
 
 	if (!overwrite && is_present(autoconf_name))
 		return 0;
-
-	sym_clear_all_valid();
 
 	conf_write_dep("include/generated/auto.conf.cmd");
 
