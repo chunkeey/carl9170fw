@@ -1,7 +1,4 @@
-zconf.hash.c
-zconf.tab.c
 conf
-lex.backup
-zconf.lex.c
-zconf.tab.h
-
+parser.tab.c
+parser.tab.h
+lexer.lex.c

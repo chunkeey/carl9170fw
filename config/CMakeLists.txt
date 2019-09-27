@@ -11,13 +11,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../include/generated")
 
-BISON_TARGET(zconf zconf.y zconf.tab.c COMPILE_FLAGS "-l -b zconf -p yy -t")
-FLEX_TARGET(zconfscan zconf.l zconf.lex.c COMPILE_FLAGS "-Pyy -L")
+BISON_TARGET(parser parser.y parser.tab.c COMPILE_FLAGS "-l -b parser -p yy -t")
+FLEX_TARGET(lexer lexer.l lexer.lex.c COMPILE_FLAGS "-Pyy -L")
 
-SET(zconf_deps ${FLEX_zconfscan_OUTPUTS})
-SET_SOURCE_FILES_PROPERTIES(${BISON_zconf_OUTPUTS}
-      PROPERTIES OBJECT_DEPENDS "${zconf_deps}")
+SET(parser_deps ${FLEX_lexer_OUTPUTS})
+SET_SOURCE_FILES_PROPERTIES(${BISON_parser_OUTPUTS}
+      PROPERTIES OBJECT_DEPENDS "${parser_deps}")
 
-set(conf_src conf.c symbol.c confdata.c expr.c preprocess.c ${BISON_zconf_OUTPUTS} ${FLEX_zconfscan_OUTPUTS})
+set(conf_src conf.c symbol.c confdata.c expr.c preprocess.c ${BISON_parser_OUTPUTS} ${FLEX_lexer_OUTPUTS})
 
 add_executable(conf ${conf_src})
