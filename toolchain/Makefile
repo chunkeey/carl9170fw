@@ -1,4 +1,4 @@
-BINUTILS_VER=2.32
+BINUTILS_VER=2.33.1
 BINUTILS_TAR=binutils-$(BINUTILS_VER).tar.xz
 BINUTILS_URL="http://mirrors.kernel.org/gnu/binutils/$(BINUTILS_TAR)"
 
