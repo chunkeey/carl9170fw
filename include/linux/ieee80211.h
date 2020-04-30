@@ -3344,6 +3344,8 @@ struct element {
 /* convert frequencies */
 #define MHZ_TO_KHZ(freq) ((freq) * 1000)
 #define KHZ_TO_MHZ(freq) ((freq) / 1000)
+#define PR_KHZ(f) KHZ_TO_MHZ(f), f % 1000
+#define KHZ_F "%d.%03d"
 
 /* convert powers */
 #define DBI_TO_MBI(gain) ((gain) * 100)
