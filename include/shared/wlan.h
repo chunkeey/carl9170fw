@@ -270,7 +270,7 @@ struct ar9170_tx_frame {
 	struct ar9170_tx_hwdesc hdr;
 
 	union {
-		struct ieee80211_hdr i3e;
+		struct ieee80211_hdr i3e __packed __aligned(2);
 		u8 payload[0];
 	} data;
 } __packed __aligned(4);
@@ -367,24 +367,24 @@ struct ar9170_rx_macstatus {
 
 struct ar9170_rx_frame_single {
 	struct ar9170_rx_head phy_head;
-	struct ieee80211_hdr i3e;
+	struct ieee80211_hdr i3e __packed __aligned(2);
 	struct ar9170_rx_phystatus phy_tail;
 	struct ar9170_rx_macstatus macstatus;
-} __packed __aligned(4);
+};
 
 struct ar9170_rx_frame_head {
 	struct ar9170_rx_head phy_head;
-	struct ieee80211_hdr i3e;
+	struct ieee80211_hdr i3e __packed __aligned(2);
 	struct ar9170_rx_macstatus macstatus;
-} __packed __aligned(4);
+};
 
 struct ar9170_rx_frame_middle {
-	struct ieee80211_hdr i3e;
+	struct ieee80211_hdr i3e __packed __aligned(2);
 	struct ar9170_rx_macstatus macstatus;
-} __packed __aligned(4);
+};
 
 struct ar9170_rx_frame_tail {
-	struct ieee80211_hdr i3e;
+	struct ieee80211_hdr i3e __packed __aligned(2);
 	struct ar9170_rx_phystatus phy_tail;
 	struct ar9170_rx_macstatus macstatus;
 } __packed __aligned(4);
@@ -395,8 +395,8 @@ struct ar9170_rx_frame {
 		struct ar9170_rx_frame_head head;
 		struct ar9170_rx_frame_middle middle;
 		struct ar9170_rx_frame_tail tail;
-	} __packed __aligned(4);
-} __packed __aligned(4);
+	};
+};
 
 static inline u8 ar9170_get_decrypt_type(struct ar9170_rx_macstatus *t)
 {
