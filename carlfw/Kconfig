@@ -34,7 +34,7 @@ config CARL9170FW_RX_FRAME_LEN
 config CARL9170FW_GPIO_INTERRUPT
 	def_bool y
 	prompt "GPIO Software Interrupt"
-	---help---
+	help
 	 When this option is enabled, the firmware will poll the GPIO
 	 registers and reports to the driver whenever the GPIO state
 	 has changed from a previous state.
@@ -45,7 +45,7 @@ config CARL9170FW_GPIO_INTERRUPT
 config CARL9170FW_SECURITY_ENGINE
 	def_bool y
 	prompt "Support Hardware Crypto Engine"
-	---help---
+	help
 	 This options controls if the firmware will allow the driver
 	 to program the security engine / CAM through a firmware
 	 interface.
@@ -56,7 +56,7 @@ config CARL9170FW_SECURITY_ENGINE
 config CARL9170FW_RADIO_FUNCTIONS
 	def_bool y
 	prompt "Enable Firmware-supported Radio/RF functions"
-	---help---
+	help
 	 Some PHY/RF functions (e.g.: AGC and Noise calibration) need
 	 to be done in the firmware.
 
@@ -73,7 +73,7 @@ config CARL9170FW_PRINTF
 	def_bool y
 	prompt "Advanced printf"
 	depends on CARL9170FW_DEBUG_UART || CARL9170FW_DEBUG_USB
-	---help---
+	help
 	 Advanced printf (very useful for debugging purposes)
 	 The formats supported by this implementation are:
 		'd' 'u' 'c' 's' 'x' 'X' 'p'.
@@ -89,7 +89,7 @@ config CARL9170FW_WOL_OPTION
 	def_bool n
 	prompt "Wakeup on WLAN"
 	depends on CARL9170FW_EXPERIMENTAL
-	---help---
+	help
 	 With this option enabled, the firmware can wake-up
 	 suspended hosts... As long as they fully support
 	 USB remote wakeup.
@@ -103,7 +103,7 @@ config CARL9170FW_WOL_NL80211_TRIGGERS
 	prompt "Standard NL80211 wakeup triggers"
 	depends on CARL9170FW_WOL_OPTION
 	select CARL9170FW_WOL
-	---help---
+	help
 	 Available triggers:
 	  * Magic Packet(tm) pattern
 	  * disconnect event
@@ -113,7 +113,7 @@ config CARL9170FW_WOL_PROBE_REQUEST
 	prompt "Probe Request"
 	depends on CARL9170FW_WOL_OPTION
 	select CARL9170FW_WOL
-	---help---
+	help
 	 Scan probe requests for a given SSID.
 
 config CARL9170FW_WOL_PROBE_REQUEST_SSID
@@ -142,7 +142,7 @@ config CARL9170FW_80MHZ_CLOCK
 	def_bool n
 	prompt "Allow 80/88MHz clock for HT40"
 	depends on CARL9170FW_EXPERIMENTAL
-	---help---
+	help
 	 The SoC can run up to 80/88MHz in HT40 mode. This improves
 	 throughput and timing accuracy over the 40/44MHz clock.
 	 However some devices don't have heat shields and they with
@@ -161,7 +161,7 @@ config CARL9170FW_DEBUG_LED_HEARTBEAT
 	def_bool n
 	prompt "LED Heartbeat"
 	depends on CARL9170FW_BROKEN_FEATURES
-	---help---
+	help
 	 This option conflicts with the application's LED code.
 	 Also, it assumes that you have two LEDs, which is not
 	 necessarily true.
@@ -170,7 +170,7 @@ config CARL9170FW_DEBUG_UART
 	def_bool n
 	prompt "Pass debug messages through Highspeed UART"
 	depends on CARL9170FW_BROKEN_FEATURES
-	---help---
+	help
 	 This option allows the firmware to send BUG/ERR/INFO/DBG and
 	 hexdumps through the UART _as well_. However, first: you must
 	 connect a working logger.
@@ -201,7 +201,7 @@ config CARL9170FW_USB_MODESWITCH
 	def_bool n
 	prompt "USB 1.1 / 2.0 switching support"
 	depends on CARL9170FW_BROKEN_FEATURES && CARL9170FW_USB_STANDARD_CMDS
-	---help---
+	help
 	 Mostly implemented, but untested and some serious
 	 doubts remain.
 
@@ -214,7 +214,7 @@ menu "Build Options"
 config CARL9170FW_AGGRESSIVE_CFLAGS
 	def_bool y
 	prompt "Enable aggressive size optimization"
-	---help---
+	help
 	 This option adds several more optimization compiler flags,
 	 which can greatly reduce the firmware size... at the expense
 	 of machine-code readability.
