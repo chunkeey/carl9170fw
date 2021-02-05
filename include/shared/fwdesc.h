@@ -69,7 +69,7 @@ enum carl9170fw_feature_list {
 	/* Firmware will pass BA when BARs are queued */
 	CARL9170FW_RX_BA_FILTER,
 
-	/* Firmware has support to write a byte at a time  */
+	/* Firmware has support to write a byte at a time */
 	CARL9170FW_HAS_WREGB_CMD,
 
 	/* Pattern generator */
