@@ -17,4 +17,5 @@ set_target_properties(miniboot.elf PROPERTIES LINK_FLAGS "-Tminiboot.lds")
 add_custom_target(
 	miniboot.fw ALL
 	${OBJCOPY} --strip-unneeded -O binary -R .sram -R .eeprom -R .fwdsc miniboot.elf miniboot.fw
-	DEPENDS miniboot.elf)
+	DEPENDS miniboot.elf
+	BYPRODUCTS miniboot.fw)
