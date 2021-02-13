@@ -1,8 +1,8 @@
-BINUTILS_VER=2.34
+BINUTILS_VER=2.36.1
 BINUTILS_TAR=binutils-$(BINUTILS_VER).tar.xz
 BINUTILS_URL="http://mirrors.kernel.org/gnu/binutils/$(BINUTILS_TAR)"
 
-NEWLIB_VER=3.3.0
+NEWLIB_VER=4.1.0
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_URL="ftp://sourceware.org/pub/newlib/$(NEWLIB_TAR)"
 
@@ -10,15 +10,15 @@ GCC_VER=10.2.0
 GCC_TAR=gcc-$(GCC_VER).tar.xz
 GCC_URL="http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/$(GCC_TAR)"
 
-MPFR_VER=4.0.2
+MPFR_VER=4.1.0
 MPFR_TAR=mpfr-$(MPFR_VER).tar.xz
 MPFR_URL="http://ftpmirror.gnu.org/gnu/mpfr/$(MPFR_TAR)"
 
-GMP_VER=6.2.0
+GMP_VER=6.2.1
 GMP_TAR=gmp-$(GMP_VER).tar.xz
 GMP_URL="http://ftpmirror.gnu.org/gnu/gmp/$(GMP_TAR)"
 
-MPC_VER=1.1.0
+MPC_VER=1.2.1
 MPC_TAR=mpc-$(MPC_VER).tar.gz
 MPC_URL="http://ftpmirror.gnu.org/gnu/mpc/$(MPC_TAR)"
 
