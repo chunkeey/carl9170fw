@@ -46,6 +46,7 @@ add_custom_command(
 	COMMAND ${OBJCOPY}
 	ARGS --strip-unneeded -O binary -R .sram -R .eeprom -R .fwdsc carl9170.elf carl9170.bin
 	TARGET firmware
+	BYPRODUCTS carl9170.bin
 	OUTPUTS carl9170.bin)
 
 add_custom_command(
@@ -53,6 +54,7 @@ add_custom_command(
 	COMMAND ${OBJCOPY}
 	ARGS --strip-unneeded -O binary -j .fwdsc carl9170.elf carl9170.dsc
 	TARGET firmware
+	BYPRODUCTS carl9170.dsc
 	OUTPUTS carl9170.dsc)
 
 add_custom_command(
