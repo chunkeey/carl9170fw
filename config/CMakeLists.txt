@@ -18,6 +18,6 @@ SET(parser_deps ${FLEX_lexer_OUTPUTS})
 SET_SOURCE_FILES_PROPERTIES(${BISON_parser_OUTPUTS}
       PROPERTIES OBJECT_DEPENDS "${parser_deps}")
 
-set(conf_src conf.c util.c symbol.c confdata.c expr.c preprocess.c ${BISON_parser_OUTPUTS} ${FLEX_lexer_OUTPUTS})
+set(conf_src conf.c util.c symbol.c confdata.c expr.c preprocess.c menu.c ${BISON_parser_OUTPUTS} ${FLEX_lexer_OUTPUTS})
 
 add_executable(conf ${conf_src})
