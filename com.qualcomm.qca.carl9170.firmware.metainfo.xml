@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+SPDX-FileCopyrightText: 2021 John Scott <jscott@posteo.net>
+SPDX-License-Identifier: FSFAP
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved. This file is offered as-is,
+without any warranty.
+
+This file provides AppStream metadata and should be installed in
+/usr/share/metainfo/.
+-->
+
+<component type="firmware">
+	<id>com.qualcomm.qca.carl9170.firmware</id>
+	<metadata_license>FSFAP</metadata_license>
+	<name>Community AR9170 Linux firmware</name>
+	<summary>Firmware for the Qualcomm Atheros AR9170 USB 802.11n NICs</summary>
+
+	<url type="homepage">https://github.com/chunkeey/carl9170fw</url>
+	<provides>
+		<firmware type="runtime">carl9170-1.fw</firmware>
+
+		<!-- /sbin/modinfo -Falias carl9170 | sort | cut -c-16 | sed -E 's/(.*)/\t\t<modalias>\1<\/modalias>/' -->
+		<modalias>usb:v0409p0249d*</modalias>
+		<modalias>usb:v0409p02B4d*</modalias>
+		<modalias>usb:v04BBp093Fd*</modalias>
+		<modalias>usb:v057Cp8401d*</modalias>
+		<modalias>usb:v057Cp8402d*</modalias>
+		<modalias>usb:v0586p3417d*</modalias>
+		<modalias>usb:v07D1p3A09d*</modalias>
+		<modalias>usb:v07D1p3A0Fd*</modalias>
+		<modalias>usb:v07D1p3C10d*</modalias>
+		<modalias>usb:v083ApF522d*</modalias>
+		<modalias>usb:v0846p9001d*</modalias>
+		<modalias>usb:v0846p9010d*</modalias>
+		<modalias>usb:v0846p9040d*</modalias>
+		<modalias>usb:v0ACEp1221d*</modalias>
+		<modalias>usb:v0CDEp0023d*</modalias>
+		<modalias>usb:v0CDEp0026d*</modalias>
+		<modalias>usb:v0CDEp0027d*</modalias>
+		<modalias>usb:v0CF3p1001d*</modalias>
+		<modalias>usb:v0CF3p1002d*</modalias>
+		<modalias>usb:v0CF3p1010d*</modalias>
+		<modalias>usb:v0CF3p1011d*</modalias>
+		<modalias>usb:v0CF3p9170d*</modalias>
+		<modalias>usb:v1435p0326d*</modalias>
+		<modalias>usb:v1435p0804d*</modalias>
+		<modalias>usb:v1668p1200d*</modalias>
+		<modalias>usb:v1B75p9170d*</modalias>
+		<modalias>usb:v2019p5304d*</modalias>
+		<modalias>usb:vCACEp0300d*</modalias>
+	</provides>
+</component>
