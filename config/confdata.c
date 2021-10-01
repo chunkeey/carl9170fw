@@ -161,7 +161,6 @@ static int conf_touch_dep(const char *name)
 
 struct conf_printer {
 	void (*print_symbol)(FILE *, struct symbol *, const char *, void *);
-	void (*print_comment)(FILE *, const char *, void *);
 };
 
 static void conf_warning(const char *fmt, ...)
@@ -594,6 +593,36 @@ int conf_read(const char *name)
 	return 0;
 }
 
+struct comment_style {
+	const char *decoration;
+	const char *prefix;
+	const char *postfix;
+};
+
+static const struct comment_style comment_style_pound = {
+	.decoration = "#",
+	.prefix = "#",
+	.postfix = "#",
+};
+
+static const struct comment_style comment_style_c = {
+	.decoration = " *",
+	.prefix = "/*",
+	.postfix = " */",
+};
+
+static void conf_write_heading(FILE *fp, const struct comment_style *cs)
+{
+	fprintf(fp, "%s\n", cs->prefix);
+
+	fprintf(fp, "%s Automatically generated file; DO NOT EDIT.\n",
+		cs->decoration);
+
+	fprintf(fp, "%s %s\n", cs->decoration, rootmenu.prompt->text);
+
+	fprintf(fp, "%s\n", cs->postfix);
+}
+
 /*
  * Kconfig configuration printer
  *
@@ -665,36 +694,14 @@ kconfig_print_cmake_symbol(FILE *fp, struct symbol *sym, const char *value, void
 
 }
 
-static void
-kconfig_print_comment(FILE *fp, const char *value, void *arg)
-{
-	const char *p = value;
-	size_t l;
-
-	for (;;) {
-		l = strcspn(p, "\n");
-		fprintf(fp, "#");
-		if (l) {
-			fprintf(fp, " ");
-			xfwrite(p, l, 1, fp);
-			p += l;
-		}
-		fprintf(fp, "\n");
-		if (*p++ == '\0')
-			break;
-	}
-}
-
 static struct conf_printer kconfig_printer_cb =
 {
 	.print_symbol = kconfig_print_symbol,
-	.print_comment = kconfig_print_comment,
 };
 
 static struct conf_printer kconfig_printer_cmake_cb =
 {
 	.print_symbol = kconfig_print_cmake_symbol,
-	.print_comment = kconfig_print_comment,
 };
 
 /*
@@ -743,32 +750,9 @@ header_print_symbol(FILE *fp, struct symbol *sym, const char *value, void *arg)
 
 }
 
-static void
-header_print_comment(FILE *fp, const char *value, void *arg)
-{
-	const char *p = value;
-	size_t l;
-
-	fprintf(fp, "/*\n");
-	for (;;) {
-		l = strcspn(p, "\n");
-		fprintf(fp, " *");
-		if (l) {
-			fprintf(fp, " ");
-			xfwrite(p, l, 1, fp);
-			p += l;
-		}
-		fprintf(fp, "\n");
-		if (*p++ == '\0')
-			break;
-	}
-	fprintf(fp, " */\n");
-}
-
 static struct conf_printer header_printer_cb =
 {
 	.print_symbol = header_print_symbol,
-	.print_comment = header_print_comment,
 };
 
 static void conf_write_symbol(FILE *fp, struct symbol *sym,
@@ -790,20 +774,6 @@ static void conf_write_symbol(FILE *fp, struct symbol *sym,
 	printer->print_symbol(fp, sym, val, printer_arg);
 
 	free(escaped);
-}
-
-static void
-conf_write_heading(FILE *fp, struct conf_printer *printer, void *printer_arg)
-{
-	char buf[256];
-
-	snprintf(buf, sizeof(buf),
-	    "\n"
-	    "Automatically generated file; DO NOT EDIT.\n"
-	    "%s\n",
-	    rootmenu.prompt->text);
-
-	printer->print_comment(fp, buf, printer_arg);
 }
 
 /*
@@ -922,7 +892,7 @@ int conf_write(const char *name)
 	if (!out)
 		return 1;
 
-	conf_write_heading(out, &kconfig_printer_cb, NULL);
+	conf_write_heading(out, &comment_style_pound);
 
 	if (!conf_get_changed())
 		sym_clear_all_valid();
@@ -1132,11 +1102,9 @@ int conf_write_autoconf(int overwrite)
 		fclose(out_h);
 	}
 
-	conf_write_heading(out, &kconfig_printer_cb, NULL);
-
-	conf_write_heading(out_h, &header_printer_cb, NULL);
-
-	conf_write_heading(out_c, &kconfig_printer_cmake_cb, NULL);
+	conf_write_heading(out, &comment_style_pound);
+	conf_write_heading(out_h, &comment_style_c);
+	conf_write_heading(out_c, &comment_style_pound);
 
 	for_all_symbols(i, sym) {
 		sym_calc_value(sym);
