@@ -230,6 +230,13 @@ static const char *conf_get_autoheader_name(void)
 	return name ? name : "include/generated/autoconf.h";
 }
 
+static const char *conf_get_cmake_name(void)
+{
+	char *name = getenv("KCONFIG_CMAKE");
+
+	return name ? name : "config.cmake";
+}
+
 static int conf_set_sym_val(struct symbol *sym, int def, int def_flags, char *p)
 {
 	char *p2;
@@ -765,12 +772,11 @@ static void print_symbol_for_c(FILE *fp, struct symbol *sym)
 }
 
 static void
-print_symbol_for_cmake(FILE *fp, struct symbol *sym, const bool skip_unset)
+print_symbol_for_cmake(FILE *fp, struct symbol *sym)
 {
         const char *value;
         const char *sym_suffix = "";
         const char *val_prefix = "";
-
         if (sym->type == S_UNKNOWN)
                 return;
 
@@ -780,9 +786,7 @@ print_symbol_for_cmake(FILE *fp, struct symbol *sym, const bool skip_unset)
 	case S_BOOLEAN:
 	case S_TRISTATE:
 		if (*value == 'n') {
-			if (!skip_unset)
-				fprintf(fp, "set(%s%s false)\n",
-					CONFIG_, sym->name, value);
+			fprintf(fp, "set(%s%s false)\n", CONFIG_, sym->name, value);
 			return;
 		} else if (*value == 'm') {
 			abort();
@@ -1103,79 +1107,87 @@ static int conf_touch_deps(void)
 	return 0;
 }
 
+static int __conf_write_autoconf(const char *filename,
+				 void (*print_symbol)(FILE *, struct symbol *),
+				 const struct comment_style *comment_style)
+{
+	char tmp[PATH_MAX];
+	FILE *file;
+	struct symbol *sym;
+	int ret, i;
+
+	if (make_parent_dir(filename))
+		return -1;
+
+	ret = snprintf(tmp, sizeof(tmp), "%s.tmp", filename);
+	if (ret >= sizeof(tmp)) /* check truncation */
+		return -1;
+
+	file = fopen(tmp, "w");
+	if (!file) {
+		perror("fopen");
+		return -1;
+	}
+
+	conf_write_heading(file, comment_style);
+
+	for_all_symbols(i, sym)
+		if ((sym->flags & SYMBOL_WRITE) && sym->name)
+			print_symbol(file, sym);
+
+	/* check possible errors in conf_write_heading() and print_symbol() */
+	if (ferror(file))
+		return -1;
+
+	fclose(file);
+
+	if (rename(tmp, filename)) {
+		perror("rename");
+		return -1;
+	}
+
+	return 0;
+}
+
 int conf_write_autoconf(int overwrite)
 {
 	struct symbol *sym;
-	const char *name;
 	const char *autoconf_name = conf_get_autoconfig_name();
-	FILE *out, *out_h, *out_c;
-	int i;
+	int ret, i;
 
 	if (!overwrite && is_present(autoconf_name))
 		return 0;
 
-	conf_write_dep("include/generated/auto.conf.cmd");
+	conf_write_dep("include/config/auto.conf.cmd");
 
 	if (conf_touch_deps())
 		return 1;
 
-	out = fopen(".tmpconfig", "w");
-	if (!out)
-		return 1;
-
-	out_h = fopen(".tmpconfig.h", "w");
-	if (!out_h) {
-		fclose(out);
-		return 1;
-	}
-
-	out_c = fopen(".tmpconfig.cmake", "w");
-	if (!out_c) {
-		fclose(out);
-		fclose(out_h);
-	}
-
-	conf_write_heading(out, &comment_style_pound);
-	conf_write_heading(out_h, &comment_style_c);
-	conf_write_heading(out_c, &comment_style_pound);
-
-	for_all_symbols(i, sym) {
+	for_all_symbols(i, sym)
 		sym_calc_value(sym);
-		if (!(sym->flags & SYMBOL_WRITE) || !sym->name)
-			continue;
 
-		/* write symbol to auto.conf and header files */
-		print_symbol_for_autoconf(out, sym);
-		print_symbol_for_c(out_h, sym);
-		print_symbol_for_cmake(out_c, sym, false);
-	}
-	fclose(out);
-	fclose(out_h);
-	fclose(out_c);
-
-	name = conf_get_autoheader_name();
-	if (make_parent_dir(name))
-		return 1;
-	if (rename(".tmpconfig.h", name))
-		return 1;
-
-	if (make_parent_dir(autoconf_name))
-		return 1;
-
-	name = getenv("KCONFIG_CMAKE");
-	if (!name)
-		name = "config.cmake";
-	if (make_parent_dir(name))
-		return 1;
-	if (rename(".tmpconfig.cmake", name))
-		return 1;
+	ret = __conf_write_autoconf(conf_get_autoheader_name(),
+				    print_symbol_for_c,
+				    &comment_style_c);
+	if (ret)
+		return ret;
 
 	/*
-	 * This must be the last step, kbuild has a dependency on auto.conf
-	 * and this marks the successful completion of the previous steps.
+	 * Create include/config/auto.conf. This must be the last step because
+	 * Kbuild has a dependency on auto.conf and this marks the successful
+	 * completion of the previous steps.
 	 */
-	if (rename(".tmpconfig", autoconf_name))
-		return 1;
+	ret = __conf_write_autoconf(conf_get_autoconfig_name(),
+				    print_symbol_for_autoconf,
+				    &comment_style_pound);
+	if (ret)
+		return ret;
+
+	ret = __conf_write_autoconf(conf_get_cmake_name(),
+				    print_symbol_for_cmake,
+				    &comment_style_pound);
+	if (ret)
+		return ret;
 
 	return 0;
 }
