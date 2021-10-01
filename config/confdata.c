@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -158,10 +159,6 @@ static int conf_touch_dep(const char *name)
 
 	return 0;
 }
-
-struct conf_printer {
-	void (*print_symbol)(FILE *, struct symbol *, const char *, void *);
-};
 
 static void conf_warning(const char *fmt, ...)
 	__attribute__ ((format (printf, 1, 2)));
@@ -629,41 +626,105 @@ static void conf_write_heading(FILE *fp, const struct comment_style *cs)
  * This printer is used when generating the resulting configuration after
  * kconfig invocation and `defconfig' files. Unset symbol might be omitted by
  * passing a non-NULL argument to the printer.
- *
  */
-static void
-kconfig_print_symbol(FILE *fp, struct symbol *sym, const char *value, void *arg)
+enum output_n { OUTPUT_N, OUTPUT_N_AS_UNSET, OUTPUT_N_NONE };
+
+static void __print_symbol(FILE *fp, struct symbol *sym, enum output_n output_n,
+			   bool escape_string)
 {
+	const char *val;
+	char *escaped = NULL;
+
+	if (sym->type == S_UNKNOWN)
+		return;
+
+	val = sym_get_string_value(sym);
+
+	if ((sym->type == S_BOOLEAN || sym->type == S_TRISTATE) &&
+	    output_n != OUTPUT_N && *val == 'n') {
+		if (output_n == OUTPUT_N_AS_UNSET)
+			fprintf(fp, "# %s%s is not set\n", CONFIG_, sym->name);
+		return;
+	}
+
+	if (sym->type == S_STRING && escape_string) {
+		escaped = sym_escape_string_value(val);
+		val = escaped;
+	}
+
+	fprintf(fp, "%s%s=%s\n", CONFIG_, sym->name, val);
+
+	free(escaped);
+}
+
+static void print_symbol_for_dotconfig(FILE *fp, struct symbol *sym)
+{
+	__print_symbol(fp, sym, OUTPUT_N_AS_UNSET, true);
+}
+
+static void print_symbol_for_autoconf(FILE *fp, struct symbol *sym)
+{
+	__print_symbol(fp, sym, OUTPUT_N_NONE, true);
+}
+
+static void print_symbol_for_c(FILE *fp, struct symbol *sym)
+{
+	const char *val;
+	char *escaped = NULL;
+	const char *sym_suffix = "";
+	const char *val_prefix = "";
+
+	if (sym->type == S_UNKNOWN)
+		return;
+
+	val = sym_get_string_value(sym);
 
 	switch (sym->type) {
 	case S_BOOLEAN:
 	case S_TRISTATE:
-		if (*value == 'n') {
-			bool skip_unset = (arg != NULL);
-
-			if (!skip_unset)
-				fprintf(fp, "# %s%s is not set\n",
-				    CONFIG_, sym->name);
+		switch (*val) {
+		case 'n':
 			return;
+		case 'm':
+			sym_suffix = "_MODULE";
+			/* fall through */
+		default:
+			val = "1";
 		}
 		break;
+	case S_HEX:
+		if (val[0] != '0' || (val[1] != 'x' && val[1] != 'X'))
+			val_prefix = "0x";
+		break;
+	case S_STRING:
+		escaped = sym_escape_string_value(val);
+		val = escaped;
 	default:
 		break;
 	}
 
-	fprintf(fp, "%s%s=%s\n", CONFIG_, sym->name, value);
+	fprintf(fp, "#define %s%s%s %s%s\n", CONFIG_, sym->name, sym_suffix,
+		val_prefix, val);
+
+	free(escaped);
 }
 
 static void
-kconfig_print_cmake_symbol(FILE *fp, struct symbol *sym, const char *value, void *arg)
+print_symbol_for_cmake(FILE *fp, struct symbol *sym, const bool skip_unset)
 {
+        const char *value;
+        const char *sym_suffix = "";
+        const char *val_prefix = "";
+
+        if (sym->type == S_UNKNOWN)
+                return;
+
+        value = sym_get_string_value(sym);
 
 	switch (sym->type) {
 	case S_BOOLEAN:
 	case S_TRISTATE:
 		if (*value == 'n') {
-			bool skip_unset = (arg != NULL);
-
 			if (!skip_unset)
 				fprintf(fp, "set(%s%s false)\n",
 					CONFIG_, sym->name, value);
@@ -691,89 +752,6 @@ kconfig_print_cmake_symbol(FILE *fp, struct symbol *sym, const char *value, void
 	default:
 		break;
 	}
-
-}
-
-static struct conf_printer kconfig_printer_cb =
-{
-	.print_symbol = kconfig_print_symbol,
-};
-
-static struct conf_printer kconfig_printer_cmake_cb =
-{
-	.print_symbol = kconfig_print_cmake_symbol,
-};
-
-/*
- * Header printer
- *
- * This printer is used when generating the `include/generated/autoconf.h' file.
- */
-static void
-header_print_symbol(FILE *fp, struct symbol *sym, const char *value, void *arg)
-{
-
-	switch (sym->type) {
-	case S_BOOLEAN:
-	case S_TRISTATE: {
-		const char *suffix = "";
-
-		switch (*value) {
-		case 'n':
-			break;
-		case 'm':
-			suffix = "_MODULE";
-			/* fall through */
-		default:
-			fprintf(fp, "#define %s%s%s 1\n",
-			    CONFIG_, sym->name, suffix);
-		}
-		break;
-	}
-	case S_HEX: {
-		const char *prefix = "";
-
-		if (value[0] != '0' || (value[1] != 'x' && value[1] != 'X'))
-			prefix = "0x";
-		fprintf(fp, "#define %s%s %s%s\n",
-		    CONFIG_, sym->name, prefix, value);
-		break;
-	}
-	case S_STRING:
-	case S_INT:
-		fprintf(fp, "#define %s%s %s\n",
-		    CONFIG_, sym->name, value);
-		break;
-	default:
-		break;
-	}
-
-}
-
-static struct conf_printer header_printer_cb =
-{
-	.print_symbol = header_print_symbol,
-};
-
-static void conf_write_symbol(FILE *fp, struct symbol *sym,
-			      struct conf_printer *printer, void *printer_arg)
-{
-	const char *val;
-	char *escaped = NULL;
-
-	if (sym->type == S_UNKNOWN)
-		return;
-
-	val = sym_get_string_value(sym);
-
-	if (sym->type == S_STRING) {
-		escaped = sym_escape_string_value(val);
-		val = escaped;
-	}
-
-	printer->print_symbol(fp, sym, val, printer_arg);
-
-	free(escaped);
 }
 
 /*
@@ -832,7 +810,7 @@ int conf_write_defconfig(const char *filename)
 						goto next_menu;
 				}
 			}
-			conf_write_symbol(out, sym, &kconfig_printer_cb, NULL);
+			print_symbol_for_dotconfig(out, sym);
 		}
 next_menu:
 		if (menu->list != NULL) {
@@ -919,7 +897,7 @@ int conf_write(const char *name)
 				need_newline = false;
 			}
 			sym->flags |= SYMBOL_WRITTEN;
-			conf_write_symbol(out, sym, &kconfig_printer_cb, NULL);
+			print_symbol_for_dotconfig(out, sym);
 		}
 
 next:
@@ -1112,11 +1090,9 @@ int conf_write_autoconf(int overwrite)
 			continue;
 
 		/* write symbol to auto.conf and header files */
-		conf_write_symbol(out, sym, &kconfig_printer_cb, (void *)1);
-
-		conf_write_symbol(out_h, sym, &header_printer_cb, NULL);
-
-		conf_write_symbol(out_c, sym, &kconfig_printer_cmake_cb, NULL);
+		print_symbol_for_autoconf(out, sym);
+		print_symbol_for_c(out_h, sym);
+		print_symbol_for_cmake(out_c, sym, false);
 	}
 	fclose(out);
 	fclose(out_h);
