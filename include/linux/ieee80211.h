@@ -1333,6 +1333,15 @@ struct ieee80211_mgmt {
 					u8 action_code;
 					u8 variable[];
 				} __packed s1g;
+				struct {
+					u8 action_code;
+					u8 dialog_token;
+					u8 follow_up;
+					u32 tod;
+					u32 toa;
+					u8 max_tod_error;
+					u8 max_toa_error;
+				} __packed wnm_timing_msr;
 			} u;
 		} __packed __aligned(4) action;
 	} u __aligned(2);
@@ -3540,6 +3549,17 @@ enum ieee80211_mesh_actioncode {
 	WLAN_MESH_ACTION_TBTT_ADJUSTMENT_RESPONSE,
 };
 
+/* Unprotected WNM action codes */
+enum ieee80211_unprotected_wnm_actioncode {
+	WLAN_UNPROTECTED_WNM_ACTION_TIM = 0,
+	WLAN_UNPROTECTED_WNM_ACTION_TIMING_MEASUREMENT_RESPONSE = 1,
+};
+
+/* Public action codes */
+enum ieee80211_public_actioncode {
+	WLAN_PUBLIC_ACTION_FTM_RESPONSE = 33,
+};
+
 /* Security key length */
 enum ieee80211_key_len {
 	WLAN_KEY_LEN_WEP40 = 5,
@@ -4227,6 +4247,40 @@ static inline bool ieee80211_check_tim(const struct ieee80211_tim_ie *tim,
 /* convert time units */
 #define TU_TO_JIFFIES(x)       (usecs_to_jiffies((x) * 1024))
 #define TU_TO_EXP_TIME(x)      (jiffies + TU_TO_JIFFIES(x))
+
+static inline bool ieee80211_is_timing_measurement(struct ieee80211_hdr *hdr, size_t len)
+{
+	struct ieee80211_mgmt *mgmt = (void *)hdr;
+
+	if (len < IEEE80211_MIN_ACTION_SIZE)
+		return false;
+
+	if (!ieee80211_is_action(hdr->frame_control))
+		return false;
+
+	if (mgmt->u.action.category == WLAN_CATEGORY_WNM_UNPROTECTED &&
+	    mgmt->u.action.u.wnm_timing_msr.action_code ==
+		WLAN_UNPROTECTED_WNM_ACTION_TIMING_MEASUREMENT_RESPONSE &&
+	    len >= offsetofend(typeof(*mgmt), u.action.u.wnm_timing_msr))
+		return true;
+
+	return false;
+}
+
+static inline bool ieee80211_is_ftm(struct ieee80211_hdr *hdr, size_t len)
+{
+	struct ieee80211_mgmt *mgmt = (void *)hdr;
+
+	if (!ieee80211_is_public_action((void *)mgmt, len))
+		return false;
+
+	if (mgmt->u.action.u.ftm.action_code ==
+		WLAN_PUBLIC_ACTION_FTM_RESPONSE &&
+	    len >= offsetofend(typeof(*mgmt), u.action.u.ftm))
+		return true;
+
+	return false;
+}
 
 struct element {
 	u8 id;
