@@ -111,6 +111,14 @@ static inline unsigned int hweight8(unsigned int w)
         return (res + (res >> 4)) & 0x0F;
 }
 
+static inline unsigned int hweight16(unsigned int w)
+{
+        unsigned int res = w - ((w >> 1) & 0x5555);
+        res = (res & 0x3333) + ((res >> 2) & 0x3333);
+        res = (res + (res >> 4)) & 0x0F0F;
+        return (res + (res >> 8)) & 0x00FF;
+}
+
 /**
  * DECLARE_FLEX_ARRAY() - Declare a flexible array usable in a union
  *
@@ -126,5 +134,12 @@ static inline unsigned int hweight8(unsigned int w)
 		struct { } __empty_ ## NAME; \
 		TYPE NAME[]; \
 	}
+
+#define __bf_shf(x) (__builtin_ffsll(x) - 1)
+
+#define FIELD_MAX(_mask)                                                \
+        ({                                                              \
+                (typeof(_mask))((_mask) >> __bf_shf(_mask));            \
+        })
 
 #endif /* __SHARED_COMPILER_H */
