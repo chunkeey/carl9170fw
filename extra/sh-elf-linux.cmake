@@ -6,7 +6,7 @@ set_property(DIRECTORY PROPERTY TARGET_SUPPORTS_SHARED_LIBS FALSE)
 set(CMAKE_FIND_ROOT_PATH ${CMAKE_SOURCE_DIR}/toolchain/inst/)
 
 set(CMAKE_C_FLAGS "-m2 -ml -Os -ffreestanding -nostartfiles")
-set(CMAKE_C_LINK_FLAGS "-Wl,-static,-EL,-x,--gc-sections")
+set(CMAKE_C_LINK_FLAGS "-Wl,-static,-EL,-x,--gc-sections,--no-warn-rwx-segments")
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 
 set(OBJCOPY ${CMAKE_SOURCE_DIR}/toolchain/inst/bin/sh-elf-objcopy)
