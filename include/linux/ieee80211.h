@@ -1357,6 +1357,7 @@ struct ieee80211_mgmt {
 				} __packed wnm_timing_msr;
 			} u;
 		} __packed __aligned(4) action;
+		DECLARE_FLEX_ARRAY(u8, body); /* Generic frame body */
 	} u __aligned(2);
 } __packed __aligned(2);
 
