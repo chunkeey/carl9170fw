@@ -1644,7 +1644,7 @@ struct ieee80211_bar {
 	__le16 start_seq_num;
 } __packed __aligned(2);
 
-/* 802.11 BA(R) control masks */
+/* 802.11 BAR control masks */
 #define IEEE80211_BAR_CTRL_ACK_POLICY_NORMAL	0x0000
 #define IEEE80211_BAR_CTRL_MULTI_TID		0x0002
 #define IEEE80211_BAR_CTRL_CBMTID_COMPRESSED_BA	0x0004
@@ -3096,7 +3096,7 @@ ieee80211_eht_ppe_size(u16 ppe_thres_hdr, const u8 *phy_cap_info)
 
 	n = hweight16(ppe_thres_hdr &
 		      IEEE80211_EHT_PPE_THRES_RU_INDEX_BITMASK_MASK);
-	n *= 1 + (ppe_thres_hdr & IEEE80211_EHT_PPE_THRES_NSS_MASK);
+	n *= 1 + u16_get_bits(ppe_thres_hdr, IEEE80211_EHT_PPE_THRES_NSS_MASK);
 
 	/*
 	 * Each pair is 6 bits, and we need to add the 9 "header" bits to the
@@ -3130,7 +3130,7 @@ ieee80211_eht_capa_size_ok(const u8 *he_capa, const u8 *data, u8 len,
 		if (len < needed + sizeof(ppe_thres_hdr))
 			return false;
 
-		ppe_thres_hdr = (data[needed] >> 8) + data[needed + 1];
+		ppe_thres_hdr = get_unaligned_le16(data + needed);
 		needed += ieee80211_eht_ppe_size(ppe_thres_hdr,
 						 elem->phy_cap_info);
 	}
@@ -4262,6 +4262,24 @@ static inline u8 *ieee80211_get_SA(struct ieee80211_hdr *hdr)
 }
 
 /**
+ * ieee80211_get_DA - get pointer to DA
+ * @hdr: the frame
+ *
+ * Given an 802.11 frame, this function returns the offset
+ * to the destination address (DA). It does not verify that
+ * the header is long enough to contain the address, and the
+ * header must be long enough to contain the frame control
+ * field.
+ */
+static inline u8 *ieee80211_get_DA(struct ieee80211_hdr *hdr)
+{
+	if (ieee80211_has_tods(hdr->frame_control))
+		return hdr->addr3;
+	else
+		return hdr->addr1;
+}
+
+/**
  * ieee80211_is_bufferable_mmpdu - check if frame is bufferable MMPDU
  * @skb: the skb to check, starting with the 802.11 header
  */
@@ -4297,24 +4315,6 @@ static inline bool ieee80211_is_bufferable_mmpdu(struct ieee80211_hdr *hdr, size
 		return false;
 
 	return true;
-}
-
-/**
- * ieee80211_get_DA - get pointer to DA
- * @hdr: the frame
- *
- * Given an 802.11 frame, this function returns the offset
- * to the destination address (DA). It does not verify that
- * the header is long enough to contain the address, and the
- * header must be long enough to contain the frame control
- * field.
- */
-static inline u8 *ieee80211_get_DA(struct ieee80211_hdr *hdr)
-{
-	if (ieee80211_has_tods(hdr->frame_control))
-		return hdr->addr3;
-	else
-		return hdr->addr1;
 }
 
 /**
@@ -4411,29 +4411,41 @@ static inline bool ieee80211_check_tim(const struct ieee80211_tim_ie *tim,
 				       u8 tim_len, u16 aid)
 {
 	u8 mask;
-	u8 indexn0, indexn1, indexn2;
+	u8 index, indexn1, indexn2;
 
 	if (unlikely(!tim || tim_len < sizeof(*tim)))
 		return false;
 
 	aid &= 0x3fff;
-	indexn0 = aid / 8;
+	index = aid / 8;
 	mask  = 1 << (aid & 7);
 
 	indexn1 = tim->bitmap_ctrl & 0xfe;
 	indexn2 = tim_len + indexn1 - 4;
 
-	if (indexn0 < indexn1 || indexn0 > indexn2)
+	if (index < indexn1 || index > indexn2)
 		return false;
 
-	indexn0 -= indexn1;
+	index -= indexn1;
 
-	return !!(tim->virtual_map[indexn0] & mask);
+	return !!(tim->virtual_map[index] & mask);
 }
 
 /* convert time units */
-#define TU_TO_JIFFIES(x)       (usecs_to_jiffies((x) * 1024))
-#define TU_TO_EXP_TIME(x)      (jiffies + TU_TO_JIFFIES(x))
+#define TU_TO_JIFFIES(x)	(usecs_to_jiffies((x) * 1024))
+#define TU_TO_EXP_TIME(x)	(jiffies + TU_TO_JIFFIES(x))
+
+/* convert frequencies */
+#define MHZ_TO_KHZ(freq) ((freq) * 1000)
+#define KHZ_TO_MHZ(freq) ((freq) / 1000)
+#define PR_KHZ(f) KHZ_TO_MHZ(f), f % 1000
+#define KHZ_F "%d.%03d"
+
+/* convert powers */
+#define DBI_TO_MBI(gain) ((gain) * 100)
+#define MBI_TO_DBI(gain) ((gain) / 100)
+#define DBM_TO_MBM(gain) ((gain) * 100)
+#define MBM_TO_DBM(gain) ((gain) / 100)
 
 static inline bool ieee80211_is_timing_measurement(struct ieee80211_hdr *hdr, size_t len)
 {
@@ -4502,18 +4514,6 @@ struct element {
 
 #define for_each_subelement_extid(sub, extid, element)			\
 	for_each_element_extid(sub, extid, (element)->data, (element)->datalen)
-
-/* convert frequencies */
-#define MHZ_TO_KHZ(freq) ((freq) * 1000)
-#define KHZ_TO_MHZ(freq) ((freq) / 1000)
-#define PR_KHZ(f) KHZ_TO_MHZ(f), f % 1000
-#define KHZ_F "%d.%03d"
-
-/* convert powers */
-#define DBI_TO_MBI(gain) ((gain) * 100)
-#define MBI_TO_DBI(gain) ((gain) / 100)
-#define DBM_TO_MBM(gain) ((gain) * 100)
-#define MBM_TO_DBM(gain) ((gain) / 100)
 
 /**
  * for_each_element_completed - determine if element parsing consumed all data
