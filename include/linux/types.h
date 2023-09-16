@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sys/param.h>
+#include <sys/cdefs.h>
 
 #if BYTE_ORDER == BIG_ENDIAN
 #error	"big endian is not supported by target"
@@ -57,5 +58,24 @@ typedef int64_t		__s64;
 typedef uint16_t	__be16;
 typedef uint32_t	__be32;
 typedef uint64_t	__be64;
+
+#define cpu_to_be64 __cpu_to_be64
+#define be64_to_cpu __be64_to_cpu
+#define cpu_to_be32 __cpu_to_be32
+#define be32_to_cpu __be32_to_cpu
+#define cpu_to_be16 __cpu_to_be16
+#define be16_to_cpu __be16_to_cpu
+#define cpu_to_be64p __cpu_to_be64p
+#define be64_to_cpup __be64_to_cpup
+#define cpu_to_be32p __cpu_to_be32p
+#define be32_to_cpup __be32_to_cpup
+#define cpu_to_be16p __cpu_to_be16p
+#define cpu_to_be64s __cpu_to_be64s
+#define be64_to_cpus __be64_to_cpus
+#define cpu_to_be32s __cpu_to_be32s
+#define be32_to_cpus __be32_to_cpus
+#define cpu_to_be16s __cpu_to_be16s
+#define be16_to_cpus __be16_to_cpus
+#define be16_to_cpup __be16_to_cpup
 
 #endif /* __LINUX_TYPES_H */

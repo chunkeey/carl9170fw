@@ -21,12 +21,17 @@
 #define __inline	__attribute__((always_inline))
 #define __hot		__attribute__((hot))
 #define __cold		__attribute__((cold))
-#define __force		__attribute__((force))
+#define __force
 #define __in_section(s)	__attribute__((section("." # s)))
 #define __visible	__attribute__((externally_visible))
+#ifndef __attribute_const__
+#define __attribute_const__	__attribute__((__const__))
+#endif
+
+#include "swab.h"
+#include "little_endian.h"
 
 #define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-
 
 #define BUILD_BUG_ON(condition)	((void)sizeof(char[1 - 2*!!(condition)]))
 #define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
@@ -239,6 +244,7 @@ static inline base type##_get_bits(__##type v, base field)	\
 }
 #define __MAKE_OP(size)							\
 	____MAKE_OP(le##size,u##size,cpu_to_le##size,le##size##_to_cpu)	\
+	____MAKE_OP(be##size,u##size,cpu_to_be##size,be##size##_to_cpu)	\
 	____MAKE_OP(u##size,u##size,,)
 ____MAKE_OP(u8,u8,,)
 __MAKE_OP(16)

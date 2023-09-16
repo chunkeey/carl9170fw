@@ -27,6 +27,7 @@
 #include "config.h"
 #include "types.h"
 #include "compiler.h"
+#include "unaligned.h"
 #include "fwcmd.h"
 #include "hw.h"
 #include "dma.h"
