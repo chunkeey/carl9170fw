@@ -461,7 +461,7 @@ load:
 			if (!p)
 				continue;
 			*p++ = 0;
-			if (strncmp(p, "is not set", 10))
+			if (strcmp(p, "is not set"))
 				continue;
 
 			val = "n";
