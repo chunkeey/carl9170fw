@@ -1,4 +1,4 @@
-BINUTILS_VER=2.40
+BINUTILS_VER=2.41
 BINUTILS_TAR=binutils-$(BINUTILS_VER).tar.xz
 BINUTILS_URL="http://mirrors.kernel.org/gnu/binutils/$(BINUTILS_TAR)"
 
@@ -10,11 +10,11 @@ GCC_VER=13.2.0
 GCC_TAR=gcc-$(GCC_VER).tar.xz
 GCC_URL="http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/$(GCC_TAR)"
 
-MPFR_VER=4.2.0
+MPFR_VER=4.2.1
 MPFR_TAR=mpfr-$(MPFR_VER).tar.xz
 MPFR_URL="http://ftpmirror.gnu.org/gnu/mpfr/$(MPFR_TAR)"
 
-GMP_VER=6.2.1
+GMP_VER=6.3.0
 GMP_TAR=gmp-$(GMP_VER).tar.xz
 GMP_URL="http://ftpmirror.gnu.org/gnu/gmp/$(GMP_TAR)"
 
