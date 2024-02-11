@@ -18,6 +18,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "internal.h"
 #include "lkc.h"
 
 struct gstr autoconf_cmd;
@@ -329,7 +330,7 @@ int conf_read_simple(const char *name, int def)
 	size_t  line_asize = 0;
 	char *p, *val;
 	struct symbol *sym;
-	int i, def_flags;
+	int def_flags;
 	const char *warn_unknown, *sym_name;
 
 	warn_unknown = getenv("KCONFIG_WARN_UNKNOWN_SYMBOLS");
@@ -387,7 +388,7 @@ load:
 	conf_warnings = 0;
 
 	def_flags = SYMBOL_DEF << def;
-	for_all_symbols(i, sym) {
+	for_all_symbols(sym) {
 		sym->flags |= SYMBOL_CHANGED;
 		sym->flags &= ~(def_flags|SYMBOL_VALID);
 		if (sym_is_choice(sym))
@@ -496,7 +497,6 @@ int conf_read(const char *name)
 {
 	struct symbol *sym;
 	int conf_unsaved = 0;
-	int i;
 
 	conf_set_changed(false);
 
@@ -507,7 +507,7 @@ int conf_read(const char *name)
 
 	sym_calc_value(modules_sym);
 
-	for_all_symbols(i, sym) {
+	for_all_symbols(sym) {
 		sym_calc_value(sym);
 		if (sym_is_choice(sym) || (sym->flags & SYMBOL_NO_WRITE))
 			continue;
@@ -531,7 +531,7 @@ int conf_read(const char *name)
 		/* maybe print value in verbose mode... */
 	}
 
-	for_all_symbols(i, sym) {
+	for_all_symbols(sym) {
 		if (sym_has_value(sym) && !sym_is_choice_value(sym)) {
 			/* Reset values of generates values, so they'll appear
 			 * as new, if they should become visible, but that
@@ -911,7 +911,6 @@ int conf_write(const char *name)
 	const char *str;
 	char tmpname[PATH_MAX + 1], oldname[PATH_MAX + 1];
 	char *env;
-	int i;
 	bool need_newline = false;
 
 	if (!name)
@@ -995,7 +994,7 @@ end_check:
 	}
 	fclose(out);
 
-	for_all_symbols(i, sym)
+	for_all_symbols(sym)
 		sym->flags &= ~SYMBOL_WRITTEN;
 
 	if (*tmpname) {
@@ -1065,7 +1064,7 @@ static int conf_touch_deps(void)
 {
 	const char *name, *tmp;
 	struct symbol *sym;
-	int res, i;
+	int res;
 
 	name = conf_get_autoconfig_name();
 	tmp = strrchr(name, '/');
@@ -1078,7 +1077,7 @@ static int conf_touch_deps(void)
 	conf_read_simple(name, S_DEF_AUTO);
 	sym_calc_value(modules_sym);
 
-	for_all_symbols(i, sym) {
+	for_all_symbols(sym) {
 		sym_calc_value(sym);
 		if ((sym->flags & SYMBOL_NO_WRITE) || !sym->name)
 			continue;
@@ -1144,7 +1143,7 @@ static int __conf_write_autoconf(const char *filename,
 	char tmp[PATH_MAX];
 	FILE *file;
 	struct symbol *sym;
-	int ret, i;
+	int ret;
 
 	if (make_parent_dir(filename))
 		return -1;
@@ -1161,7 +1160,7 @@ static int __conf_write_autoconf(const char *filename,
 
 	conf_write_heading(file, comment_style);
 
-	for_all_symbols(i, sym)
+	for_all_symbols(sym)
 		if ((sym->flags & SYMBOL_WRITE) && sym->name)
 			print_symbol(file, sym);
 
@@ -1184,7 +1183,7 @@ int conf_write_autoconf(int overwrite)
 {
 	struct symbol *sym;
 	const char *autoconf_name = conf_get_autoconfig_name();
-	int ret, i;
+	int ret;
 
 	if (!overwrite && is_present(autoconf_name))
 		return 0;
@@ -1196,7 +1195,7 @@ int conf_write_autoconf(int overwrite)
 	if (conf_touch_deps())
 		return 1;
 
-	for_all_symbols(i, sym)
+	for_all_symbols(sym)
 		sym_calc_value(sym);
 
 	ret = __conf_write_autoconf(conf_get_autoheader_name(),
