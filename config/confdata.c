@@ -859,9 +859,6 @@ int conf_write_defconfig(const char *filename)
 			/*
 			 * If symbol is a choice value and equals to the
 			 * default for a choice - skip.
-			 * But only if value is bool and equal to "y" and
-			 * choice is not "optional".
-			 * (If choice is "optional" then all values can be "n")
 			 */
 			if (sym_is_choice_value(sym)) {
 				struct symbol *cs;
@@ -869,7 +866,7 @@ int conf_write_defconfig(const char *filename)
 
 				cs = prop_get_symbol(sym_get_choice_prop(sym));
 				ds = sym_choice_default(cs);
-				if (!sym_is_optional(cs) && sym == ds) {
+				if (sym == ds) {
 					if ((sym->type == S_BOOLEAN) &&
 					    sym_get_tristate_value(sym) == yes)
 						continue;
