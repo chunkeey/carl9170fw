@@ -1,4 +1,4 @@
-BINUTILS_VER=2.41
+BINUTILS_VER=2.42
 BINUTILS_TAR=binutils-$(BINUTILS_VER).tar.xz
 BINUTILS_URL="http://mirrors.kernel.org/gnu/binutils/$(BINUTILS_TAR)"
 
@@ -6,7 +6,7 @@ NEWLIB_VER=4.4.0.20231231
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_URL="ftp://sourceware.org/pub/newlib/$(NEWLIB_TAR)"
 
-GCC_VER=13.2.0
+GCC_VER=13.3.0
 GCC_TAR=gcc-$(GCC_VER).tar.xz
 GCC_URL="http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/$(GCC_TAR)"
 
