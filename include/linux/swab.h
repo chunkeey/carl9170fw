@@ -128,7 +128,7 @@ static inline __attribute_const__ __u32 __fswahb32(__u32 val)
 	__fswab64(x))
 #endif
 
-static __always_inline unsigned long __swab(const unsigned long y)
+static inline __always_inline unsigned long __swab(const unsigned long y)
 {
 #if __BITS_PER_LONG == 64
 	return __swab64(y);
@@ -163,7 +163,7 @@ static __always_inline unsigned long __swab(const unsigned long y)
  * __swab16p - return a byteswapped 16-bit value from a pointer
  * @p: pointer to a naturally-aligned 16-bit value
  */
-static __always_inline __u16 __swab16p(const __u16 *p)
+static inline __always_inline __u16 __swab16p(const __u16 *p)
 {
 #ifdef __arch_swab16p
 	return __arch_swab16p(p);
@@ -176,7 +176,7 @@ static __always_inline __u16 __swab16p(const __u16 *p)
  * __swab32p - return a byteswapped 32-bit value from a pointer
  * @p: pointer to a naturally-aligned 32-bit value
  */
-static __always_inline __u32 __swab32p(const __u32 *p)
+static inline __always_inline __u32 __swab32p(const __u32 *p)
 {
 #ifdef __arch_swab32p
 	return __arch_swab32p(p);
@@ -189,7 +189,7 @@ static __always_inline __u32 __swab32p(const __u32 *p)
  * __swab64p - return a byteswapped 64-bit value from a pointer
  * @p: pointer to a naturally-aligned 64-bit value
  */
-static __always_inline __u64 __swab64p(const __u64 *p)
+static inline __always_inline __u64 __swab64p(const __u64 *p)
 {
 #ifdef __arch_swab64p
 	return __arch_swab64p(p);
@@ -244,7 +244,7 @@ static inline void __swab16s(__u16 *p)
  * __swab32s - byteswap a 32-bit value in-place
  * @p: pointer to a naturally-aligned 32-bit value
  */
-static __always_inline void __swab32s(__u32 *p)
+static inline __always_inline void __swab32s(__u32 *p)
 {
 #ifdef __arch_swab32s
 	__arch_swab32s(p);
@@ -257,7 +257,7 @@ static __always_inline void __swab32s(__u32 *p)
  * __swab64s - byteswap a 64-bit value in-place
  * @p: pointer to a naturally-aligned 64-bit value
  */
-static __always_inline void __swab64s(__u64 *p)
+static inline __always_inline void __swab64s(__u64 *p)
 {
 #ifdef __arch_swab64s
 	__arch_swab64s(p);
