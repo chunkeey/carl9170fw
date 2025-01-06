@@ -180,16 +180,16 @@ config CARL9170FW_WATCHDOG_BUTTON
 	depends on CARL9170FW_BROKEN && CARL9170FW_GPIO_INTERRUPT
 	prompt "Trigger Watchdog by pressing the WPS button"
 
-choice CARL9170FW_UART_CLOCK
+choice
 	prompt "UART Clock"
 	depends on CARL9170FW_DEBUG_UART
 	default CARL9170FW_UART_CLOCK_40M
 
-config CARL9170FW_UART_CLOCK_25M
-	bool "25"
+	config CARL9170FW_UART_CLOCK_25M
+		bool "25"
 
-config CARL9170FW_UART_CLOCK_40M
-	bool "40"
+	config CARL9170FW_UART_CLOCK_40M
+		bool "40"
 
 endchoice
 
