@@ -392,7 +392,7 @@ load:
 
 	def_flags = SYMBOL_DEF << def;
 	for_all_symbols(sym) {
-		sym->flags &= ~(def_flags|SYMBOL_VALID);
+		sym->flags &= ~def_flags;
 		switch (sym->type) {
 		case S_INT:
 		case S_HEX:
@@ -405,7 +405,11 @@ load:
 		}
 	}
 
-	expr_invalidate_all();
+	if (def == S_DEF_USER) {
+		for_all_symbols(sym)
+			sym->flags &= ~SYMBOL_VALID;
+		expr_invalidate_all();
+	}
 
 	while (getline_stripped(&line, &line_asize, in) != -1) {
 		struct menu *choice;
@@ -469,6 +473,9 @@ load:
 			conf_warning("override: reassigning to symbol %s", sym->name);
 
 		if (conf_set_sym_val(sym, def, def_flags, val))
+			continue;
+
+		if (def != S_DEF_USER)
 			continue;
 
 		/*
@@ -1014,11 +1021,10 @@ static int conf_touch_deps(void)
 
 	strncpy(depfile_path, name, depfile_prefix_len);
 	depfile_path[depfile_prefix_len] = 0;
+
 	conf_read_simple(name, S_DEF_AUTO);
-	sym_calc_value(modules_sym);
 
 	for_all_symbols(sym) {
-		sym_calc_value(sym);
 		if (sym_is_choice(sym))
 			continue;
 		if (sym->flags & SYMBOL_WRITE) {
@@ -1132,11 +1138,11 @@ int conf_write_autoconf(int overwrite)
 	if (ret)
 		return -1;
 
-	if (conf_touch_deps())
-		return 1;
-
 	for_all_symbols(sym)
 		sym_calc_value(sym);
+
+	if (conf_touch_deps())
+		return 1;
 
 	ret = __conf_write_autoconf(conf_get_autoheader_name(),
 				    print_symbol_for_c,
