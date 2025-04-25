@@ -99,7 +99,7 @@ enum carl9170fw_feature_list {
 #define CARL9170FW_MAGIC_SIZE			4
 
 struct carl9170fw_desc_head {
-	u8	magic[CARL9170FW_MAGIC_SIZE];
+	u8 magic[CARL9170FW_MAGIC_SIZE] __attribute__((__nonstring__));
 	__le16 length;
 	u8 min_ver;
 	u8 cur_ver;
