@@ -227,7 +227,7 @@ static void show_last_desc(const struct carl9170fw_desc_head *head,
 	}
 
 static const struct {
-	uint8_t magic[4];
+	uint8_t magic[4] __attribute__((__nonstring__));
 	uint8_t min_ver;
 	void (*func)(const struct carl9170fw_desc_head *, struct carlfw *);
 	uint16_t size;
