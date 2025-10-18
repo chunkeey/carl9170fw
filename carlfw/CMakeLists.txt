@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 project(carl9170.fw)
 
@@ -43,30 +43,14 @@ add_custom_target(firmware ALL DEPENDS carl9170.elf)
 
 add_custom_command(
 	POST_BUILD
-	DEPENDS carl9170.elf
+	TARGET firmware
 	COMMAND ${OBJCOPY}
 	ARGS --strip-unneeded -O binary -R .sram -R .eeprom -R .fwdsc carl9170.elf carl9170.bin
-	TARGET firmware
-	BYPRODUCTS carl9170.bin
-	OUTPUTS carl9170.bin)
-
-add_custom_command(
-	POST_BUILD
-	DEPENDS carl9170.elf
 	COMMAND ${OBJCOPY}
 	ARGS --strip-unneeded -O binary -j .fwdsc carl9170.elf carl9170.dsc
-	TARGET firmware
-	BYPRODUCTS carl9170.dsc
-	OUTPUTS carl9170.dsc)
-
-add_custom_command(
-	POST_BUILD
-	DEPENDS firmware
-	TARGET firmware
 	COMMAND cat
 	ARGS "carl9170.bin" "carl9170.dsc" > "carl9170.fw"
-	DEPENDS carl9170.elf carl9170.bin carl9170.dsc
-	OUTPUTS carl9170.fw)
+	BYPRODUCTS carl9170.bin carl9170.dsc carl9170.fw)
 
 SET_DIRECTORY_PROPERTIES(
 	PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "carl9170.fw")
