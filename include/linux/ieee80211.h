@@ -1622,6 +1622,12 @@ struct ieee80211_mgmt {
 					u8 action_code;
 					u8 variable[];
 				} __packed epcs;
+				struct {
+					u8 action_code;
+					u8 dialog_token;
+					u8 control;
+					u8 variable[];
+				} __packed eml_omn;
 			} u;
 		} __packed __aligned(4) action;
 		DECLARE_FLEX_ARRAY(u8, body); /* Generic frame body */
