@@ -1,8 +1,8 @@
-BINUTILS_VER=2.45
+BINUTILS_VER=2.46.0
 BINUTILS_TAR=binutils-$(BINUTILS_VER).tar.xz
 BINUTILS_URL="http://mirrors.kernel.org/gnu/binutils/$(BINUTILS_TAR)"
 
-NEWLIB_VER=4.5.0.20241231
+NEWLIB_VER=4.6.0.20260123
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_URL="ftp://sourceware.org/pub/newlib/$(NEWLIB_TAR)"
 
