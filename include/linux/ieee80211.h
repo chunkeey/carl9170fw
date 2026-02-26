@@ -3495,6 +3495,7 @@ ieee80211_bandwidth_indication_size_ok(const u8 *data, u8 len)
 #define WLAN_AUTH_FILS_SK 4
 #define WLAN_AUTH_FILS_SK_PFS 5
 #define WLAN_AUTH_FILS_PK 6
+#define WLAN_AUTH_IEEE8021X 8
 #define WLAN_AUTH_EPPKE 9
 #define WLAN_AUTH_LEAP 128
 
