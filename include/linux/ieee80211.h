@@ -1649,6 +1649,13 @@ struct ieee80211_mgmt {
 /* mgmt header + 1 byte category code */
 #define IEEE80211_MIN_ACTION_SIZE offsetof(struct ieee80211_mgmt, u.action.u)
 
+/* Link Reconfiguration Status Duple field */
+struct ieee80211_ml_reconf_status {
+	u8 info;
+	__le16 status;
+} __packed;
+
+#define IEEE80211_ML_RECONF_LINK_ID_MASK	0xf
 
 /* Management MIC information element (IEEE 802.11w) for CMAC */
 struct ieee80211_mmie {
