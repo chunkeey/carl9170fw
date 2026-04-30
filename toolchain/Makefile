@@ -6,7 +6,7 @@ NEWLIB_VER=4.6.0.20260123
 NEWLIB_TAR=newlib-$(NEWLIB_VER).tar.gz
 NEWLIB_URL="ftp://sourceware.org/pub/newlib/$(NEWLIB_TAR)"
 
-GCC_VER=15.2.0
+GCC_VER=16.1.0
 GCC_TAR=gcc-$(GCC_VER).tar.xz
 GCC_URL="http://mirrors.kernel.org/gnu/gcc/gcc-$(GCC_VER)/$(GCC_TAR)"
 
@@ -18,8 +18,8 @@ GMP_VER=6.3.0
 GMP_TAR=gmp-$(GMP_VER).tar.xz
 GMP_URL="http://ftpmirror.gnu.org/gnu/gmp/$(GMP_TAR)"
 
-MPC_VER=1.3.1
-MPC_TAR=mpc-$(MPC_VER).tar.gz
+MPC_VER=1.4.1
+MPC_TAR=mpc-$(MPC_VER).tar.xz
 MPC_URL="http://ftpmirror.gnu.org/gnu/mpc/$(MPC_TAR)"
 
 JOBS?=$(shell grep -c ^processor /proc/cpuinfo)
