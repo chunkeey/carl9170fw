@@ -581,6 +581,17 @@ static inline bool ieee80211_is_reassoc_resp(__le16 fc)
 }
 
 /**
+ * ieee80211_is_assoc - check if (Re)association request/response frame
+ * @fc: frame control bytes in little-endian byteorder
+ * Return: whether or not the frame is an (re)association request or response
+ */
+static inline bool ieee80211_is_assoc(__le16 fc)
+{
+	return ieee80211_is_assoc_req(fc) || ieee80211_is_reassoc_req(fc) ||
+	       ieee80211_is_assoc_resp(fc) || ieee80211_is_reassoc_resp(fc);
+}
+
+/**
  * ieee80211_is_probe_req - check if IEEE80211_FTYPE_MGMT && IEEE80211_STYPE_PROBE_REQ
  * @fc: frame control bytes in little-endian byteorder
  * Return: whether or not the frame is a probe request
