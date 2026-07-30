@@ -26,11 +26,13 @@
 #define __CARL9170FW_PRINTF_H
 
 #include <stdarg.h>
-#include <string.h>
 #include "config.h"
 #include "carl9170.h"
 #include "uart.h"
 #include "fwcmd.h"
+
+void *memcpy(void *restrict, const void *restrict, size_t);
+void *memset(void *, int, size_t);
 
 #ifdef CONFIG_CARL9170FW_PRINTF
 void __attribute__((format (printf, 1, 2))) tfp_printf(const char *fmt, ...);
