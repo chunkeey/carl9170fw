@@ -30,6 +30,9 @@
 #ifndef __attribute_const__
 #define __attribute_const__	__attribute__((__const__))
 #endif
+#define __packed	__attribute__((packed))
+#define __unused	__attribute__((unused))
+#define __aligned(x)	__attribute__((aligned(x)))
 
 #include "swab.h"
 #include "little_endian.h"
