@@ -349,7 +349,7 @@ static int carlfw_parse_descs(struct carlfw *fw,
 	return err;
 }
 
-#if BYTE_ORDER == LITTLE_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define CRCPOLY_LE 0xedb88320
 
 /* copied from the linux kernel  */
