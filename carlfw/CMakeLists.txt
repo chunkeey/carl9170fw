@@ -37,7 +37,7 @@ add_executable(carl9170.elf ${carl9170_src})
 set_target_properties(carl9170.elf PROPERTIES LINKER_LANGUAGE C)
 
 set_target_properties(carl9170.elf PROPERTIES COMPILE_FLAGS "${CARLFW_CFLAGS}")
-set_target_properties(carl9170.elf PROPERTIES LINK_FLAGS "${CARLFW_CFLAGS} -Wl,-Tcarl9170.lds")
+set_target_properties(carl9170.elf PROPERTIES LINK_FLAGS "-nostdlib -lgcc ${CARLFW_CFLAGS} -Wl,-Tcarl9170.lds")
 
 add_custom_target(firmware ALL DEPENDS carl9170.elf)
 
