@@ -19,6 +19,9 @@
 
 #define __noreturn	__attribute__((noreturn))
 #define __inline	__attribute__((always_inline))
+#ifndef __always_inline
+#define __always_inline	inline __attribute__((always_inline))
+#endif
 #define __hot		__attribute__((hot))
 #define __cold		__attribute__((cold))
 #define __force
