@@ -19,7 +19,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stddef.h>
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
