@@ -20,7 +20,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <sys/param.h>
 #include <sys/cdefs.h>
 
 #if BYTE_ORDER == BIG_ENDIAN
