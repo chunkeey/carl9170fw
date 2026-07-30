@@ -271,7 +271,7 @@ void usb_init(void)
 
 #define GET_ARRAY(a, o)	((uint32_t *) (((unsigned long) data) + offset))
 
-static void usb_ep0rx_data(const void *data, const unsigned int len)
+static void usb_ep0rx_data(void *data, const unsigned int len)
 {
 	unsigned int offset;
 	uint32_t value;
