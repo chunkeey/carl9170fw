@@ -12,7 +12,7 @@ add_executable(miniboot.elf miniboot.S)
 
 set_target_properties(miniboot.elf PROPERTIES LINKER_LANGUAGE C)
 
-set_target_properties(miniboot.elf PROPERTIES LINK_FLAGS "-Tminiboot.lds")
+set_target_properties(miniboot.elf PROPERTIES LINK_FLAGS "-nostdlib -Tminiboot.lds")
 
 add_custom_target(
 	miniboot.fw ALL

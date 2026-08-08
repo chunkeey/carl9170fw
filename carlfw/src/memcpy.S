@@ -114,7 +114,7 @@ case1:
 	mov	r4,r2
 	add	#7,r2
 	!
-#ifdef __LITTLE_ENDIAN__
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 3:	mov	r1,r3		! RQPO
 	shll16	r3
 	shll8	r3		! Oxxx
@@ -196,7 +196,7 @@ case3:
 	mov	r4,r2
 	add	#7,r2
 	!
-#ifdef __LITTLE_ENDIAN__
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 3:	mov	r1,r3		! RQPO
 	shll8	r3		! QPOx
 	mov.l	@(r0,r5),r1	! NMLK

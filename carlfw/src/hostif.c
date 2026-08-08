@@ -240,7 +240,7 @@ void handle_cmd(struct carl9170_rsp *resp)
 
 	case CARL9170_CMD_WREGB:
 		resp->hdr.len = 0;
-		for (i = 0; i < MIN(cmd->wregb.count, cmd->hdr.len - 8); i++)
+		for (i = 0; i < min_t(__u32, cmd->wregb.count, cmd->hdr.len - 8); i++)
 			setb(cmd->wregb.addr + i, cmd->wregb.val[i]);
 		break;
 

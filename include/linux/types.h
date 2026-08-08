@@ -19,11 +19,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include <sys/param.h>
-#include <sys/cdefs.h>
+#include <stddef.h>
 
-#if BYTE_ORDER == BIG_ENDIAN
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #error	"big endian is not supported by target"
 #endif
 

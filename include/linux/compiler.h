@@ -19,6 +19,9 @@
 
 #define __noreturn	__attribute__((noreturn))
 #define __inline	__attribute__((always_inline))
+#ifndef __always_inline
+#define __always_inline	inline __attribute__((always_inline))
+#endif
 #define __hot		__attribute__((hot))
 #define __cold		__attribute__((cold))
 #define __force
@@ -27,6 +30,9 @@
 #ifndef __attribute_const__
 #define __attribute_const__	__attribute__((__const__))
 #endif
+#define __packed	__attribute__((packed))
+#define __unused	__attribute__((unused))
+#define __aligned(x)	__attribute__((aligned(x)))
 
 #include "swab.h"
 #include "little_endian.h"
