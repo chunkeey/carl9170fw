@@ -295,6 +295,63 @@ static void disable_watchdog(void)
 	set(AR9170_TIMER_REG_WATCH_DOG, 0xffff);
 }
 
+/*
+ * Warm reset: re-initialize firmware without destroying USB PHY state.
+ * This allows the host to re-enumerate the device after a USB bus reset
+ * without requiring a physical re-plug.
+ *
+ * Unlike reboot() which calls turn_power_off() and jump_to_bootcode(),
+ * this preserves the USB connection and jumps directly to start().
+ */
+static void __noreturn usb_warm_reset(void)
+{
+	disable_watchdog();
+
+	/* Disable baseband to stop PHY activity */
+	set(AR9170_PHY_REG_ACTIVE, AR9170_PHY_ACTIVE_DIS);
+
+	/* Stop WLAN DMA */
+	set(AR9170_MAC_REG_DMA_TRIGGER, 0);
+
+	/* Stop USB DMA without full power-off */
+	andl(AR9170_USB_REG_DMA_CTL, ~(AR9170_USB_DMA_CTL_ENABLE_TO_DEVICE |
+					AR9170_USB_DMA_CTL_ENABLE_FROM_DEVICE));
+
+	/* Reset PTA component */
+	orl(AR9170_PTA_REG_DMA_MODE_CTRL, AR9170_PTA_DMA_MODE_CTRL_RESET);
+	andl(AR9170_PTA_REG_DMA_MODE_CTRL, ~AR9170_PTA_DMA_MODE_CTRL_RESET);
+
+	/* Reset MAC power state */
+	set(AR9170_MAC_REG_POWER_STATE_CTRL,
+	    AR9170_MAC_POWER_STATE_CTRL_RESET);
+
+	/*
+	 * Hardware reset: WLAN MAC, DMA engine, and baseband.
+	 * Without this, the PHY/RF can lock up after repeated
+	 * warm resets, causing -ETIMEDOUT on register writes
+	 * and cascading driver reloads (phy0 -> phy29 -> crash).
+	 *
+	 * BB_WARM_RESET resets PHY logic while preserving
+	 * calibration-friendly state. start() -> init() will
+	 * reconfigure everything via the driver anyway.
+	 */
+	set(AR9170_PWR_REG_RESET, AR9170_PWR_RESET_COMMIT_RESET_MASK |
+				  AR9170_PWR_RESET_WLAN_MASK |
+				  AR9170_PWR_RESET_DMA_MASK |
+				  AR9170_PWR_RESET_BB_WARM_RESET);
+	set(AR9170_PWR_REG_RESET, 0x0);
+
+	/* Clean DMA memory */
+	memset(&dma_mem, 0, sizeof(dma_mem));
+
+	/* Clear firmware state */
+	memset(&fw, 0, sizeof(fw));
+
+	/* Re-enter firmware from start() which does full init
+	 * and sends CARL9170_RSP_BOOT to the host. */
+	start();
+}
+
 void __noreturn reboot(void)
 {
 	disable_watchdog();
@@ -377,7 +434,7 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_RESET) {
 			usb_reset_ack();
 			usb_reset_eps();
-			reboot();
+			usb_warm_reset();
 		}
 
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_SUSPEND) {
@@ -409,7 +466,7 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 			fw.suspend_mode = CARL9170_HOST_AWAKE;
 			set(AR9170_USB_REG_WAKE_UP, 0);
 
-			reboot();
+			usb_warm_reset();
 		}
 	}
 }

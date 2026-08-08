@@ -471,11 +471,10 @@ void handle_wlan_tx_completion(void)
 			}
 		}
 
-		wlan_tx_ampdu_reset(i);
-
 		for_each_desc(desc, &fw.wlan.tx_retry)
 			__wlan_tx(desc);
 
+		wlan_tx_ampdu_reset(i);
 		wlan_tx_ampdu_end(i);
 		if (!queue_empty(&fw.wlan.tx_queue[i]))
 			wlan_trigger(BIT(i));

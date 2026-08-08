@@ -190,6 +190,15 @@ static uint32_t rf_init(const uint32_t delta_slope_coeff_exp,
 
 	ret = AGC_calibration(finiteLoopCount);
 
+	if (ret) {
+		/*
+		 * Calibration timed out — PHY is in an undefined state.
+		 * Disable baseband so the driver sees a clean failure
+		 * instead of operating with a half-initialized PHY.
+		 */
+		set(AR9170_PHY_REG_ACTIVE, AR9170_PHY_ACTIVE_DIS);
+	}
+
 	set_channel_end();
 	return ret;
 }
