@@ -14,7 +14,7 @@ To build the firmware you will need an SH-2 toolchain.
 You can use the makefile in this repository to build
 your own toolchain:
 
-`# make -C toolchain`
+`$ make -C toolchain`
 
 but be aware that this will take some time and requires
 about 3-5 GiB disk space.
@@ -32,12 +32,20 @@ tools and libraries:
 
 to start the configuration, run:
 
-`# autogen.sh`
+`$ autogen.sh`
 
 The configuration is based on the Linux's KConfig utility CLI.
 For each configurable option, a prompt will appear. To choose
 the default/previous option simply hit `<Enter>`-key on your
 keyboard.
+
+If you encounter the error:
+
+`../toolchain/inst/bin/sh-elf-objcopy: 'carl9170.elf': No such file`
+
+, run
+
+`$ make carl9170.elf`
 
 ### Install Firmware
 
