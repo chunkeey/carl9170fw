@@ -94,11 +94,16 @@ static void tally_update(void)
 
 		fw.tally.active += delta;
 
+		/*
+		 * Use HW cycle counter for CCA busy time instead of
+		 * single-bit polling. AR9170_MAC_REG_CHANNEL_BUSY is
+		 * a read-and-clear counter like AR9170_MAC_REG_RX_TOTAL.
+		 */
+		fw.tally.cca += get(AR9170_MAC_REG_CHANNEL_BUSY);
+
 		boff = get(AR9170_MAC_REG_BACKOFF_STATUS);
 		if (boff & AR9170_MAC_BACKOFF_TX_PE)
 			fw.tally.tx_time += delta;
-		if (boff & AR9170_MAC_BACKOFF_CCA)
-			fw.tally.cca += delta;
 	}
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 	fw.tally_clock = time;
