@@ -26,6 +26,7 @@
 #include "timer.h"
 #include "printf.h"
 #include "rf.h"
+#include "hostif.h"
 #include "shared/phy.h"
 
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
@@ -42,6 +43,9 @@ static void set_channel_end(void)
 
 void rf_notify_set_channel(void)
 {
+	struct dma_desc *desc;
+	unsigned int i;
+
 	/* Manipulate CCA threshold to stop transmission */
 	set(AR9170_PHY_REG_CCA_THRESHOLD, 0x300);
 	/* Enable Virtual CCA */
@@ -53,6 +57,59 @@ void rf_notify_set_channel(void)
 	fw.tally.cca = 0;
 	fw.tally.tx_time = 0;
 	fw.phy.state = CARL9170_PHY_OFF;
+
+	/*
+	 * Roam/channel-change state reset.
+	 *
+	 * The firmware has no reassociation concept. After a channel
+	 * change (roam or scan), pre-roam TX sequence numbers cause
+	 * the new AP to drop frames as duplicates, stale BA cache
+	 * entries generate BlockACK responses to the old AP, and
+	 * AMPDU chaining state is undefined.
+	 *
+	 * Zero all per-VIF TX sequence counters so the next transmitted
+	 * frame starts a fresh sequence number space from the new AP's
+	 * perspective.
+	 */
+	memset(fw.wlan.sequence, 0, sizeof(fw.wlan.sequence));
+
+	/*
+	 * Clear BlockACK cache. queued_ba is the count of pending BA
+	 * responses; head/tail track the ring buffer. After a channel
+	 * change none of the cached BA state is valid for the new AP.
+	 */
+	memset(fw.wlan.ba_cache, 0, sizeof(fw.wlan.ba_cache));
+	fw.wlan.queued_ba = 0;
+	fw.wlan.ba_tail_idx = 0;
+	fw.wlan.ba_head_idx = 0;
+
+	/*
+	 * Clear per-queue AMPDU chaining pointers. ampdu_prev tracks
+	 * the last AMPDU superframe to chain ba_end markers. After a
+	 * channel change the chain is broken regardless.
+	 */
+	for (i = 0; i < __AR9170_NUM_TX_QUEUES; i++)
+		fw.wlan.ampdu_prev[i] = NULL;
+
+	/*
+	 * Drain the TX retry queue. Frames sitting in tx_retry were
+	 * awaiting retransmission to the old AP — they are stale after
+	 * a channel change and must not be replayed to the new AP.
+	 * Recycle the descriptors back to the host download queue so
+	 * the host can free them.
+	 *
+	 * Iteration safety: for_each_desc() expands to
+	 *   while ((desc = dma_unlink_head(queue)))
+	 * dma_unlink_head() removes and returns the head descriptor
+	 * before the loop body runs. dma_reclaim() operates on the
+	 * already-removed desc, so modifying tx_retry during iteration
+	 * is safe — the next call to dma_unlink_head() sees the
+	 * updated head.
+	 */
+	for_each_desc(desc, &fw.wlan.tx_retry) {
+		dma_reclaim(&fw.pta.down_queue, desc);
+	}
+	down_trigger();
 }
 
 /*
@@ -190,6 +247,15 @@ static uint32_t rf_init(const uint32_t delta_slope_coeff_exp,
 
 	ret = AGC_calibration(finiteLoopCount);
 
+	if (ret) {
+		/*
+		 * Calibration timed out — PHY is in an undefined state.
+		 * Disable baseband so the driver sees a clean failure
+		 * instead of operating with a half-initialized PHY.
+		 */
+		set(AR9170_PHY_REG_ACTIVE, AR9170_PHY_ACTIVE_DIS);
+	}
+
 	set_channel_end();
 	return ret;
 }
@@ -226,8 +292,22 @@ void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp)
 
 void rf_psm(void)
 {
-	u32 bank3;
 
+	/*
+	 * PSM disabled — powering down ADDAC/synthesizer causes the
+	 * SH-2 to miss USB command responses, triggering host-side
+	 * -ETIMEDOUT and device crash. Always stay awake.
+	 */
+	return;
+
+#if 0
+	/*
+	 * Upstream PSM implementation preserved for reference.
+	 * Dead code — unreachable after the early return above.
+	 * Retained so the full upstream logic remains visible
+	 * should PSM ever be re-enabled.
+	 */
+	u32 bank3;
 	if (fw.phy.psm.state == CARL9170_PSM_SOFTWARE) {
 		/* not enabled by the driver */
 		return;
@@ -275,6 +355,7 @@ void rf_psm(void)
 		bank3 |= 0x00800000;
 
 	set(0x1c58f0, bank3);
+#endif /* #if 0 -- upstream PSM, see early return above */
 }
 
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */

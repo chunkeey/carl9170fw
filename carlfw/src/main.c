@@ -94,11 +94,20 @@ static void tally_update(void)
 
 		fw.tally.active += delta;
 
+		/*
+		 * Use HW cycle counters for CCA busy time instead of
+		 * single-bit polling. CHANNEL_BUSY counts primary 20MHz
+		 * CCA time, EXT_BUSY counts the extension channel in
+		 * HT40 mode (reads zero in HT20). Both are read-and-clear
+		 * counters like AR9170_MAC_REG_RX_TOTAL. Combined into
+		 * one tally for total channel utilization.
+		 */
+		fw.tally.cca += get(AR9170_MAC_REG_CHANNEL_BUSY);
+		fw.tally.cca += get(AR9170_MAC_REG_EXT_BUSY);
+
 		boff = get(AR9170_MAC_REG_BACKOFF_STATUS);
 		if (boff & AR9170_MAC_BACKOFF_TX_PE)
 			fw.tally.tx_time += delta;
-		if (boff & AR9170_MAC_BACKOFF_CCA)
-			fw.tally.cca += delta;
 	}
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 	fw.tally_clock = time;
