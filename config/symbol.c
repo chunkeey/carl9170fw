@@ -195,7 +195,10 @@ static struct symbol *sym_get_near_range_bound(struct symbol *sym,
 	prop = sym_get_range_prop(sym);
 	if (!prop)
 		return NULL;
-	val = sym_get_range_val(sym, base);
+	if (base == 10)
+		val.s = strtoll(value, NULL, base);
+	else
+		val.u = strtoull(value, NULL, base);
 	range_sym = prop->expr->left.sym;
 	val2 = sym_get_range_val(range_sym, base);
 
