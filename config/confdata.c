@@ -738,9 +738,9 @@ void print_symbol_for_listconfig(struct symbol *sym)
 static void print_symbol_for_c(FILE *fp, struct symbol *sym)
 {
 	const char *val;
-	char *escaped = NULL;
 	const char *sym_suffix = "";
 	const char *val_prefix = "";
+	char *escaped = NULL;
 
 	if (sym->type == S_UNKNOWN)
 		return;
