@@ -285,9 +285,9 @@ void handle_cmd(struct carl9170_rsp *resp)
 		break;
 
 	case CARL9170_CMD_PSM:
+		/* PSM commands accepted but ignored — PS is disabled
+		 * to prevent USB command timeout crashes. */
 		resp->hdr.len = 0;
-		fw.phy.psm.state = le32_to_cpu(cmd->psm.state);
-		rf_psm();
 		break;
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 

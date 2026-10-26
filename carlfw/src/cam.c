@@ -42,31 +42,36 @@ static void enable_cam_user(const uint16_t userId)
 		orl(AR9170_MAC_REG_CAM_ROLL_CALL_TBL_H, (((uint32_t) 1) << (userId - 32)));
 }
 
+#define CAM_TIMEOUT	10000
+
 static void wait_for_cam_read_ready(void)
 {
-	while ((get(AR9170_MAC_REG_CAM_STATE) & AR9170_MAC_CAM_STATE_READ_PENDING) == 0) {
-		/*
-		 * wait
-		 */
+	unsigned int timeout = CAM_TIMEOUT;
+
+	while (((get(AR9170_MAC_REG_CAM_STATE) & AR9170_MAC_CAM_STATE_READ_PENDING) == 0) &&
+	       timeout--) {
+		/* wait */
 	}
 }
 
 static void wait_for_cam_write_ready(void)
 {
-	while ((get(AR9170_MAC_REG_CAM_STATE) & AR9170_MAC_CAM_STATE_WRITE_PENDING) == 0) {
-		/*
-		 * wait some more
-		 */
+	unsigned int timeout = CAM_TIMEOUT;
+
+	while (((get(AR9170_MAC_REG_CAM_STATE) & AR9170_MAC_CAM_STATE_WRITE_PENDING) == 0) &&
+	       timeout--) {
+		/* wait */
 	}
 }
 
 static void HW_CAM_Avail(void)
 {
+	unsigned int timeout = CAM_TIMEOUT;
 	uint32_t tmpValue;
 
 	do {
 		tmpValue = get(AR9170_MAC_REG_CAM_MODE);
-	} while (tmpValue & AR9170_MAC_CAM_HOST_PENDING);
+	} while ((tmpValue & AR9170_MAC_CAM_HOST_PENDING) && timeout--);
 }
 
 static void HW_CAM_Write128(const uint32_t address, const uint32_t *data)

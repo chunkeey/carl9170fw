@@ -190,6 +190,15 @@ static uint32_t rf_init(const uint32_t delta_slope_coeff_exp,
 
 	ret = AGC_calibration(finiteLoopCount);
 
+	if (ret) {
+		/*
+		 * Calibration timed out — PHY is in an undefined state.
+		 * Disable baseband so the driver sees a clean failure
+		 * instead of operating with a half-initialized PHY.
+		 */
+		set(AR9170_PHY_REG_ACTIVE, AR9170_PHY_ACTIVE_DIS);
+	}
+
 	set_channel_end();
 	return ret;
 }
@@ -227,6 +236,13 @@ void rf_cmd(const struct carl9170_cmd *cmd, struct carl9170_rsp *resp)
 void rf_psm(void)
 {
 	u32 bank3;
+
+	/*
+	 * PSM disabled — powering down ADDAC/synthesizer causes the
+	 * SH-2 to miss USB command responses, triggering host-side
+	 * -ETIMEDOUT and device crash. Always stay awake.
+	 */
+	return;
 
 	if (fw.phy.psm.state == CARL9170_PSM_SOFTWARE) {
 		/* not enabled by the driver */

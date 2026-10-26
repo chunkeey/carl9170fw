@@ -48,8 +48,10 @@ const struct carl9170_firmware_descriptor __in_section(fwdsc) __visible carl9170
 #endif /* CONFIG_CARL9170FW_USB_DOWN_STREAM */
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
 					BIT(CARL9170FW_COMMAND_PHY) |
-					BIT(CARL9170FW_PSM) |
-					BIT(CARL9170FW_FIXED_5GHZ_PSM) |
+					/*
+					 * PSM capability removed — firmware
+					 * PS causes USB command timeouts.
+					 */
 #endif /* CONFIG_CARL9170FW_RADIO_FUNCTIONS */
 #ifdef CONFIG_CARL9170FW_SECURITY_ENGINE
 					BIT(CARL9170FW_COMMAND_CAM) |
