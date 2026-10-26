@@ -60,44 +60,96 @@ void usb_print_hex_dump(const void *buf, int len)
 }
 #endif /* CONFIG_CARL9170FW_DEBUG_USB */
 
-/* grab a buffer from the interrupt in queue ring-buffer */
-static struct carl9170_rsp *get_int_buf(void)
+/*
+ * Command response buffer (slots 0..CMD_RESERVED-1).
+ * Reserved exclusively for handle_cmd() responses to prevent
+ * async event floods from starving command completions.
+ */
+static struct carl9170_rsp *get_cmd_buf(void)
 {
 	struct carl9170_rsp *tmp;
+	unsigned int idx;
 
-	/* fetch the _oldest_ buffer from the ring */
-	tmp = &fw.usb.int_buf[fw.usb.int_tail_index];
+	if (fw.usb.cmd_pending >= CARL9170_INT_CMD_RESERVED) {
+		fw.usb.cmd_overflow++;
+		return NULL;
+	}
 
-	/* assign a unique sequence for every response/trap */
-	tmp->hdr.seq = fw.usb.int_tail_index;
+	idx = fw.usb.cmd_tail_index;
+	tmp = &fw.usb.int_buf[idx];
+	tmp->hdr.seq = fw.usb.int_seq_counter++ % CARL9170_INT_RQ_CACHES;
 
-	fw.usb.int_tail_index++;
-
-	fw.usb.int_tail_index %= CARL9170_INT_RQ_CACHES;
-	if (fw.usb.int_pending != CARL9170_INT_RQ_CACHES)
-		fw.usb.int_pending++;
+	fw.usb.cmd_tail_index++;
+	if (fw.usb.cmd_tail_index >= CARL9170_INT_CMD_RESERVED)
+		fw.usb.cmd_tail_index = 0;
+	fw.usb.cmd_pending++;
 
 	return tmp;
 }
 
-/* Pop up data from Interrupt IN Queue to USB Response buffer */
+/*
+ * Async event buffer (slots CMD_RESERVED..INT_RQ_CACHES-1).
+ * Used by send_cmd_to_host() for TX status, beacon, and other
+ * asynchronous notifications.
+ */
+static struct carl9170_rsp *get_int_buf(void)
+{
+	struct carl9170_rsp *tmp;
+	unsigned int idx;
+
+	if (fw.usb.int_pending >= CARL9170_INT_ASYNC_CACHES)
+		return NULL;
+
+	idx = CARL9170_INT_CMD_RESERVED + fw.usb.int_tail_index;
+	tmp = &fw.usb.int_buf[idx];
+	tmp->hdr.seq = fw.usb.int_seq_counter++ % CARL9170_INT_RQ_CACHES;
+
+	fw.usb.int_tail_index++;
+	if (fw.usb.int_tail_index >= CARL9170_INT_ASYNC_CACHES)
+		fw.usb.int_tail_index = 0;
+	fw.usb.int_pending++;
+
+	return tmp;
+}
+
+/* Dequeue from command response pool first, then async pool */
 static struct carl9170_rsp *dequeue_int_buf(unsigned int space)
 {
-	struct carl9170_rsp *tmp = NULL;
+	struct carl9170_rsp *tmp;
 
+	/* command responses have priority */
+	if (fw.usb.cmd_pending > 0) {
+		tmp = &fw.usb.int_buf[fw.usb.cmd_head_index];
+
+		if ((unsigned int)(tmp->hdr.len + 8) > space)
+			return NULL;
+
+		fw.usb.cmd_head_index++;
+		if (fw.usb.cmd_head_index >= CARL9170_INT_CMD_RESERVED)
+			fw.usb.cmd_head_index = 0;
+		fw.usb.cmd_pending--;
+		return tmp;
+	}
+
+	/* then async events */
 	if (fw.usb.int_pending > 0) {
-		tmp = &fw.usb.int_buf[fw.usb.int_head_index];
+		tmp = &fw.usb.int_buf[CARL9170_INT_CMD_RESERVED +
+				      fw.usb.int_head_index];
 
 		if ((unsigned int)(tmp->hdr.len + 8) > space)
 			return NULL;
 
 		fw.usb.int_head_index++;
-		fw.usb.int_head_index %= CARL9170_INT_RQ_CACHES;
+		if (fw.usb.int_head_index >= CARL9170_INT_ASYNC_CACHES)
+			fw.usb.int_head_index = 0;
 		fw.usb.int_pending--;
+		return tmp;
 	}
 
-	return tmp;
+	return NULL;
 }
+
+static void usb_status_in(void);
 
 static void usb_data_in(void)
 {
@@ -121,7 +173,22 @@ static void usb_reg_out(void)
 	for (i = 0; i < usbfifolen; i++)
 		*regaddr++ = get(AR9170_USB_REG_EP4_DATA);
 
-	handle_cmd(get_int_buf());
+	/*
+	 * Flush pending responses before processing new command.
+	 * This ensures the USB descriptor is freed for the command
+	 * response, preventing descriptor starvation when async
+	 * events have accumulated.
+	 */
+	if ((fw.usb.cmd_pending || fw.usb.int_pending) &&
+	    fw.usb.int_desc_available)
+		usb_status_in();
+
+	{
+		struct carl9170_rsp *resp = get_cmd_buf();
+
+		if (likely(resp != NULL))
+			handle_cmd(resp);
+	}
 
 	usb_trigger_in();
 }
@@ -141,7 +208,7 @@ static void usb_status_in(void)
 
 	usb_reset_in();
 
-	while (fw.usb.int_pending) {
+	while (fw.usb.cmd_pending || fw.usb.int_pending) {
 		rsp = dequeue_int_buf(rem);
 		if (!rsp)
 			break;
@@ -295,6 +362,63 @@ static void disable_watchdog(void)
 	set(AR9170_TIMER_REG_WATCH_DOG, 0xffff);
 }
 
+/*
+ * Warm reset: re-initialize firmware without destroying USB PHY state.
+ * This allows the host to re-enumerate the device after a USB bus reset
+ * without requiring a physical re-plug.
+ *
+ * Unlike reboot() which calls turn_power_off() and jump_to_bootcode(),
+ * this preserves the USB connection and jumps directly to start().
+ */
+static void __noreturn usb_warm_reset(void)
+{
+	disable_watchdog();
+
+	/* Disable baseband to stop PHY activity */
+	set(AR9170_PHY_REG_ACTIVE, AR9170_PHY_ACTIVE_DIS);
+
+	/* Stop WLAN DMA */
+	set(AR9170_MAC_REG_DMA_TRIGGER, 0);
+
+	/* Stop USB DMA without full power-off */
+	andl(AR9170_USB_REG_DMA_CTL, ~(AR9170_USB_DMA_CTL_ENABLE_TO_DEVICE |
+					AR9170_USB_DMA_CTL_ENABLE_FROM_DEVICE));
+
+	/* Reset PTA component */
+	orl(AR9170_PTA_REG_DMA_MODE_CTRL, AR9170_PTA_DMA_MODE_CTRL_RESET);
+	andl(AR9170_PTA_REG_DMA_MODE_CTRL, ~AR9170_PTA_DMA_MODE_CTRL_RESET);
+
+	/* Reset MAC power state */
+	set(AR9170_MAC_REG_POWER_STATE_CTRL,
+	    AR9170_MAC_POWER_STATE_CTRL_RESET);
+
+	/*
+	 * Hardware reset: WLAN MAC, DMA engine, and baseband.
+	 * Without this, the PHY/RF can lock up after repeated
+	 * warm resets, causing -ETIMEDOUT on register writes
+	 * and cascading driver reloads (phy0 -> phy29 -> crash).
+	 *
+	 * BB_WARM_RESET resets PHY logic while preserving
+	 * calibration-friendly state. start() -> init() will
+	 * reconfigure everything via the driver anyway.
+	 */
+	set(AR9170_PWR_REG_RESET, AR9170_PWR_RESET_COMMIT_RESET_MASK |
+				  AR9170_PWR_RESET_WLAN_MASK |
+				  AR9170_PWR_RESET_DMA_MASK |
+				  AR9170_PWR_RESET_BB_WARM_RESET);
+	set(AR9170_PWR_REG_RESET, 0x0);
+
+	/* Clean DMA memory */
+	memset(&dma_mem, 0, sizeof(dma_mem));
+
+	/* Clear firmware state */
+	memset(&fw, 0, sizeof(fw));
+
+	/* Re-enter firmware from start() which does full init
+	 * and sends CARL9170_RSP_BOOT to the host. */
+	start();
+}
+
 void __noreturn reboot(void)
 {
 	disable_watchdog();
@@ -377,7 +501,7 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_RESET) {
 			usb_reset_ack();
 			usb_reset_eps();
-			reboot();
+			usb_warm_reset();
 		}
 
 		if (usb_interrupt_level2 & AR9170_USB_INTR_SRC7_USB_SUSPEND) {
@@ -409,7 +533,7 @@ static void usb_handler(uint8_t usb_interrupt_level1)
 			fw.suspend_mode = CARL9170_HOST_AWAKE;
 			set(AR9170_USB_REG_WAKE_UP, 0);
 
-			reboot();
+			usb_warm_reset();
 		}
 	}
 }
@@ -423,7 +547,7 @@ void handle_usb(void)
 	if (usb_interrupt_level1)
 		usb_handler(usb_interrupt_level1);
 
-	if (fw.usb.int_pending > 0)
+	if (fw.usb.cmd_pending > 0 || fw.usb.int_pending > 0)
 		usb_trigger_in();
 }
 

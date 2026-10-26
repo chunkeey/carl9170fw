@@ -160,14 +160,24 @@ static unsigned int wlan_rx_filter(struct dma_desc *desc)
 void handle_wlan_rx(void)
 {
 	struct dma_desc *desc;
+	bool queued = false;
 
 	for_each_desc_not_bits(desc, &fw.wlan.rx_queue, AR9170_OWN_BITS_HW) {
 		if (!(wlan_rx_filter(desc) & fw.wlan.rx_filter)) {
 			dma_put(&fw.pta.up_queue, desc);
-			up_trigger();
+			queued = true;
 		} else {
 			dma_reclaim(&fw.wlan.rx_queue, desc);
 			wlan_trigger(AR9170_DMA_TRIGGER_RXQ);
 		}
 	}
+
+	/*
+	 * Trigger USB upload once for the entire batch rather than
+	 * per frame.  The PTA DMA will transfer all queued descriptors
+	 * in a single USB transaction, reducing interrupt overhead on
+	 * the host by up to N (where N = frames per RX burst).
+	 */
+	if (queued)
+		up_trigger();
 }

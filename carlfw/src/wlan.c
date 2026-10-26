@@ -77,7 +77,13 @@ static void wlan_check_rx_overrun(void)
 	fw.tally.rx_total += total = get(AR9170_MAC_REG_RX_TOTAL);
 	fw.tally.rx_overrun += overruns = get(AR9170_MAC_REG_RX_OVERRUN);
 	if (unlikely(overruns)) {
-		if (overruns == total) {
+		/*
+		 * Trigger MAC reset when more than half of received
+		 * frames are dropped.  The original check (overruns ==
+		 * total) only fired at 100 % loss, leaving the adapter
+		 * nearly blind at 95 % loss without any recovery.
+		 */
+		if (total && overruns > (total >> 1)) {
 			DBG("RX Overrun");
 			fw.wlan.mac_reset++;
 		}
@@ -100,7 +106,41 @@ static void handle_pretbtt(void)
 	fw.wlan.cab_flush_time = get_clock_counter();
 
 #ifdef CONFIG_CARL9170FW_RADIO_FUNCTIONS
+#ifdef CONFIG_CARL9170FW_PSM
+	{
+		/*
+		 * Capture phy state BEFORE rf_psm() updates it so the
+		 * comparison below detects a PHY_OFF -> PHY_ON transition.
+		 */
+		unsigned int prev_phy_state = fw.phy.state;
+
+		rf_psm();
+
+		/*
+		 * After PSM wake, re-trigger TX DMA for queued frames.
+		 * While the PHY was off, the hardware could not transmit
+		 * and DMA trigger bits were consumed without effect.
+		 * PSM is disabled in patch 0003 so this block never runs;
+		 * guard it to make the dependency explicit.
+		 */
+		if (prev_phy_state == CARL9170_PHY_OFF &&
+		    fw.phy.state == CARL9170_PHY_ON) {
+			int i;
+			uint32_t trigger = 0;
+
+			for (i = AR9170_TXQ0; i <= AR9170_TXQ_SPECIAL; i++) {
+				if (!queue_empty(&fw.wlan.tx_queue[i]))
+					trigger |= BIT(i);
+			}
+
+			if (trigger)
+				wlan_trigger(trigger);
+		}
+	}
+#else
+	/* PSM disabled: call rf_psm directly */
 	rf_psm();
+#endif /* CONFIG_CARL9170FW_PSM */
 
 	send_cmd_to_host(4, CARL9170_RSP_PRETBTT, 0x00,
 			 (uint8_t *) &fw.phy.psm.state);

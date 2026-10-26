@@ -24,6 +24,7 @@
 
 #include "carl9170.h"
 #include "cam.h"
+#include <string.h>
 
 #ifdef CONFIG_CARL9170FW_SECURITY_ENGINE
 static void disable_cam_user(const uint16_t userId)
@@ -42,36 +43,45 @@ static void enable_cam_user(const uint16_t userId)
 		orl(AR9170_MAC_REG_CAM_ROLL_CALL_TBL_H, (((uint32_t) 1) << (userId - 32)));
 }
 
-static void wait_for_cam_read_ready(void)
+#define CAM_TIMEOUT	10000
+
+static bool wait_for_cam_read_ready(void)
 {
-	while ((get(AR9170_MAC_REG_CAM_STATE) & AR9170_MAC_CAM_STATE_READ_PENDING) == 0) {
-		/*
-		 * wait
-		 */
+	unsigned int timeout = CAM_TIMEOUT;
+
+	while (((get(AR9170_MAC_REG_CAM_STATE) & AR9170_MAC_CAM_STATE_READ_PENDING) == 0) &&
+	       --timeout) {
+		/* wait */
 	}
+	return timeout != 0;
 }
 
-static void wait_for_cam_write_ready(void)
+static bool wait_for_cam_write_ready(void)
 {
-	while ((get(AR9170_MAC_REG_CAM_STATE) & AR9170_MAC_CAM_STATE_WRITE_PENDING) == 0) {
-		/*
-		 * wait some more
-		 */
+	unsigned int timeout = CAM_TIMEOUT;
+
+	while (((get(AR9170_MAC_REG_CAM_STATE) & AR9170_MAC_CAM_STATE_WRITE_PENDING) == 0) &&
+	       --timeout) {
+		/* wait */
 	}
+	return timeout != 0;
 }
 
-static void HW_CAM_Avail(void)
+static bool HW_CAM_Avail(void)
 {
+	unsigned int timeout = CAM_TIMEOUT;
 	uint32_t tmpValue;
 
 	do {
 		tmpValue = get(AR9170_MAC_REG_CAM_MODE);
-	} while (tmpValue & AR9170_MAC_CAM_HOST_PENDING);
+	} while ((tmpValue & AR9170_MAC_CAM_HOST_PENDING) && --timeout);
+	return timeout != 0;
 }
 
-static void HW_CAM_Write128(const uint32_t address, const uint32_t *data)
+static bool HW_CAM_Write128(const uint32_t address, const uint32_t *data)
 {
-	HW_CAM_Avail();
+	if (!HW_CAM_Avail())
+		return false;
 
 	set(AR9170_MAC_REG_CAM_DATA0, data[0]);
 	set(AR9170_MAC_REG_CAM_DATA1, data[1]);
@@ -80,21 +90,40 @@ static void HW_CAM_Write128(const uint32_t address, const uint32_t *data)
 
 	set(AR9170_MAC_REG_CAM_ADDR, address | AR9170_MAC_CAM_ADDR_WRITE);
 
-	wait_for_cam_write_ready();
+	/*
+	 * CAM address register already written; no register-level abort
+	 * exists for in-flight writes. On timeout, zero the data registers
+	 * and issue an invalidating write to the same address so the slot
+	 * does not decrypt frames with partial (garbage) key material.
+	 */
+	if (!wait_for_cam_write_ready()) {
+		set(AR9170_MAC_REG_CAM_DATA0, 0);
+		set(AR9170_MAC_REG_CAM_DATA1, 0);
+		set(AR9170_MAC_REG_CAM_DATA2, 0);
+		set(AR9170_MAC_REG_CAM_DATA3, 0);
+		set(AR9170_MAC_REG_CAM_ADDR, address | AR9170_MAC_CAM_ADDR_WRITE);
+		return false;
+	}
+	return true;
 }
 
-static void HW_CAM_Read128(const uint32_t address, uint32_t *data)
+static bool HW_CAM_Read128(const uint32_t address, uint32_t *data)
 {
+	memset(data, 0, 4 * sizeof(uint32_t));
 
-	HW_CAM_Avail();
+	if (!HW_CAM_Avail())
+		return false;
 	set(AR9170_MAC_REG_CAM_ADDR, address);
 
-	wait_for_cam_read_ready();
-	HW_CAM_Avail();
+	if (!wait_for_cam_read_ready())
+		return false;
+	if (!HW_CAM_Avail())
+		return false;
 	data[0] = get(AR9170_MAC_REG_CAM_DATA0);
 	data[1] = get(AR9170_MAC_REG_CAM_DATA1);
 	data[2] = get(AR9170_MAC_REG_CAM_DATA2);
 	data[3] = get(AR9170_MAC_REG_CAM_DATA3);
+	return true;
 }
 
 void set_key(const struct carl9170_set_key_cmd *key)
@@ -123,10 +152,22 @@ void set_key(const struct carl9170_set_key_cmd *key)
 		nibbleId = key->user & 0x7;
 	}
 
-	HW_CAM_Read128(row, data);
+	/*
+	 * Re-enable the slot before any early return after the disable
+	 * above. A CAM engine timeout mid-install must not leave the slot
+	 * permanently disabled — at minimum, open/unencrypted frames must
+	 * still pass so the driver can retry the full key install.
+	 */
+	if (!HW_CAM_Read128(row, data)) {
+		enable_cam_user(key->user);
+		return;
+	}
 	data[wordId] &= (~(0xf << ((uint32_t) nibbleId * 4)));
 	data[wordId] |= (key->type << ((uint32_t) nibbleId * 4));
-	HW_CAM_Write128(row, data);
+	if (!HW_CAM_Write128(row, data)) {
+		enable_cam_user(key->user);
+		return;
+	}
 
 	/* Set MAC address */
 	if (key->user < AR9170_CAM_MAX_USER) {
@@ -136,17 +177,26 @@ void set_key(const struct carl9170_set_key_cmd *key)
 		row = (key->user >> 4) * 6;
 
 		for (i = 0; i < 6; i++) {
-			HW_CAM_Read128(row + i, data);
+			if (!HW_CAM_Read128(row + i, data)) {
+				enable_cam_user(key->user);
+				return;
+			}
 			data[wordId] &= (~(0xff << ((uint32_t) byteId * 8)));
 			data[wordId] |= (key->macAddr[i] << ((uint32_t) byteId * 8));
-			HW_CAM_Write128(row + i, data);
+			if (!HW_CAM_Write128(row + i, data)) {
+				enable_cam_user(key->user);
+				return;
+			}
 		}
 	}
 
 	/* Set key */
 	row = KEY_START_ADDR + (key->user * 2) + key->keyId;
 
-	HW_CAM_Write128(row, key->key);
+	if (!HW_CAM_Write128(row, key->key)) {
+		enable_cam_user(key->user);
+		return;
+	}
 
 	/* Enable Key */
 	enable_cam_user(key->user);

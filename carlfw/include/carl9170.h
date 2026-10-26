@@ -166,6 +166,22 @@ struct firmware_context_struct {
 			     int_desc_available,
 			     int_head_index,
 			     int_tail_index;
+
+		/*
+		 * Command response reserved pool (slots 0..CMD_RESERVED-1).
+		 * Separated from async events to prevent TX status / beacon
+		 * floods from starving command responses.
+		 */
+		unsigned int cmd_pending,
+			     cmd_head_index,
+			     cmd_tail_index;
+
+		/* Monotonic sequence counter across both pools */
+		unsigned int int_seq_counter;
+
+		/* Firmware-internal: commands dropped due to pool saturation */
+		unsigned int cmd_overflow;
+
 		struct dma_desc *int_desc;
 		struct carl9170_rsp int_buf[CARL9170_INT_RQ_CACHES];
 
