@@ -622,7 +622,7 @@ static uint8_t *beacon_find_ie(uint8_t ie, void *addr,
 
 	pos = mgmt->u.beacon.variable;
 	end = (uint8_t *) ((unsigned long)mgmt + (len - FCS_LEN));
-	while (pos < end) {
+	while (pos + 1 < end) {
 		if (pos + 2 + pos[1] > end)
 			return NULL;
 

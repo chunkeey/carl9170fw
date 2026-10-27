@@ -140,7 +140,7 @@ struct carl9170_sram_reserved {
  *				+--
  *				| unaccounted space / padding
  *				+--
- * 0x18000
+ * 0x118000
  */
 
 #define CARL9170_SRAM_RESERVED		(sizeof(struct carl9170_sram_reserved))
